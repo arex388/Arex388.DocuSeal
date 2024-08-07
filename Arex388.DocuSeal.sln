@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arex388.DocuSeal", "Arex388.DocuSeal\Arex388.DocuSeal.csproj", "{3613A017-C4DE-4262-8D52-19063A858ABC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arex388.DocuSeal.Benchmarks", "Arex388.DocuSeal.Benchmarks\Arex388.DocuSeal.Benchmarks.csproj", "{3C2FEBF6-FF8B-4FEF-AC28-D4EAC3331837}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arex388.DocuSeal.Tests", "Arex388.DocuSeal.Tests\Arex388.DocuSeal.Tests.csproj", "{EFE22AAC-5E27-49EF-B627-684A0F6E8CDA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{71BE63B5-4152-4BEA-BCAC-E999E37D3F54}"
+	ProjectSection(SolutionItems) = preProject
+		BENCHMARKS.md = BENCHMARKS.md
+		CHANGELOG.md = CHANGELOG.md
+		Directory.Build.props = Directory.Build.props
+		DocuSealClient.linq = DocuSealClient.linq
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3613A017-C4DE-4262-8D52-19063A858ABC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3613A017-C4DE-4262-8D52-19063A858ABC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3613A017-C4DE-4262-8D52-19063A858ABC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3613A017-C4DE-4262-8D52-19063A858ABC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C2FEBF6-FF8B-4FEF-AC28-D4EAC3331837}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C2FEBF6-FF8B-4FEF-AC28-D4EAC3331837}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C2FEBF6-FF8B-4FEF-AC28-D4EAC3331837}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C2FEBF6-FF8B-4FEF-AC28-D4EAC3331837}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFE22AAC-5E27-49EF-B627-684A0F6E8CDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFE22AAC-5E27-49EF-B627-684A0F6E8CDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFE22AAC-5E27-49EF-B627-684A0F6E8CDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFE22AAC-5E27-49EF-B627-684A0F6E8CDA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4B80E85F-4368-4FE4-928C-F9D12C276BAD}
+	EndGlobalSection
+EndGlobal
