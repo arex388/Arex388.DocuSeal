@@ -10,7 +10,7 @@ public sealed class Templates {
 
 	public Templates(
 		ITestOutputHelper console) {
-		var services = new ServiceCollection().AddDocuSealClient(new DocuSealClientOptions {
+		var services = new ServiceCollection().AddDocuSeal(new DocuSealClientOptions {
 			AuthorizationToken = Config.AuthorizationToken1
 		}).BuildServiceProvider();
 

@@ -9,7 +9,7 @@ public sealed class DocuSealClientFactory {
 
 	public DocuSealClientFactory(
 		ITestOutputHelper console) {
-		var services = new ServiceCollection().AddDocuSealClient().BuildServiceProvider();
+		var services = new ServiceCollection().AddDocuSeal().BuildServiceProvider();
 
 		_console = console;
 		_docuSealFactory = services.GetRequiredService<IDocuSealClientFactory>();

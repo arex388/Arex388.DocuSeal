@@ -6,7 +6,7 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<LangVersion>latest</LangVersion>
 		<PackageProjectUrl>https://github.com/arex388/Arex388.DocuSeal</PackageProjectUrl>
-		<PackageTags>docuseal docuseal.co arex388 pdf pdf-signature pdf-sign e-signature documents document document-signing open-source</PackageTags>
+		<PackageTags>docuseal docuseal.co arex388 pdf pdf-signature pdf-sign pdf-signing e-signature e-sign documents document document-signing document-sign document-signature open-source</PackageTags>
 		<RepositoryUrl>https://github.com/arex388/Arex388.DocuSeal</RepositoryUrl>
 		<TargetFramework>netstandard2.0</TargetFramework>
 	</PropertyGroup>

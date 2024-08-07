@@ -8,7 +8,7 @@ public class Submitters {
 	private readonly IDocuSealClient _docuSeal;
 
 	public Submitters() {
-		var services = new ServiceCollection().AddDocuSealClient(new DocuSealClientOptions {
+		var services = new ServiceCollection().AddDocuSeal(new DocuSealClientOptions {
 			AuthorizationToken = Config.AuthorizationToken
 		}).BuildServiceProvider();
 

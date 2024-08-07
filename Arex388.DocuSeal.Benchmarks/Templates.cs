@@ -8,7 +8,7 @@ public class Templates {
 	private readonly IDocuSealClient _docuSeal;
 
 	public Templates() {
-		var services = new ServiceCollection().AddDocuSealClient(new DocuSealClientOptions {
+		var services = new ServiceCollection().AddDocuSeal(new DocuSealClientOptions {
 			AuthorizationToken = Config.AuthorizationToken
 		}).BuildServiceProvider();
 

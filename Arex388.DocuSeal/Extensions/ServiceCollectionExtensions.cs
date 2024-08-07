@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions {
 	/// </summary>
 	/// <param name="services">The services collection.</param>
 	/// <returns>The services collection.</returns>
-	public static IServiceCollection AddDocuSealClient(
+	public static IServiceCollection AddDocuSeal(
 		this IServiceCollection services) => services.AddHttpClient()
 													 .AddMemoryCache()
 													 .AddValidatorsFromAssemblyContaining<IDocuSealClient>(includeInternalTypes: true, lifetime: ServiceLifetime.Singleton)
@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions {
 	/// <param name="services">The services collection.</param>
 	/// <param name="options">The client's configuration options.</param>
 	/// <returns>The services collection.</returns>
-	public static IServiceCollection AddDocuSealClient(
+	public static IServiceCollection AddDocuSeal(
 		this IServiceCollection services,
 		DocuSealClientOptions options) {
 		services.AddHttpClient<IDocuSealClient>(hc => {
