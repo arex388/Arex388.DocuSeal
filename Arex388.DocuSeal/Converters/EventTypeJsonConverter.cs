@@ -23,5 +23,16 @@ internal sealed class EventTypeJsonConverter :
 	public override void Write(
 		Utf8JsonWriter writer,
 		EventType value,
-		JsonSerializerOptions options) => throw new NotImplementedException();
+		JsonSerializerOptions options) {
+		var eventType = value switch {
+			EventType.CompletedForm => "complete_form",
+			EventType.OpenedEmail => "click_email",
+			EventType.SentEmail => "sent_email",
+			EventType.StartedForm => "start_form",
+			EventType.ViewedForm => "view_form",
+			_ => null
+		};
+
+		writer.WriteStringValue(eventType);
+	}
 }

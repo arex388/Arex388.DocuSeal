@@ -5,10 +5,11 @@
   <Namespace>Microsoft.Extensions.DependencyInjection</Namespace>
   <Namespace>System.Threading.Tasks</Namespace>
   <Namespace>Arex388.DocuSeal.Models</Namespace>
+  <Namespace>System.Text.Json</Namespace>
 </Query>
 
 private static readonly DocuSealClientOptions _options = new DocuSealClientOptions {
-	AuthorizationToken = Util.GetPassword("???")
+	AuthorizationToken = Util.GetPassword("")
 };
 
 async Task Main() {
@@ -17,14 +18,14 @@ async Task Main() {
 }
 
 public IDocuSealClient GetClientMultiple() {
-	var services = new ServiceCollection().AddDocuSealClient().BuildServiceProvider();
+	var services = new ServiceCollection().AddDocuSeal().BuildServiceProvider();
 	var docuSealFactory = services.GetRequiredService<IDocuSealClientFactory>();
 
 	return docuSealFactory.CreateClient(_options);
 }
 
 public IDocuSealClient GetClientSingle() {
-	var services = new ServiceCollection().AddDocuSealClient(_options).BuildServiceProvider();
+	var services = new ServiceCollection().AddDocuSeal(_options).BuildServiceProvider();
 
 	return services.GetRequiredService<IDocuSealClient>();
 }
