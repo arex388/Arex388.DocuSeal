@@ -3,12 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Arex388.DocuSeal.Tests;
 
-public sealed class Templates {
+public sealed class TemplatesTest {
 	private readonly ITestOutputHelper _console;
 	private readonly IDocuSealClient _docuSeal;
 	private readonly FileInfo _docuSealFile;
 
-	public Templates(
+	public TemplatesTest(
 		ITestOutputHelper console) {
 		var services = new ServiceCollection().AddDocuSeal(new DocuSealClientOptions {
 			AuthorizationToken = Config.AuthorizationToken1
@@ -30,11 +30,15 @@ public sealed class Templates {
 
 		var created = await _docuSeal.CreateTemplateAsync(_docuSealFile);
 
+		_console.WriteLineWithHeader(nameof(created), created);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
 
 		var archived = await _docuSeal.ArchiveTemplateAsync(created.Template!.Id);
+
+		_console.WriteLineWithHeader(nameof(archived), archived);
 
 		//	========================================================================
 		//	Assert
@@ -52,6 +56,8 @@ public sealed class Templates {
 
 		var created = await _docuSeal.CreateTemplateAsync(_docuSealFile);
 
+		_console.WriteLineWithHeader(nameof(created), created);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
@@ -59,6 +65,8 @@ public sealed class Templates {
 		var cloned = await _docuSeal.CloneTemplateAsync(new CloneTemplate.Request {
 			Id = created.Template!.Id
 		});
+
+		_console.WriteLineWithHeader(nameof(cloned), cloned);
 
 		//	========================================================================
 		//	Assert
@@ -85,6 +93,8 @@ public sealed class Templates {
 
 		var created = await _docuSeal.CreateTemplateAsync(_docuSealFile);
 
+		_console.WriteLineWithHeader(nameof(created), created);
+
 		//	========================================================================
 		//	Assert
 		//	========================================================================
@@ -108,6 +118,8 @@ public sealed class Templates {
 
 		var gotten = await _docuSeal.GetTemplateAsync(new TemplateId(0));
 
+		_console.WriteLineWithHeader(nameof(gotten), gotten);
+
 		//	========================================================================
 		//	Assert
 		//	========================================================================
@@ -125,11 +137,15 @@ public sealed class Templates {
 
 		var created = await _docuSeal.CreateTemplateAsync(_docuSealFile);
 
+		_console.WriteLineWithHeader(nameof(created), created);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
 
 		var gotten = await _docuSeal.GetTemplateAsync(created.Template!.Id);
+
+		_console.WriteLineWithHeader(nameof(gotten), gotten);
 
 		//	========================================================================
 		//	Assert
@@ -160,11 +176,13 @@ public sealed class Templates {
 			Take = take
 		});
 
+		_console.WriteLineWithHeader(nameof(listed), listed);
+
 		//	========================================================================
 		//	Assert
 		//	========================================================================
 
-		listed!.Errors.Count.Should().Be(errorsCount);
+		listed.Errors.Count.Should().Be(errorsCount);
 		listed.Success.Should().Be(success);
 		listed.Templates.Count.Should().Be(listed.Pagination.Count);
 	}
@@ -178,6 +196,9 @@ public sealed class Templates {
 		var created1 = await _docuSeal.CreateTemplateAsync(_docuSealFile);
 		var created2 = await _docuSeal.CreateTemplateAsync(_docuSealFile);
 
+		_console.WriteLineWithHeader(nameof(created1), created1);
+		_console.WriteLineWithHeader(nameof(created2), created2);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
@@ -188,6 +209,8 @@ public sealed class Templates {
 				created2.Template!.Id
 			]
 		});
+
+		_console.WriteLineWithHeader(nameof(merged), merged);
 
 		//	========================================================================
 		//	Assert
@@ -211,6 +234,8 @@ public sealed class Templates {
 
 		var created = await _docuSeal.CreateTemplateAsync(_docuSealFile);
 
+		_console.WriteLineWithHeader(nameof(created), created);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
@@ -220,6 +245,9 @@ public sealed class Templates {
 			Name = "DocuSeal (Updated)"
 		});
 		var gotten = await _docuSeal.GetTemplateAsync(created.Template.Id);
+
+		_console.WriteLineWithHeader(nameof(updated), updated);
+		_console.WriteLineWithHeader(nameof(gotten), gotten);
 
 		//	========================================================================
 		//	Assert
@@ -245,6 +273,8 @@ public sealed class Templates {
 		var created = await _docuSeal.CreateTemplateAsync(_docuSealFile);
 		var fileBytes = await File.ReadAllBytesAsync(_docuSealFile.FullName);
 
+		_console.WriteLineWithHeader(nameof(created), created);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
@@ -259,6 +289,9 @@ public sealed class Templates {
 			Id = created.Template!.Id
 		});
 		var gotten = await _docuSeal.GetTemplateAsync(created.Template.Id);
+
+		_console.WriteLineWithHeader(nameof(updated), updated);
+		_console.WriteLineWithHeader(nameof(gotten), gotten);
 
 		//	========================================================================
 		//	Assert

@@ -5,5 +5,5 @@ namespace Arex388.DocuSeal;
 /// <summary>
 /// An event's id.
 /// </summary>
-[StronglyTypedId(Template.Int)]
+[StronglyTypedId(StronglyTypedIds.Template.Int)]
 public readonly partial struct EventId;

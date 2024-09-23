@@ -27,10 +27,11 @@ public static class ServiceCollectionExtensions {
 	public static IServiceCollection AddDocuSeal(
 		this IServiceCollection services,
 		DocuSealClientOptions options) {
-		services.AddHttpClient<IDocuSealClient>(hc => {
-			hc.BaseAddress = new Uri("https://api.docuseal.co");
-			hc.DefaultRequestHeaders.Add("X-Auth-Token", options.AuthorizationToken);
-		});
+		services.AddHttpClient<IDocuSealClient>(
+			hc => {
+				hc.BaseAddress = HttpClientHelper.BaseAddress;
+				hc.DefaultRequestHeaders.Add("X-Auth-Token", options.AuthorizationToken);
+			});
 
 		return services.AddValidatorsFromAssemblyContaining<IDocuSealClient>(includeInternalTypes: true, lifetime: ServiceLifetime.Singleton)
 					   .AddSingleton<IDocuSealClient>(

@@ -11,20 +11,32 @@ As noted above, it is highly opinionated. The [API documentation](https://www.do
 
 #### Dependency Injection
 
-To configure dependency injection with ASP.NET and ASP.NET Core, use the `AddDocuSeal()` extensions on `IServiceCollection`. There are two signatures, with and without passing in a `DocuSealClientOptions` object. If the options object is passed to the extension, it will register `IDocuSealClient` for use with a single account, otherwise it will register `IDocuSealClientFactory` for use with multiple accounts.
+To configure dependency injection use the `AddDocuSeal()` extensions on `IServiceCollection`. There are two signatures, with and without passing in a `DocuSealClientOptions` object. If the options object is passed to the extension, it will register `IDocuSealClient` for use with a single account, otherwise it will register `IDocuSealClientFactory` for use with multiple accounts.
 
 
 
 #### How to Use
 
-For multiple accounts, use the `IDocuSealClientFactory` to create an instance per account.
+For a single account, inject the `IDocuSealClient`.
+
+```c#
+private readonly IDocuSealClient _docuSeal;
+
+_ = await _docuseal.ListTemplatesAsync();
+```
+
+
+
+For multiple accounts, inject the `IDocuSealClientFactory` to create an instance per account.
 
 ```c#
 private readonly IDocuSealClientFactory _docuSealFactory;
 
-var docuSeal = _docuSealFactory.CreateClient(new DocuSealClientOptions {
+var docuseal = _docuSealFactory.CreateClient(new DocuSealClientOptions {
     AuthorizationToken = "Your authorization token from DocuSeal.co"
 });
+
+_ = await docuseal.ListTemplatesAsync();
 ```
 
 

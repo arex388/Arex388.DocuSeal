@@ -1,14 +1,37 @@
 ﻿# Benchmarks
 
-- BenchmarkDotNet v0.14.0, Windows 10 (10.0.19045.4651/22H2/2022Update)
+- BenchmarkDotNet v0.14.0, Windows 10 (10.0.19045.4894/22H2/2022Update)
 - Intel Core i7-4790K CPU 4.00GHz (Haswell), 1 CPU, 8 logical and 4 physical cores
-- .NET SDK 8.0.303
-  - [Host]     : .NET 8.0.7 (8.0.724.31311), X64 RyuJIT AVX2
-  - DefaultJob : .NET 8.0.7 (8.0.724.31311), X64 RyuJIT AVX2
+- .NET SDK 8.0.400
+  - [Host]     : .NET 8.0.8 (8.0.824.36612), X64 RyuJIT AVX2
+  - DefaultJob : .NET 8.0.8 (8.0.824.36612), X64 RyuJIT AVX2
 
 
 
-#### 2024-08-06 (.NET8)
+
+#### 2024-09-23 (.NET 8)
+
+###### Submissions
+
+| Method |     Mean |   Error |  StdDev | Allocated |
+| ------ | -------: | ------: | ------: | --------: |
+| List   | 100.5 ms | 1.90 ms | 3.83 ms |  21.63 KB |
+
+###### Submitters
+
+| Method |     Mean |   Error |  StdDev | Allocated |
+| ------ | -------: | ------: | ------: | --------: |
+| List   | 104.4 ms | 2.09 ms | 3.92 ms |  11.87 KB |
+
+###### Templates
+
+| Method |     Mean |    Error |   StdDev | Allocated |
+| ------ | -------: | -------: | -------: | --------: |
+| List   | 84.27 ms | 1.162 ms | 1.031 ms |   7.47 KB |
+
+
+
+#### 2024-08-06 (.NET 8)
 
 ###### Submissions
 
@@ -30,7 +53,7 @@
 
 
 
-#### 2024-07-31 (.NET8)
+#### 2024-07-31 (.NET 8)
 
 ###### Submissions
 

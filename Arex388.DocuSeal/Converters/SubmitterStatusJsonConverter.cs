@@ -1,12 +1,10 @@
-﻿using Arex388.DocuSeal.Models;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Arex388.DocuSeal.Converters;
 
 internal sealed class SubmitterStatusJsonConverter :
 	JsonConverter<SubmitterStatus> {
-	/// <inheritdoc />
 	public override SubmitterStatus Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
@@ -18,7 +16,6 @@ internal sealed class SubmitterStatusJsonConverter :
 			_ => SubmitterStatus.Unknown
 		};
 
-	/// <inheritdoc />
 	public override void Write(
 		Utf8JsonWriter writer,
 		SubmitterStatus value,

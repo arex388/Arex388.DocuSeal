@@ -1,5 +1,4 @@
-﻿using Arex388.DocuSeal.Models;
-using FluentValidation;
+﻿using FluentValidation;
 using static Arex388.DocuSeal.GetSubmission;
 
 namespace Arex388.DocuSeal;

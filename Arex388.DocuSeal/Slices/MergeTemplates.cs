@@ -1,5 +1,4 @@
-﻿using Arex388.DocuSeal.Models;
-using FluentValidation;
+﻿using FluentValidation;
 using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.MergeTemplates;
 

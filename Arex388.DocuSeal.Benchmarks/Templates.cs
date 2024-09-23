@@ -16,5 +16,5 @@ public class Templates {
 	}
 
 	[Benchmark]
-	public Task List() => _docuSeal.ListTemplatesAsync();
+	public Task<ListTemplates.Response> List() => _docuSeal.ListTemplatesAsync();
 }

@@ -10,7 +10,6 @@ internal sealed class DocuSealClientFactory(
 	private static readonly MemoryCacheEntryOptions _cacheEntryOptions = new() {
 		SlidingExpiration = TimeSpan.MaxValue
 	};
-	private static readonly Uri _httpClientBaseAddress = new("https://api.docuseal.co");
 
 	private readonly IServiceProvider _services = services;
 	private readonly IMemoryCache _cache = cache;
@@ -28,7 +27,7 @@ internal sealed class DocuSealClientFactory(
 		var httpClientFactory = _services.GetRequiredService<IHttpClientFactory>();
 		var httpClient = httpClientFactory.CreateClient(nameof(IDocuSealClient));
 
-		httpClient.BaseAddress = _httpClientBaseAddress;
+		httpClient.BaseAddress = HttpClientHelper.BaseAddress;
 		httpClient.DefaultRequestHeaders.Add("X-Auth-Token", options.AuthorizationToken);
 
 		docuSealClient = new DocuSealClient(_services, httpClient);

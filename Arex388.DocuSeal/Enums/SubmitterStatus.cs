@@ -1,4 +1,4 @@
-﻿namespace Arex388.DocuSeal.Models;
+﻿namespace Arex388.DocuSeal;
 
 /// <summary>
 /// A submitter status.

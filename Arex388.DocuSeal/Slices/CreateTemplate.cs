@@ -1,6 +1,4 @@
-﻿using Arex388.DocuSeal.Converters;
-using Arex388.DocuSeal.Models;
-using FluentValidation;
+﻿using FluentValidation;
 using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.CreateTemplate;
 
@@ -89,7 +87,7 @@ public static class CreateTemplate {
 		/// <summary>
 		/// Type of the field (e.g., text, signature, date, initials).
 		/// </summary>
-		[JsonConverter(typeof(FieldTypeJsonConverter))]
+		//[JsonConverter(typeof(FieldTypeJsonConverter))]
 		public required FieldType Type { get; init; }
 	}
 

@@ -1,12 +1,10 @@
-﻿using Arex388.DocuSeal.Models;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Arex388.DocuSeal.Converters;
 
 internal sealed class SubmitterOrderJsonConverter :
 	JsonConverter<SubmitterOrder> {
-	/// <inheritdoc />
 	public override SubmitterOrder Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
@@ -16,7 +14,6 @@ internal sealed class SubmitterOrderJsonConverter :
 			_ => SubmitterOrder.Unknown
 		};
 
-	/// <inheritdoc />
 	public override void Write(
 		Utf8JsonWriter writer,
 		SubmitterOrder value,

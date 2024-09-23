@@ -1,13 +1,11 @@
-﻿using Arex388.DocuSeal.Converters;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace Arex388.DocuSeal.Models;
+namespace Arex388.DocuSeal;
 
 /// <summary>
 /// A submitter.
 /// </summary>
-public sealed class Submitter :
-	IErrable {
+public sealed class Submitter {
 	/// <summary>
 	/// The submitter's completed timestamp.
 	/// </summary>
@@ -25,8 +23,8 @@ public sealed class Submitter :
 	/// </summary>
 	public string Email { get; init; } = null!;
 
-	/// <inheritdoc />
-	public string? Error { get; init; }
+	[JsonInclude]
+	internal string? Error { get; init; }
 
 	/// <summary>
 	/// The submitter's id.
@@ -63,7 +61,7 @@ public sealed class Submitter :
 	/// <summary>
 	/// The submitter's status.
 	/// </summary>
-	[JsonConverter(typeof(SubmitterStatusJsonConverter))]
+	//[JsonConverter(typeof(SubmitterStatusJsonConverter))]
 	public SubmitterStatus Status { get; init; }
 
 	/// <summary>

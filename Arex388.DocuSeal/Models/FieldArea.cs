@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Arex388.DocuSeal.Models;
+namespace Arex388.DocuSeal;
 
 /// <summary>
 /// A field area.

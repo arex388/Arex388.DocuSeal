@@ -6,17 +6,19 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<LangVersion>latest</LangVersion>
 		<PackageProjectUrl>https://github.com/arex388/Arex388.DocuSeal</PackageProjectUrl>
-		<PackageTags>docuseal docuseal.co arex388 pdf pdf-signature pdf-sign pdf-signing e-signature e-sign documents document document-signing document-sign document-signature open-source</PackageTags>
+		<PackageTags>docuseal docuseal.co arex388 document document-sign document-signing document-signature documents e-sign e-signing e-signature pdf pdf-sign pdf-signing pdf-signature open-source</PackageTags>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<RepositoryUrl>https://github.com/arex388/Arex388.DocuSeal</RepositoryUrl>
 		<TargetFramework>netstandard2.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FluentValidation" Version="11.9.2" />
-		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.2" />
+		<PackageReference Include="FluentValidation" Version="11.10.0" />
+		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.10.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
 		<PackageReference Include="StronglyTypedId" Version="1.0.0-beta08" />
 		<PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
 		<PackageReference Include="System.Text.Json" Version="8.0.4" />

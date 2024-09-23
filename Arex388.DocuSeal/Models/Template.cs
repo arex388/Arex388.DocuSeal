@@ -1,12 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Arex388.DocuSeal.Models;
+namespace Arex388.DocuSeal;
 
 /// <summary>
 /// A template.
 /// </summary>
-public sealed class Template :
-	IErrable {
+public sealed class Template {
 	/// <summary>
 	/// The template's archived timestamp.
 	/// </summary>
@@ -29,8 +28,8 @@ public sealed class Template :
 	/// </summary>
 	public IList<Document> Documents { get; init; } = [];
 
-	/// <inheritdoc />
-	public string? Error { get; init; }
+	[JsonInclude]
+	internal string? Error { get; init; }
 
 	/// <summary>
 	/// The template's fields.

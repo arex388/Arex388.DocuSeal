@@ -3,11 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Arex388.DocuSeal.Tests;
 
-public sealed class Submissions {
+public sealed class SubmissionsTest {
 	private readonly ITestOutputHelper _console;
 	private readonly IDocuSealClient _docuSeal;
 
-	public Submissions(
+	public SubmissionsTest(
 		ITestOutputHelper console) {
 		var services = new ServiceCollection().AddDocuSeal(new DocuSealClientOptions {
 			AuthorizationToken = Config.AuthorizationToken1
@@ -26,11 +26,16 @@ public sealed class Submissions {
 		var template = await Utilities.CreateTemplateAsync(_docuSeal);
 		var created = await Utilities.CreateSubmissionAsync(_docuSeal, template.Template!);
 
+		_console.WriteLineWithHeader(nameof(template), template);
+		_console.WriteLineWithHeader(nameof(created), created);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
 
 		var archived = await _docuSeal.ArchiveSubmissionAsync(created.Submission!.Id);
+
+		_console.WriteLineWithHeader(nameof(archived), archived);
 
 		//	========================================================================
 		//	Assert
@@ -50,11 +55,15 @@ public sealed class Submissions {
 
 		var template = await Utilities.CreateTemplateAsync(_docuSeal);
 
+		_console.WriteLineWithHeader(nameof(template), template);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
 
 		var created = await Utilities.CreateSubmissionAsync(_docuSeal, template.Template!);
+
+		_console.WriteLineWithHeader(nameof(created), created);
 
 		//	========================================================================
 		//	Assert
@@ -76,11 +85,16 @@ public sealed class Submissions {
 		var template = await Utilities.CreateTemplateAsync(_docuSeal);
 		var created = await Utilities.CreateSubmissionAsync(_docuSeal, template.Template!);
 
+		_console.WriteLineWithHeader(nameof(template), template);
+		_console.WriteLineWithHeader(nameof(created), created);
+
 		//	========================================================================
 		//	Act
 		//	========================================================================
 
 		var gotten = await _docuSeal.GetSubmissionAsync(created.Submission!.Id);
+
+		_console.WriteLineWithHeader(nameof(gotten), gotten);
 
 		//	========================================================================
 		//	Assert
@@ -114,11 +128,13 @@ public sealed class Submissions {
 			Take = take
 		});
 
+		_console.WriteLineWithHeader(nameof(listed), listed);
+
 		//	========================================================================
 		//	Assert
 		//	========================================================================
 
-		listed!.Errors.Count.Should().Be(errorsCount);
+		listed.Errors.Count.Should().Be(errorsCount);
 		listed.Success.Should().Be(success);
 		listed.Submissions.Count.Should().Be(listed.Pagination.Count);
 	}

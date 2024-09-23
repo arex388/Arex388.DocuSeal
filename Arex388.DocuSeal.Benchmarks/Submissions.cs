@@ -16,5 +16,5 @@ public class Submissions {
 	}
 
 	[Benchmark]
-	public Task List() => _docuSeal.ListSubmissionsAsync();
+	public Task<ListSubmissions.Response> List() => _docuSeal.ListSubmissionsAsync();
 }

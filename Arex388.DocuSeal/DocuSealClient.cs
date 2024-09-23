@@ -1,4 +1,4 @@
-﻿using Arex388.DocuSeal.Models;
+﻿using Arex388.DocuSeal.Converters;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
@@ -6,56 +6,38 @@ using System.Text.Json;
 
 namespace Arex388.DocuSeal;
 
-internal sealed class DocuSealClient :
+internal sealed class DocuSealClient(
+	IServiceProvider services,
+	HttpClient? httpClient = null) :
 	IDocuSealClient {
 	private static readonly JsonSerializerOptions _jsonSerializerOptions = new() {
+		Converters = {
+			new EventTypeJsonConverter(),
+			new FieldTypeJsonConverter(),
+			new SubmitterOrderJsonConverter(),
+			new SubmitterStatusJsonConverter()
+		},
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 	};
 
-	private readonly IValidator<ArchiveSubmission.Request> _archiveSubmissionRequestValidator;
-	private readonly IValidator<ArchiveTemplate.Request> _archiveTemplateRequestValidator;
-	private readonly IValidator<CloneTemplate.Request> _cloneTemplateRequestValidator;
-	private readonly IValidator<CreateSubmission.Request> _createSubmissionRequestValidator;
-	//private readonly IValidator<CreateSubmissionSimple.Request> _createSubmissionSimpleRequestValidator;
-	private readonly IValidator<CreateTemplate.Request> _createTemplateRequestValidator;
-	private readonly IValidator<GetSubmission.Request> _getSubmissionRequestValidator;
-	private readonly IValidator<GetSubmitter.Request> _getSubmitterRequestValidator;
-	private readonly IValidator<GetTemplate.Request> _getTemplateRequestValidator;
-	private readonly HttpClient _httpClient;
-	private readonly IValidator<ListSubmissions.Request> _listSubmissionsRequestValidator;
-	private readonly IValidator<ListSubmitters.Request> _listSubmittersRequestValidator;
-	private readonly IValidator<ListTemplates.Request> _listTemplatesRequestValidator;
-	private readonly IValidator<MergeTemplates.Request> _mergeTemplateRequestValidator;
-	private readonly IServiceProvider _services;
-	private readonly IValidator<UpdateSubmitter.Request> _updateSubmitterRequestValidator;
-	private readonly IValidator<UpdateTemplate.Request> _updateTemplateRequestValidator;
-	private readonly IValidator<UpdateTemplateDocuments.Request> _updateTemplateDocumentsRequestValidator;
-
-	public DocuSealClient(
-		IServiceProvider services,
-		HttpClient? httpClient = null) {
-		var httpClientFactory = services.GetRequiredService<IHttpClientFactory>();
-
-		_archiveSubmissionRequestValidator = services.GetRequiredService<IValidator<ArchiveSubmission.Request>>();
-		_archiveTemplateRequestValidator = services.GetRequiredService<IValidator<ArchiveTemplate.Request>>();
-		_cloneTemplateRequestValidator = services.GetRequiredService<IValidator<CloneTemplate.Request>>();
-		_createSubmissionRequestValidator = services.GetRequiredService<IValidator<CreateSubmission.Request>>();
-		//_createSubmissionSimpleRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionSimple.Request>>();
-		_createTemplateRequestValidator = services.GetRequiredService<IValidator<CreateTemplate.Request>>();
-		_httpClient = httpClient
-					  ?? httpClientFactory.CreateClient(nameof(IDocuSealClient));
-		_getSubmissionRequestValidator = services.GetRequiredService<IValidator<GetSubmission.Request>>();
-		_getSubmitterRequestValidator = services.GetRequiredService<IValidator<GetSubmitter.Request>>();
-		_getTemplateRequestValidator = services.GetRequiredService<IValidator<GetTemplate.Request>>();
-		_listSubmissionsRequestValidator = services.GetRequiredService<IValidator<ListSubmissions.Request>>();
-		_listSubmittersRequestValidator = services.GetRequiredService<IValidator<ListSubmitters.Request>>();
-		_listTemplatesRequestValidator = services.GetRequiredService<IValidator<ListTemplates.Request>>();
-		_mergeTemplateRequestValidator = services.GetRequiredService<IValidator<MergeTemplates.Request>>();
-		_services = services;
-		_updateSubmitterRequestValidator = services.GetRequiredService<IValidator<UpdateSubmitter.Request>>();
-		_updateTemplateRequestValidator = services.GetRequiredService<IValidator<UpdateTemplate.Request>>();
-		_updateTemplateDocumentsRequestValidator = services.GetRequiredService<IValidator<UpdateTemplateDocuments.Request>>();
-	}
+	private readonly IValidator<ArchiveSubmission.Request> _archiveSubmissionRequestValidator = services.GetRequiredService<IValidator<ArchiveSubmission.Request>>();
+	private readonly IValidator<ArchiveTemplate.Request> _archiveTemplateRequestValidator = services.GetRequiredService<IValidator<ArchiveTemplate.Request>>();
+	private readonly IValidator<CloneTemplate.Request> _cloneTemplateRequestValidator = services.GetRequiredService<IValidator<CloneTemplate.Request>>();
+	private readonly IValidator<CreateSubmission.Request> _createSubmissionRequestValidator = services.GetRequiredService<IValidator<CreateSubmission.Request>>();
+	//private readonly IValidator<CreateSubmissionSimple.Request> _createSubmissionSimpleRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionSimple.Request>>();
+	private readonly IValidator<CreateTemplate.Request> _createTemplateRequestValidator = services.GetRequiredService<IValidator<CreateTemplate.Request>>();
+	private readonly IValidator<GetSubmission.Request> _getSubmissionRequestValidator = services.GetRequiredService<IValidator<GetSubmission.Request>>();
+	private readonly IValidator<GetSubmitter.Request> _getSubmitterRequestValidator = services.GetRequiredService<IValidator<GetSubmitter.Request>>();
+	private readonly IValidator<GetTemplate.Request> _getTemplateRequestValidator = services.GetRequiredService<IValidator<GetTemplate.Request>>();
+	private readonly HttpClient _httpClient = httpClient
+											  ?? services.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(IDocuSealClient));
+	private readonly IValidator<ListSubmissions.Request> _listSubmissionsRequestValidator = services.GetRequiredService<IValidator<ListSubmissions.Request>>();
+	private readonly IValidator<ListSubmitters.Request> _listSubmittersRequestValidator = services.GetRequiredService<IValidator<ListSubmitters.Request>>();
+	private readonly IValidator<ListTemplates.Request> _listTemplatesRequestValidator = services.GetRequiredService<IValidator<ListTemplates.Request>>();
+	private readonly IValidator<MergeTemplates.Request> _mergeTemplateRequestValidator = services.GetRequiredService<IValidator<MergeTemplates.Request>>();
+	private readonly IValidator<UpdateSubmitter.Request> _updateSubmitterRequestValidator = services.GetRequiredService<IValidator<UpdateSubmitter.Request>>();
+	private readonly IValidator<UpdateTemplate.Request> _updateTemplateRequestValidator = services.GetRequiredService<IValidator<UpdateTemplate.Request>>();
+	private readonly IValidator<UpdateTemplateDocuments.Request> _updateTemplateDocumentsRequestValidator = services.GetRequiredService<IValidator<UpdateTemplateDocuments.Request>>();
 
 	//	============================================================================
 	//	Actions
@@ -85,9 +67,13 @@ internal sealed class DocuSealClient :
 		try {
 			var submission = await _httpClient.DeleteFromJsonAsync<Submission>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (submission is null) {
+				return ArchiveSubmission.Response.Failed;
+			}
+
 			return new ArchiveSubmission.Response {
-				Errors = submission.HasErred()
-					? [submission!.Error!]
+				Errors = submission.Error.HasValue()
+					? [submission.Error]
 					: []
 			};
 		} catch {
@@ -119,9 +105,13 @@ internal sealed class DocuSealClient :
 		try {
 			var template = await _httpClient.DeleteFromJsonAsync<Template>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (template is null) {
+				return ArchiveTemplate.Response.Failed;
+			}
+
 			return new ArchiveTemplate.Response {
-				Errors = template.HasErred()
-					? [template!.Error!]
+				Errors = template.Error.HasValue()
+					? [template.Error]
 					: []
 			};
 		} catch {
@@ -148,11 +138,15 @@ internal sealed class DocuSealClient :
 			var response = await _httpClient.PostAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (template is null) {
+				return CloneTemplate.Response.Failed;
+			}
+
 			return new CloneTemplate.Response {
-				Errors = template.HasErred()
-					? [template!.Error!]
+				Errors = template.Error.HasValue()
+					? [template.Error]
 					: [],
-				Template = template.HasErred()
+				Template = template.Error.HasValue()
 					? null
 					: template
 			};
@@ -189,11 +183,15 @@ internal sealed class DocuSealClient :
 				submission = JsonSerializer.Deserialize<Submission>(responseContent, _jsonSerializerOptions);
 			}
 
+			if (submission is null) {
+				return CreateSubmission.Response.Failed;
+			}
+
 			return new CreateSubmission.Response {
-				Errors = submission.HasErred()
-					? [submission!.Error!]
+				Errors = submission.Error.HasValue()
+					? [submission.Error]
 					: [],
-				Submission = submission.HasErred()
+				Submission = submission.Error.HasValue()
 					? null
 					: submission
 			};
@@ -231,8 +229,8 @@ internal sealed class DocuSealClient :
 	//		}
 
 	//		return new CreateSubmissionSimple.Response {
-	//			Errors = submission.HasErred()
-	//				? [submission!.Error!]
+	//			Errors = submission!.Error.HasValue()
+	//				? [submission.Error]
 	//				: []
 	//		};
 	//	} catch {
@@ -288,11 +286,15 @@ internal sealed class DocuSealClient :
 			var response = await _httpClient.PostAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (template is null) {
+				return CreateTemplate.Response.Failed;
+			}
+
 			return new CreateTemplate.Response {
-				Errors = template.HasErred()
-					? [template!.Error!]
+				Errors = template.Error.HasValue()
+					? [template.Error]
 					: [],
-				Template = template.HasErred()
+				Template = template.Error.HasValue()
 					? null
 					: template
 			};
@@ -324,13 +326,21 @@ internal sealed class DocuSealClient :
 
 		try {
 			var response = await _httpClient.GetAsync(request.Endpoint, cancellationToken).ConfigureAwait(false);
-			var submission = await response.Content.ReadFromJsonAsync<Submission>(cancellationToken).ConfigureAwait(false);
+			var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+			Console.WriteLine(responseContent);
+
+			var submission = await response.Content.ReadFromJsonAsync<Submission>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+
+			if (submission is null) {
+				return GetSubmission.Response.Failed;
+			}
 
 			return new GetSubmission.Response {
-				Errors = submission.HasErred()
-					? [submission!.Error!]
+				Errors = submission.Error.HasValue()
+					? [submission.Error]
 					: [],
-				Submission = submission.HasErred()
+				Submission = submission.Error.HasValue()
 					? null
 					: submission
 			};
@@ -364,11 +374,15 @@ internal sealed class DocuSealClient :
 			var response = await _httpClient.GetAsync(request.Endpoint, cancellationToken).ConfigureAwait(false);
 			var submitter = await response.Content.ReadFromJsonAsync<Submitter>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (submitter is null) {
+				return GetSubmitter.Response.Failed;
+			}
+
 			return new GetSubmitter.Response {
-				Errors = submitter.HasErred()
-					? [submitter!.Error!]
+				Errors = submitter.Error.HasValue()
+					? [submitter.Error]
 					: [],
-				Submitter = submitter.HasErred()
+				Submitter = submitter.Error.HasValue()
 					? null
 					: submitter
 			};
@@ -401,11 +415,15 @@ internal sealed class DocuSealClient :
 		try {
 			var template = await _httpClient.GetFromJsonAsync<Template>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (template is null) {
+				return GetTemplate.Response.Failed;
+			}
+
 			return new GetTemplate.Response {
-				Errors = template.HasErred()
-					? [template!.Error!]
+				Errors = template.Error.HasValue()
+					? [template.Error]
 					: [],
-				Template = template.HasErred()
+				Template = template.Error.HasValue()
 					? null
 					: template
 			};
@@ -415,13 +433,11 @@ internal sealed class DocuSealClient :
 	}
 
 	/// <inheritdoc />
-	[NotNull]
-	public Task<ListSubmissions.Response?> ListSubmissionsAsync(
+	public Task<ListSubmissions.Response> ListSubmissionsAsync(
 		CancellationToken cancellationToken = default) => ListSubmissionsAsync(ListSubmissions.Request.Instance, cancellationToken);
 
 	/// <inheritdoc />
-	[NotNull]
-	public async Task<ListSubmissions.Response?> ListSubmissionsAsync(
+	public async Task<ListSubmissions.Response> ListSubmissionsAsync(
 		ListSubmissions.Request request,
 		CancellationToken cancellationToken = default) {
 		if (cancellationToken.IsSupportedAndCancelled()) {
@@ -436,20 +452,21 @@ internal sealed class DocuSealClient :
 		}
 
 		try {
-			return await _httpClient.GetFromJsonAsync<ListSubmissions.Response?>(request.Endpoint, cancellationToken).ConfigureAwait(false);
+			var submissions = await _httpClient.GetFromJsonAsync<ListSubmissions.Response>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+
+			return submissions
+				   ?? ListSubmissions.Response.Failed;
 		} catch {
 			return ListSubmissions.Response.Failed;
 		}
 	}
 
 	/// <inheritdoc />
-	[NotNull]
-	public Task<ListSubmitters.Response?> ListSubmittersAsync(
+	public Task<ListSubmitters.Response> ListSubmittersAsync(
 		CancellationToken cancellationToken = default) => ListSubmittersAsync(ListSubmitters.Request.Instance, cancellationToken);
 
 	/// <inheritdoc />
-	[NotNull]
-	public async Task<ListSubmitters.Response?> ListSubmittersAsync(
+	public async Task<ListSubmitters.Response> ListSubmittersAsync(
 		ListSubmitters.Request request,
 		CancellationToken cancellationToken = default) {
 		if (cancellationToken.IsSupportedAndCancelled()) {
@@ -464,20 +481,21 @@ internal sealed class DocuSealClient :
 		}
 
 		try {
-			return await _httpClient.GetFromJsonAsync<ListSubmitters.Response?>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+			var submitters = await _httpClient.GetFromJsonAsync<ListSubmitters.Response>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+
+			return submitters
+				   ?? ListSubmitters.Response.Failed;
 		} catch {
 			return ListSubmitters.Response.Failed;
 		}
 	}
 
 	/// <inheritdoc />
-	[NotNull]
-	public Task<ListTemplates.Response?> ListTemplatesAsync(
+	public Task<ListTemplates.Response> ListTemplatesAsync(
 		CancellationToken cancellationToken = default) => ListTemplatesAsync(ListTemplates.Request.Instance, cancellationToken);
 
 	/// <inheritdoc />
-	[NotNull]
-	public async Task<ListTemplates.Response?> ListTemplatesAsync(
+	public async Task<ListTemplates.Response> ListTemplatesAsync(
 		ListTemplates.Request request,
 		CancellationToken cancellationToken = default) {
 		if (cancellationToken.IsSupportedAndCancelled()) {
@@ -492,7 +510,10 @@ internal sealed class DocuSealClient :
 		}
 
 		try {
-			return await _httpClient.GetFromJsonAsync<ListTemplates.Response?>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+			var templates = await _httpClient.GetFromJsonAsync<ListTemplates.Response>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+
+			return templates
+				   ?? ListTemplates.Response.Failed;
 		} catch {
 			return ListTemplates.Response.Failed;
 		}
@@ -517,11 +538,15 @@ internal sealed class DocuSealClient :
 			var response = await _httpClient.PostAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (template is null) {
+				return MergeTemplates.Response.Failed;
+			}
+
 			return new MergeTemplates.Response {
-				Errors = template.HasErred()
-					? [template!.Error!]
+				Errors = template.Error.HasValue()
+					? [template.Error]
 					: [],
-				Template = template.HasErred()
+				Template = template.Error.HasValue()
 					? null
 					: template
 			};
@@ -549,9 +574,13 @@ internal sealed class DocuSealClient :
 			var response = await _httpClient.PutAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 			var submitter = await response.Content.ReadFromJsonAsync<Submitter>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (submitter is null) {
+				return UpdateSubmitter.Response.Failed;
+			}
+
 			return new UpdateSubmitter.Response {
-				Errors = submitter.HasErred()
-					? [submitter!.Error!]
+				Errors = submitter.Error.HasValue()
+					? [submitter.Error]
 					: []
 			};
 		} catch {
@@ -578,9 +607,13 @@ internal sealed class DocuSealClient :
 			var response = await _httpClient.PutAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (template is null) {
+				return UpdateTemplate.Response.Failed;
+			}
+
 			return new UpdateTemplate.Response {
-				Errors = template.HasErred()
-					? [template!.Error!]
+				Errors = template.Error.HasValue()
+					? [template.Error]
 					: []
 			};
 		} catch {
@@ -607,9 +640,13 @@ internal sealed class DocuSealClient :
 			var response = await _httpClient.PutAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
+			if (template is null) {
+				return UpdateTemplateDocuments.Response.Failed;
+			}
+
 			return new UpdateTemplateDocuments.Response {
-				Errors = template.HasErred()
-					? [template!.Error!]
+				Errors = template.Error.HasValue()
+					? [template.Error]
 					: []
 			};
 		} catch {

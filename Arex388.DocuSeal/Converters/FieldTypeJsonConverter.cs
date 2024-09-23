@@ -1,12 +1,10 @@
-﻿using Arex388.DocuSeal.Models;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Arex388.DocuSeal.Converters;
 
 internal sealed class FieldTypeJsonConverter :
 	JsonConverter<FieldType> {
-	/// <inheritdoc />
 	public override FieldType Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
@@ -27,7 +25,6 @@ internal sealed class FieldTypeJsonConverter :
 			_ => FieldType.Text
 		};
 
-	/// <inheritdoc />
 	public override void Write(
 		Utf8JsonWriter writer,
 		FieldType value,

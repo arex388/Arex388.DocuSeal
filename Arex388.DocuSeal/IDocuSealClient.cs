@@ -103,8 +103,7 @@ public interface IDocuSealClient {
 	/// </summary>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>A response indicating if the operation completed with the submissions.</returns>
-	[NotNull]
-	Task<ListSubmissions.Response?> ListSubmissionsAsync(
+	Task<ListSubmissions.Response> ListSubmissionsAsync(
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -113,8 +112,7 @@ public interface IDocuSealClient {
 	/// <param name="request">The list submissions request.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>A response indicating if the operation completed with the submissions.</returns>
-	[NotNull]
-	Task<ListSubmissions.Response?> ListSubmissionsAsync(
+	Task<ListSubmissions.Response> ListSubmissionsAsync(
 		ListSubmissions.Request request,
 		CancellationToken cancellationToken = default);
 
@@ -123,8 +121,7 @@ public interface IDocuSealClient {
 	/// </summary>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>A response indicating if the operation completed with the submitters.</returns>
-	[NotNull]
-	Task<ListSubmitters.Response?> ListSubmittersAsync(
+	Task<ListSubmitters.Response> ListSubmittersAsync(
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -133,8 +130,7 @@ public interface IDocuSealClient {
 	/// <param name="request">The list submitters request.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>A response indicating if the operation completed with the submitters.</returns>
-	[NotNull]
-	Task<ListSubmitters.Response?> ListSubmittersAsync(
+	Task<ListSubmitters.Response> ListSubmittersAsync(
 		ListSubmitters.Request request,
 		CancellationToken cancellationToken = default);
 
@@ -143,8 +139,7 @@ public interface IDocuSealClient {
 	/// </summary>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>A response indicating if the operation completed with the templates.</returns>
-	[NotNull]
-	Task<ListTemplates.Response?> ListTemplatesAsync(
+	Task<ListTemplates.Response> ListTemplatesAsync(
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
@@ -153,8 +148,7 @@ public interface IDocuSealClient {
 	/// <param name="request">The list templates request.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>A response indicating if the operation completed with the templates.</returns>
-	[NotNull]
-	Task<ListTemplates.Response?> ListTemplatesAsync(
+	Task<ListTemplates.Response> ListTemplatesAsync(
 		ListTemplates.Request request,
 		CancellationToken cancellationToken = default);
 

@@ -1,6 +1,4 @@
-﻿using Arex388.DocuSeal.Converters;
-using Arex388.DocuSeal.Models;
-using FluentValidation;
+﻿using FluentValidation;
 using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.CreateSubmission;
 
@@ -48,7 +46,7 @@ public static class CreateSubmission {
 		/// <summary>
 		/// Pass 'random' to send signature request emails to all parties right away. The order is 'preserved' by default so the second party will receive a signature request email only after the document is signed by the first party.
 		/// </summary>
-		[JsonConverter(typeof(SubmitterOrderJsonConverter))]
+		//[JsonConverter(typeof(SubmitterOrderJsonConverter))]
 		public SubmitterOrder Order { get; init; } = SubmitterOrder.Preserved;
 
 		/// <summary>

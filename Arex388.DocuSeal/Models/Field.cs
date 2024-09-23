@@ -1,7 +1,6 @@
-﻿using Arex388.DocuSeal.Converters;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace Arex388.DocuSeal.Models;
+namespace Arex388.DocuSeal;
 
 /// <summary>
 /// A field.
@@ -38,6 +37,6 @@ public sealed class Field {
 	/// <summary>
 	/// The field's type.
 	/// </summary>
-	[JsonConverter(typeof(FieldTypeJsonConverter))]
+	//[JsonConverter(typeof(FieldTypeJsonConverter))]
 	public FieldType Type { get; init; }
 }

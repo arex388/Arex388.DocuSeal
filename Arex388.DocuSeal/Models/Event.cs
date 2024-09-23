@@ -1,7 +1,6 @@
-﻿using Arex388.DocuSeal.Converters;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace Arex388.DocuSeal.Models;
+namespace Arex388.DocuSeal;
 
 /// <summary>
 /// An event.
@@ -27,6 +26,6 @@ public sealed class Event {
 	/// <summary>
 	/// The event's type.
 	/// </summary>
-	[JsonConverter(typeof(EventTypeJsonConverter)), JsonPropertyName("event_type")]
+	[/*JsonConverter(typeof(EventTypeJsonConverter)), */JsonPropertyName("event_type")]
 	public EventType Type { get; init; }
 }

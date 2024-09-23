@@ -1,13 +1,11 @@
-﻿using Arex388.DocuSeal.Converters;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace Arex388.DocuSeal.Models;
+namespace Arex388.DocuSeal;
 
 /// <summary>
 /// A submission.
 /// </summary>
-public sealed class Submission :
-	IErrable {
+public sealed class Submission {
 	/// <summary>
 	/// The submission's archived timestamp.
 	/// </summary>
@@ -43,8 +41,8 @@ public sealed class Submission :
 	/// </summary>
 	public string Email { get; init; } = null!;
 
-	/// <inheritdoc />
-	public string? Error { get; init; }
+	[JsonInclude]
+	internal string? Error { get; init; }
 
 	/// <summary>
 	/// The submission's events.
@@ -78,7 +76,7 @@ public sealed class Submission :
 	/// <summary>
 	/// The submission's status.
 	/// </summary>
-	[JsonConverter(typeof(SubmitterStatusJsonConverter))]
+	//[JsonConverter(typeof(SubmitterStatusJsonConverter))]
 	public SubmitterStatus Status { get; init; }
 
 	/// <summary>
@@ -89,7 +87,7 @@ public sealed class Submission :
 	/// <summary>
 	/// The submission's submitters order.
 	/// </summary>
-	[JsonConverter(typeof(SubmitterOrderJsonConverter)), JsonPropertyName("submitters_order")]
+	[/*JsonConverter(typeof(SubmitterOrderJsonConverter)), */JsonPropertyName("submitters_order")]
 	public SubmitterOrder SubmittersOrder { get; init; }
 
 	/// <summary>

@@ -11,7 +11,7 @@ public abstract class ResponseBase<TResponse>
 	/// <summary>
 	/// The request's errors, if any.
 	/// </summary>
-	public IList<string> Errors { get; init; } = [];
+	public IList<string> Errors { get; internal set; } = [];
 
 	/// <summary>
 	/// The request's status.

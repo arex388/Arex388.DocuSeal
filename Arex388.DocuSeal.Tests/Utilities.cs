@@ -1,6 +1,4 @@
-﻿using Arex388.DocuSeal.Models;
-
-namespace Arex388.DocuSeal.Tests;
+﻿namespace Arex388.DocuSeal.Tests;
 
 internal static class Utilities {
 	private static readonly FileInfo _file;

@@ -3,11 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Arex388.DocuSeal.Tests;
 
-public sealed class DocuSealClientFactory {
+public sealed class DocuSealClientFactoryTest {
 	private readonly ITestOutputHelper _console;
 	private readonly IDocuSealClientFactory _docuSealFactory;
 
-	public DocuSealClientFactory(
+	public DocuSealClientFactoryTest(
 		ITestOutputHelper console) {
 		var services = new ServiceCollection().AddDocuSeal().BuildServiceProvider();
 
