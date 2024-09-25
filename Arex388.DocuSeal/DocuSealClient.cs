@@ -43,7 +43,6 @@ internal sealed class DocuSealClient(
 	//	Actions
 	//	============================================================================
 
-	/// <inheritdoc />
 	public Task<ArchiveSubmission.Response> ArchiveSubmissionAsync(
 		SubmissionId id,
 		CancellationToken cancellationToken = default) => ArchiveSubmissionAsync(new ArchiveSubmission.Request {
@@ -81,7 +80,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public Task<ArchiveTemplate.Response> ArchiveTemplateAsync(
 		TemplateId id,
 		CancellationToken cancellationToken = default) => ArchiveTemplateAsync(new ArchiveTemplate.Request {
@@ -119,7 +117,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public async Task<CloneTemplate.Response> CloneTemplateAsync(
 		CloneTemplate.Request request,
 		CancellationToken cancellationToken = default) {
@@ -155,7 +152,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public async Task<CreateSubmission.Response> CreateSubmissionAsync(
 		CreateSubmission.Request request,
 		CancellationToken cancellationToken = default) {
@@ -200,7 +196,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	///// <inheritdoc />
 	//public async Task<CreateSubmissionSimple.Response> CreateSubmissionSimpleAsync(
 	//	CreateSubmissionSimple.Request request,
 	//	CancellationToken cancellationToken = default) {
@@ -238,7 +233,6 @@ internal sealed class DocuSealClient(
 	//	}
 	//}
 
-	/// <inheritdoc />
 	public Task<CreateTemplate.Response> CreateTemplateAsync(
 		FileInfo file,
 		CancellationToken cancellationToken = default) {
@@ -267,7 +261,6 @@ internal sealed class DocuSealClient(
 		}, cancellationToken);
 	}
 
-	/// <inheritdoc />
 	public async Task<CreateTemplate.Response> CreateTemplateAsync(
 		CreateTemplate.Request request,
 		CancellationToken cancellationToken = default) {
@@ -303,7 +296,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public Task<GetSubmission.Response> GetSubmissionAsync(
 		SubmissionId id,
 		CancellationToken cancellationToken = default) => GetSubmissionAsync(new GetSubmission.Request {
@@ -349,7 +341,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public Task<GetSubmitter.Response> GetSubmitterAsync(
 		SubmitterId id,
 		CancellationToken cancellationToken = default) => GetSubmitterAsync(new GetSubmitter.Request {
@@ -391,7 +382,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public Task<GetTemplate.Response> GetTemplateAsync(
 		TemplateId id,
 		CancellationToken cancellationToken = default) => GetTemplateAsync(new GetTemplate.Request {
@@ -432,11 +422,9 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public Task<ListSubmissions.Response> ListSubmissionsAsync(
 		CancellationToken cancellationToken = default) => ListSubmissionsAsync(ListSubmissions.Request.Instance, cancellationToken);
 
-	/// <inheritdoc />
 	public async Task<ListSubmissions.Response> ListSubmissionsAsync(
 		ListSubmissions.Request request,
 		CancellationToken cancellationToken = default) {
@@ -461,11 +449,9 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public Task<ListSubmitters.Response> ListSubmittersAsync(
 		CancellationToken cancellationToken = default) => ListSubmittersAsync(ListSubmitters.Request.Instance, cancellationToken);
 
-	/// <inheritdoc />
 	public async Task<ListSubmitters.Response> ListSubmittersAsync(
 		ListSubmitters.Request request,
 		CancellationToken cancellationToken = default) {
@@ -490,11 +476,9 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public Task<ListTemplates.Response> ListTemplatesAsync(
 		CancellationToken cancellationToken = default) => ListTemplatesAsync(ListTemplates.Request.Instance, cancellationToken);
 
-	/// <inheritdoc />
 	public async Task<ListTemplates.Response> ListTemplatesAsync(
 		ListTemplates.Request request,
 		CancellationToken cancellationToken = default) {
@@ -519,7 +503,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public async Task<MergeTemplates.Response> MergeTemplatesAsync(
 		MergeTemplates.Request request,
 		CancellationToken cancellationToken = default) {
@@ -555,7 +538,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public async Task<UpdateSubmitter.Response> UpdateSubmitterAsync(
 		UpdateSubmitter.Request request,
 		CancellationToken cancellationToken = default) {
@@ -588,7 +570,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public async Task<UpdateTemplate.Response> UpdateTemplateAsync(
 		UpdateTemplate.Request request,
 		CancellationToken cancellationToken = default) {
@@ -621,7 +602,6 @@ internal sealed class DocuSealClient(
 		}
 	}
 
-	/// <inheritdoc />
 	public async Task<UpdateTemplateDocuments.Response> UpdateTemplateDocumentsAsync(
 		UpdateTemplateDocuments.Request request,
 		CancellationToken cancellationToken = default) {

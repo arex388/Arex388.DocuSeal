@@ -1,6 +1,6 @@
-﻿using Arex388.DocuSeal.Benchmarks;
+﻿using Arex388.DocuSeal.Benchmarks.Benchmarks;
 using BenchmarkDotNet.Running;
 
-BenchmarkRunner.Run<Submissions>();
-BenchmarkRunner.Run<Submitters>();
-BenchmarkRunner.Run<Templates>();
+BenchmarkRunner.Run<SubmissionsBenchmarks>();
+BenchmarkRunner.Run<SubmittersBenchmarks>();
+BenchmarkRunner.Run<TemplatesBenchmarks>();

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### 1.0.4 (2024-09-25)
+
+- Internal code cleanup.
+
 
 
 #### 1.0.3 (2024-09-23)

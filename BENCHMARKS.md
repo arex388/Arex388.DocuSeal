@@ -13,62 +13,18 @@
 
 ###### Submissions
 
-| Method |     Mean |   Error |  StdDev | Allocated |
-| ------ | -------: | ------: | ------: | --------: |
-| List   | 100.5 ms | 1.90 ms | 3.83 ms |  21.63 KB |
+| Method |     Mean | Allocated |
+| ------ | -------: | --------: |
+| List   | 100.5 ms |  21.63 KB |
 
 ###### Submitters
 
-| Method |     Mean |   Error |  StdDev | Allocated |
-| ------ | -------: | ------: | ------: | --------: |
-| List   | 104.4 ms | 2.09 ms | 3.92 ms |  11.87 KB |
+| Method |     Mean | Allocated |
+| ------ | -------: | --------: |
+| List   | 104.4 ms |  11.87 KB |
 
 ###### Templates
 
-| Method |     Mean |    Error |   StdDev | Allocated |
-| ------ | -------: | -------: | -------: | --------: |
-| List   | 84.27 ms | 1.162 ms | 1.031 ms |   7.47 KB |
-
-
-
-#### 2024-08-06 (.NET 8)
-
-###### Submissions
-
-| Method |     Mean |    Error |   StdDev | Allocated |
-| ------ | -------: | -------: | -------: | --------: |
-| List   | 96.76 ms | 1.790 ms | 1.990 ms |  20.16 KB |
-
-###### Submitters
-
-| Method |     Mean |   Error |  StdDev | Allocated |
-| ------ | -------: | ------: | ------: | --------: |
-| List   | 106.1 ms | 2.09 ms | 4.85 ms |  11.67 KB |
-
-###### Templates
-
-| Method |     Mean |    Error |   StdDev | Allocated |
-| ------ | -------: | -------: | -------: | --------: |
-| List   | 84.65 ms | 1.620 ms | 1.866 ms |   8.11 KB |
-
-
-
-#### 2024-07-31 (.NET 8)
-
-###### Submissions
-
-| Method |     Mean |    Error |   StdDev | Allocated |
-| ------ | -------: | -------: | -------: | --------: |
-| List   | 94.93 ms | 1.832 ms | 2.568 ms |  20.89 KB |
-
-###### Submitters
-
-| Method |     Mean |   Error |  StdDev | Allocated |
-| ------ | -------: | ------: | ------: | --------: |
-| List   | 105.6 ms | 1.73 ms | 2.84 ms |  12.19 KB |
-
-###### Templates
-
-| Method |     Mean |    Error |   StdDev | Allocated |
-| ------ | -------: | -------: | -------: | --------: |
-| List   | 99.17 ms | 1.664 ms | 1.475 ms |  32.19 KB |
+| Method |     Mean | Allocated |
+| ------ | -------: | --------: |
+| List   | 84.27 ms |   7.47 KB |

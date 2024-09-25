@@ -14,7 +14,6 @@ internal sealed class DocuSealClientFactory(
 	private readonly IServiceProvider _services = services;
 	private readonly IMemoryCache _cache = cache;
 
-	/// <inheritdoc />
 	public IDocuSealClient CreateClient(
 		DocuSealClientOptions options) {
 		var key = $"{nameof(Arex388)}.{nameof(DocuSeal)}.Key[{options.AuthorizationToken}]";
