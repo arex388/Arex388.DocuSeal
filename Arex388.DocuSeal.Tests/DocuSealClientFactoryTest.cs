@@ -56,7 +56,7 @@ public sealed class DocuSealClientFactoryTest {
 			AuthorizationToken = Config.AuthorizationToken1
 		});
 		var client2 = _docuSealFactory.CreateClient(new DocuSealClientOptions {
-			AuthorizationToken = Config.AuthorizationToken2
+			AuthorizationToken = string.Empty
 		});
 
 		//	========================================================================

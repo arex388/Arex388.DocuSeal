@@ -39,9 +39,7 @@ internal sealed class DocuSealClient(
 	private readonly IValidator<UpdateTemplate.Request> _updateTemplateRequestValidator = services.GetRequiredService<IValidator<UpdateTemplate.Request>>();
 	private readonly IValidator<UpdateTemplateDocuments.Request> _updateTemplateDocumentsRequestValidator = services.GetRequiredService<IValidator<UpdateTemplateDocuments.Request>>();
 
-	//	============================================================================
-	//	Actions
-	//	============================================================================
+	public Guid Id { get; } = Guid.NewGuid();
 
 	public Task<ArchiveSubmission.Response> ArchiveSubmissionAsync(
 		SubmissionId id,
