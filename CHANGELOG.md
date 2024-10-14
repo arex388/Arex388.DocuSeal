@@ -1,5 +1,11 @@
 # CHANGELOG
 
+#### 1.0.5 (2024-10-13)
+
+- **Updated:** NuGet packages.
+
+
+
 #### 1.0.4 (2024-09-25)
 
 - Internal code cleanup.
