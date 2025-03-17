@@ -77,10 +77,10 @@ The client provides methods for interacting with Templates, Submissions, and Sub
 For the most part the API is one of the most well structured ones I've built a client for, but it still has some flaws:
 
 - You can't ever delete something in DocuSeal, you can only archive it, which is just a soft delete. I would have preferred it if deleting was actually deleting, and archiving was just a specific update.
-- When creating a submission, the API may return an array or of a single object or the single object. I don't understand why an array will ever be a possible return even though you can only create a single submission?...
+- When creating a submission, the API may return an array of a single object or the single object. I don't understand why an array will ever be a possible return even though you can only create a single submission?...
 - Return values for certain properties, such as a status, are not defined in the documentation.
-- Responses have properties that just don't seem to be relevant to anything. I've kept the majority, simply because I wasn't sure if user's of this library might find them useful or not.
-- One weird response structure took me a bit to figure out while implementing the integration tests. The create submission response will return an `id` and a `submission_id` property, with each one having a different value. Initially I just used the `id` property, but then when I would try to get a submission with the returned `id` all I got was 404 responses. Turns out the `submission_id` is the real `id` for the submission. That the `id` property actually is, I have no idea.
+- Responses have properties that just don't seem to be relevant to anything. I've kept the majority, simply because I wasn't sure if users of this library might find them useful or not.
+- One weird response structure took me a bit to figure out while implementing the integration tests. The create submission response will return an `id` and a `submission_id` property, with each one having a different value. Initially I just used the `id` property, but then when I would try to get a submission with the returned `id` all I got was 404 responses. Turns out the `submission_id` is the real `id` for the submission. What the `id` property actually is, I have no idea...
 
 I'm sure there's something I've missed, but that's all I can remember now that I am at the end of two weeks of building this client. Hopefully, the DocuSeal API will improve in the future to address these, in my opinion, flaws.
 

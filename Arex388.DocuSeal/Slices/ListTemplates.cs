@@ -50,7 +50,7 @@ public static class ListTemplates {
 			}
 
 			if (request.IsArchived) {
-				parameters.Add("archived=True");
+				parameters.Add("archived=true");
 			}
 
 			if (request.Search.HasValue()) {

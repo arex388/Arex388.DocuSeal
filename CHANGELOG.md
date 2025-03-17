@@ -1,5 +1,12 @@
 # CHANGELOG
 
+#### 1.0.6 (2025-03-17)
+
+- **Fixed:** A case sensitivity bug discovered by [@cbordeman](https://github.com/arex388/Arex388.DocuSeal/issues/1).
+- **Updated:** NuGet packages.
+
+
+
 #### 1.0.5 (2024-10-13)
 
 - **Updated:** NuGet packages.
