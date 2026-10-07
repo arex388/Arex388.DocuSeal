@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="BENCHMARKS.md" />
+    <File Path="CHANGELOG.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="DocuSealClient.linq" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Arex388.DocuSeal.Benchmarks/Arex388.DocuSeal.Benchmarks.csproj" />
+  <Project Path="Arex388.DocuSeal.Tests/Arex388.DocuSeal.Tests.csproj" />
+  <Project Path="Arex388.DocuSeal/Arex388.DocuSeal.csproj" />
+</Solution>

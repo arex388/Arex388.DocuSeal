@@ -3,6 +3,15 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Local tooling and assistant configuration — not published
+.claude/
+.mcp.json
+CLAUDE*.md
+
+# Coverage.ps1 output
+Arex388.DocuSeal.Tests/reports/
+Coverage.lnk
+
 # User-specific files
 *.rsuser
 *.suo

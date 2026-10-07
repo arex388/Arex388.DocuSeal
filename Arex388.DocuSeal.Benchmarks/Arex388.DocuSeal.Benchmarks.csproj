@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<IsBenchmarkProject>true</IsBenchmarkProject>
+		<IsPackable>false</IsPackable>
 		<OutputType>Exe</OutputType>
 		<UserSecretsId>7d72a797-f9c2-4dc0-ab74-f73e4338a638</UserSecretsId>
 	</PropertyGroup>
