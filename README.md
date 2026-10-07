@@ -4,7 +4,7 @@ Arex388.DocuSeal is a highly opinionated .NET Standard 2.0 library for the [Docu
 
 As noted above, it is highly opinionated. The [API documentation](https://www.docuseal.co/docs/api) is not very clear, and there's redundancies, ambiguities, and object properties that I have no idea why they're there or what they stand for. While it has been one of the better documented APIs I've worked with, there was still some questionable design decisions about it. I've attempted to normalize the ambiguities, and to ignore the redundancies with this client.
 
-- [Changelog](CHANGELOG.md)
+- [Releases](https://github.com/arex388/Arex388.DocuSeal/releases)
 - [Benchmarks](BENCHMARKS.md)
 
 
