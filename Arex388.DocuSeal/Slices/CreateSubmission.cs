@@ -12,7 +12,7 @@ public static class CreateSubmission {
 	/// Create submission request.
 	/// </summary>
 	public sealed class Request {
-		internal string Endpoint => "submissions";
+		internal string Endpoint { get; } = "submissions";
 
 		/// <summary>
 		/// The message for the submission.

@@ -12,7 +12,7 @@ public static class MergeTemplates {
 	/// Merge template request.
 	/// </summary>
 	public sealed class Request {
-		internal string Endpoint => "templates/merge";
+		internal string Endpoint { get; } = "templates/merge";
 
 		/// <summary>
 		/// The name of the folder in which the merged template should be placed.
