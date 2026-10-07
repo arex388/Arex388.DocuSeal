@@ -24,7 +24,7 @@ internal sealed class EventTypeJsonConverter :
 		var eventType = value switch {
 			EventType.CompletedForm => "complete_form",
 			EventType.OpenedEmail => "click_email",
-			EventType.SentEmail => "sent_email",
+			EventType.SentEmail => "send_email",
 			EventType.StartedForm => "start_form",
 			EventType.ViewedForm => "view_form",
 			_ => null

@@ -38,7 +38,7 @@ public sealed class ConverterTests {
 		Write(expected).Should().Be(token);
 	}
 
-	[Fact(Skip = "Fails until #5: EventTypeJsonConverter reads send_email but writes sent_email. Remove this skip in #5.")]
+	[Fact]
 	public void EventType_SentEmail_RoundTrips() {
 		Read<EventType>("send_email").Should().Be(EventType.SentEmail);
 		Write(EventType.SentEmail).Should().Be("send_email");

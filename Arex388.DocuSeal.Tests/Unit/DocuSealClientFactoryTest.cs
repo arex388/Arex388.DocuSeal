@@ -68,4 +68,42 @@ public sealed class DocuSealClientFactoryTest {
 
 		client1.Should().NotBeSameAs(client2);
 	}
+
+	[Fact]
+	public async Task CreatedClient_SendsToNamedClientBaseAddress_WithOneAuthorizationToken() {
+		//	========================================================================
+		//	Arrange
+		//	========================================================================
+
+		const string authorizationToken = "factory-header-token";
+		var handler = new CapturingHandler("{}");
+		var services = new ServiceCollection();
+
+		services.AddDocuSeal()
+				.AddHttpClient(nameof(IDocuSealClient), hc => hc.BaseAddress = TestClients.BaseAddress)
+				.ConfigurePrimaryHttpMessageHandler(() => handler);
+
+		var docuSealFactory = services.BuildServiceProvider().GetRequiredService<IDocuSealClientFactory>();
+
+		//	========================================================================
+		//	Act
+		//	========================================================================
+
+		var docuSeal = docuSealFactory.CreateClient(new DocuSealClientOptions {
+			AuthorizationToken = authorizationToken
+		});
+
+		await docuSeal.ListTemplatesAsync();
+
+		//	========================================================================
+		//	Assert
+		//	========================================================================
+
+		//	CapturingHandler reads the header with Single(), so a duplicated
+		//	X-Auth-Token throws inside the handler and no request is captured.
+		var request = handler.Requests.Should().ContainSingle().Subject;
+
+		request.Uri.AbsoluteUri.Should().StartWith($"{TestClients.BaseAddress}templates");
+		request.AuthorizationToken.Should().Be(authorizationToken);
+	}
 }

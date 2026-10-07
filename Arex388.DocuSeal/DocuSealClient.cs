@@ -316,10 +316,6 @@ internal sealed class DocuSealClient(
 
 		try {
 			var response = await _httpClient.GetAsync(request.Endpoint, cancellationToken).ConfigureAwait(false);
-			var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-			Console.WriteLine(responseContent);
-
 			var submission = await response.Content.ReadFromJsonAsync<Submission>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
 			if (submission is null) {
