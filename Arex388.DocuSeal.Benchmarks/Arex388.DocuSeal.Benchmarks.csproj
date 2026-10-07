@@ -4,12 +4,10 @@
 		<IsBenchmarkProject>true</IsBenchmarkProject>
 		<IsPackable>false</IsPackable>
 		<OutputType>Exe</OutputType>
-		<UserSecretsId>7d72a797-f9c2-4dc0-ab74-f73e4338a638</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.12" />
 	</ItemGroup>
 
 	<ItemGroup>

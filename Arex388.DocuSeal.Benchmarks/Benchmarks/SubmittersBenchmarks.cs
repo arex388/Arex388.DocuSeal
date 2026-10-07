@@ -1,23 +1,11 @@
-﻿using BenchmarkDotNet.Attributes;
-using Microsoft.Extensions.DependencyInjection;
+using BenchmarkDotNet.Attributes;
 
 namespace Arex388.DocuSeal.Benchmarks.Benchmarks;
 
 [SimpleJob, MemoryDiagnoser]
-public class SubmittersBenchmarks
-{
-    private readonly IDocuSealClient _docuSeal;
+public class SubmittersBenchmarks {
+	private readonly IDocuSealClient _docuSeal = BenchmarkServiceProvider.CreateClient();
 
-    public SubmittersBenchmarks()
-    {
-        var services = new ServiceCollection().AddDocuSeal(new DocuSealClientOptions
-        {
-            AuthorizationToken = Config.AuthorizationToken
-        }).BuildServiceProvider();
-
-        _docuSeal = services.GetRequiredService<IDocuSealClient>();
-    }
-
-    [Benchmark]
-    public Task<ListSubmitters.Response> List() => _docuSeal.ListSubmittersAsync();
+	[Benchmark]
+	public Task<ListSubmitters.Response> List() => _docuSeal.ListSubmittersAsync();
 }
