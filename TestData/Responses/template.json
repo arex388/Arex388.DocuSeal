@@ -1,0 +1,94 @@
+{
+  "id": 1001,
+  "slug": "iRgjDX7WDK6BRo",
+  "name": "Test Template",
+  "preferences": {},
+  "schema": [
+    {
+      "attachment_uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+      "name": "test-document"
+    }
+  ],
+  "fields": [
+    {
+      "uuid": "594bdf04-d941-4ca6-aa73-93e61d625c02",
+      "submitter_uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0",
+      "name": "Full Name",
+      "type": "text",
+      "required": true,
+      "preferences": {
+        "font_size": 12
+      },
+      "areas": [
+        {
+          "x": 0.2638888888888889,
+          "y": 0.168958742632613,
+          "w": 0.325,
+          "h": 0.04911591355599212,
+          "attachment_uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+          "page": 1
+        }
+      ]
+    },
+    {
+      "uuid": "e5bdc2c0-8f0a-4a8b-8b72-1f2c2f6a4c11",
+      "submitter_uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0",
+      "name": "Signature",
+      "type": "signature",
+      "required": true,
+      "areas": [
+        {
+          "x": 0.42,
+          "y": 0.15,
+          "w": 0.335,
+          "h": 0.06,
+          "attachment_uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+          "page": 1
+        }
+      ]
+    },
+    {
+      "uuid": "1c4c8f5e-0f63-4d2b-9a6e-7d1c4c3b2a10",
+      "submitter_uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0",
+      "name": "Future Field",
+      "type": "heading",
+      "required": false,
+      "areas": []
+    }
+  ],
+  "submitters": [
+    {
+      "name": "First Party",
+      "uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0"
+    }
+  ],
+  "author_id": 1,
+  "archived_at": null,
+  "created_at": "2024-08-05T15:21:57.375Z",
+  "updated_at": "2024-08-05T15:22:57.375Z",
+  "source": "native",
+  "folder_id": 7,
+  "folder_name": "Default",
+  "external_id": null,
+  "shared_link": false,
+  "unknown_object": {
+    "nested": {
+      "deep": [1, 2, 3]
+    }
+  },
+  "author": {
+    "id": 1,
+    "first_name": "Test",
+    "last_name": "Author",
+    "email": "author@example.com"
+  },
+  "documents": [
+    {
+      "id": 5001,
+      "uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+      "url": "https://docuseal.example.com/file/test-document.pdf",
+      "preview_image_url": "https://docuseal.example.com/file/0.jpg",
+      "filename": "test-document.pdf"
+    }
+  ]
+}

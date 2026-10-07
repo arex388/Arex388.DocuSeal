@@ -1,13 +1,10 @@
 ﻿namespace Arex388.DocuSeal.Tests;
 
 internal static class Utilities {
-	private static readonly FileInfo _file;
-
-	static Utilities() {
-		var directory = Directory.GetCurrentDirectory().Replace(@"\bin\Debug\net8.0", null);
-
-		_file = new FileInfo($@"{directory}\DocuSeal.pdf");
-	}
+	/// <summary>
+	/// The sample PDF, copied to the output directory by the project file.
+	/// </summary>
+	public static readonly FileInfo DocuSealFile = new(Path.Combine(AppContext.BaseDirectory, "DocuSeal.pdf"));
 
 	public static Task<CreateSubmission.Response> CreateSubmissionAsync(
 		IDocuSealClient docuSeal,
@@ -25,11 +22,11 @@ internal static class Utilities {
 
 	public static async Task<CreateTemplate.Response> CreateTemplateAsync(
 		IDocuSealClient docuSeal) {
-		var fileBytes = await File.ReadAllBytesAsync(_file.FullName);
+		var fileBytes = await File.ReadAllBytesAsync(DocuSealFile.FullName);
 
 		return await docuSeal.CreateTemplateAsync(new CreateTemplate.Request {
 			Endpoint = CreateTemplate.Endpoints.Pdf,
-			Name = _file.Name,
+			Name = DocuSealFile.Name,
 			Documents = [
 				new CreateTemplate.RequestDocument {
 					Fields = [
@@ -49,7 +46,7 @@ internal static class Utilities {
 						}
 					],
 					FileBase64 = Convert.ToBase64String(fileBytes),
-					Name = _file.Name
+					Name = DocuSealFile.Name
 				}
 			]
 		});

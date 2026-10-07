@@ -16,4 +16,9 @@
 		<ProjectReference Include="..\Arex388.DocuSeal\Arex388.DocuSeal.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\TestData\MockHttpMessageHandler.cs" Link="MockHttpMessageHandler.cs" />
+		<None Include="..\TestData\Responses\*.json" Link="Responses\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>

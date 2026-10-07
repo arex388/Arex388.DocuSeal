@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Arex388.DocuSeal.Tests;
+namespace Arex388.DocuSeal.Tests.Unit;
 
 public sealed class DocuSealClientFactoryTest {
 	private readonly ITestOutputHelper _console;
@@ -26,10 +26,10 @@ public sealed class DocuSealClientFactoryTest {
 		//	========================================================================
 
 		var created = _docuSealFactory.CreateClient(new DocuSealClientOptions {
-			AuthorizationToken = Config.AuthorizationToken1
+			AuthorizationToken = "factory-test-token"
 		});
 		var cached = _docuSealFactory.CreateClient(new DocuSealClientOptions {
-			AuthorizationToken = Config.AuthorizationToken1
+			AuthorizationToken = "factory-test-token"
 		});
 
 		//	========================================================================
@@ -53,7 +53,7 @@ public sealed class DocuSealClientFactoryTest {
 		//	========================================================================
 
 		var client1 = _docuSealFactory.CreateClient(new DocuSealClientOptions {
-			AuthorizationToken = Config.AuthorizationToken1
+			AuthorizationToken = "factory-test-token"
 		});
 		var client2 = _docuSealFactory.CreateClient(new DocuSealClientOptions {
 			AuthorizationToken = string.Empty

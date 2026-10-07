@@ -1,0 +1,114 @@
+{
+  "id": 2001,
+  "source": "api",
+  "submitters_order": "random",
+  "slug": "VyL4szTwYoSvXq",
+  "status": "completed",
+  "audit_log_url": "https://docuseal.example.com/file/audit-log.pdf",
+  "combined_document_url": null,
+  "expire_at": null,
+  "completed_at": "2024-08-05T16:00:00.000Z",
+  "created_at": "2024-08-05T15:30:00.000Z",
+  "updated_at": "2024-08-05T16:00:00.000Z",
+  "archived_at": null,
+  "submitters": [
+    {
+      "id": 3001,
+      "submission_id": 2001,
+      "uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0",
+      "email": "signer1@example.com",
+      "slug": "dsEeWrhRD8yDXT",
+      "sent_at": "2024-08-05T15:30:05.000Z",
+      "opened_at": "2024-08-05T15:45:00.000Z",
+      "completed_at": "2024-08-05T16:00:00.000Z",
+      "declined_at": null,
+      "created_at": "2024-08-05T15:30:00.000Z",
+      "updated_at": "2024-08-05T16:00:00.000Z",
+      "name": "Signer One",
+      "phone": "+15555550101",
+      "external_id": null,
+      "metadata": {},
+      "preferences": {},
+      "status": "completed",
+      "role": "First Party"
+    },
+    {
+      "id": 3002,
+      "submission_id": 2001,
+      "uuid": "8b2a6c3d-4e5f-4a6b-9c7d-1e2f3a4b5c6d",
+      "email": "signer2@example.com",
+      "slug": "eTfFxsiSE9zEYU",
+      "sent_at": "2024-08-05T15:30:05.000Z",
+      "opened_at": null,
+      "completed_at": null,
+      "declined_at": null,
+      "created_at": "2024-08-05T15:30:00.000Z",
+      "updated_at": "2024-08-05T15:30:05.000Z",
+      "name": null,
+      "phone": null,
+      "external_id": null,
+      "metadata": {},
+      "preferences": {},
+      "status": "sent",
+      "role": "Second Party"
+    }
+  ],
+  "template": {
+    "id": 1001,
+    "name": "Test Template",
+    "external_id": null,
+    "folder_name": "Default",
+    "created_at": "2024-08-05T15:21:57.375Z",
+    "updated_at": "2024-08-05T15:22:57.375Z"
+  },
+  "created_by_user": {
+    "id": 1,
+    "first_name": "Test",
+    "last_name": "Author",
+    "email": "author@example.com"
+  },
+  "submission_events": [
+    {
+      "id": 4001,
+      "submitter_id": 3001,
+      "event_type": "send_email",
+      "event_timestamp": "2024-08-05T15:30:05.000Z"
+    },
+    {
+      "id": 4002,
+      "submitter_id": 3001,
+      "event_type": "click_email",
+      "event_timestamp": "2024-08-05T15:44:00.000Z"
+    },
+    {
+      "id": 4003,
+      "submitter_id": 3001,
+      "event_type": "view_form",
+      "event_timestamp": "2024-08-05T15:45:00.000Z"
+    },
+    {
+      "id": 4004,
+      "submitter_id": 3001,
+      "event_type": "start_form",
+      "event_timestamp": "2024-08-05T15:46:00.000Z"
+    },
+    {
+      "id": 4005,
+      "submitter_id": 3001,
+      "event_type": "complete_form",
+      "event_timestamp": "2024-08-05T16:00:00.000Z"
+    },
+    {
+      "id": 4006,
+      "submitter_id": 3002,
+      "event_type": "decline_form",
+      "event_timestamp": "2024-08-05T16:05:00.000Z"
+    }
+  ],
+  "documents": [
+    {
+      "name": "test-document",
+      "url": "https://docuseal.example.com/file/test-document-signed.pdf"
+    }
+  ]
+}

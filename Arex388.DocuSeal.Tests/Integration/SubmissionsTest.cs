@@ -17,7 +17,7 @@ public sealed class SubmissionsTest {
 		_docuSeal = services.GetRequiredService<IDocuSealClient>();
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Archive_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -47,7 +47,7 @@ public sealed class SubmissionsTest {
 		await _docuSeal.ArchiveTemplateAsync(template.Template!.Id);
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Create_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -76,7 +76,7 @@ public sealed class SubmissionsTest {
 		await _docuSeal.ArchiveTemplateAsync(template.Template!.Id);
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Get_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -108,7 +108,7 @@ public sealed class SubmissionsTest {
 		await _docuSeal.ArchiveTemplateAsync(template.Template!.Id);
 	}
 
-	[Theory]
+	[LiveTheory]
 	[InlineData(10, true, 0)]
 	[InlineData(100, true, 0)]
 	[InlineData(101, false, 1)]

@@ -4,6 +4,10 @@
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
 		<UserSecretsId>1f13959f-c435-4be7-878b-10f557b1586b</UserSecretsId>
+		<!-- xUnit1051 wants TestContext.Current.CancellationToken threaded through
+		     every client call; the offline suite runs against instant mock handlers,
+		     and tests that exercise cancellation pass their own tokens. -->
+		<NoWarn>$(NoWarn);xUnit1051</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -14,8 +18,8 @@
 		<PackageReference Include="FluentAssertions" Version="8.11.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.12" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
-		<PackageReference Include="xunit" Version="2.9.3" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+		<PackageReference Include="xunit.v3" Version="4.0.1" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -26,8 +30,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Include="..\TestData\MockHttpMessageHandler.cs" Link="MockHttpMessageHandler.cs" />
+		<None Include="..\TestData\Responses\*.json" Link="Responses\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+		<None Update="DocuSeal.pdf" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Using Include="Xunit" />
-		<Using Include="Xunit.Abstractions" />
 	</ItemGroup>
 
 </Project>

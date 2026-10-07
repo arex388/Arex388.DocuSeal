@@ -16,13 +16,10 @@ public sealed class TemplatesTest {
 
 		_console = console;
 		_docuSeal = services.GetRequiredService<IDocuSealClient>();
-
-		var directory = Directory.GetCurrentDirectory().Replace(@"\bin\Debug\net8.0", null);
-
-		_docuSealFile = new FileInfo($@"{directory}\DocuSeal.pdf");
+		_docuSealFile = Utilities.DocuSealFile;
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Archive_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -48,7 +45,7 @@ public sealed class TemplatesTest {
 		archived.Success.Should().BeTrue();
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Clone_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -81,7 +78,7 @@ public sealed class TemplatesTest {
 		await _docuSeal.ArchiveTemplateAsync(cloned.Template!.Id);
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Create_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -106,7 +103,7 @@ public sealed class TemplatesTest {
 		await _docuSeal.ArchiveTemplateAsync(created.Template!.Id);
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Get_Fails() {
 		//	========================================================================
 		//	Arrange
@@ -129,7 +126,7 @@ public sealed class TemplatesTest {
 		gotten.Template.Should().BeNull();
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Get_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -156,7 +153,7 @@ public sealed class TemplatesTest {
 		await _docuSeal.ArchiveTemplateAsync(created.Template!.Id);
 	}
 
-	[Theory]
+	[LiveTheory]
 	[InlineData(10, true, 0)]
 	[InlineData(100, true, 0)]
 	[InlineData(101, false, 1)]
@@ -187,7 +184,7 @@ public sealed class TemplatesTest {
 		listed.Templates.Count.Should().Be(listed.Pagination.Count);
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Merge_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -226,7 +223,7 @@ public sealed class TemplatesTest {
 		await _docuSeal.ArchiveTemplateAsync(merged.Template!.Id);
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Update_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -264,7 +261,7 @@ public sealed class TemplatesTest {
 		await _docuSeal.ArchiveTemplateAsync(created.Template.Id);
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Update_TemplateDocuments() {
 		//	========================================================================
 		//	Arrange

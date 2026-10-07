@@ -1,0 +1,107 @@
+{
+  "data": [
+    {
+      "id": 1001,
+      "slug": "iRgjDX7WDK6BRo",
+      "name": "Test Template",
+      "preferences": {},
+      "schema": [
+        {
+          "attachment_uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+          "name": "test-document"
+        }
+      ],
+      "fields": [
+        {
+          "uuid": "594bdf04-d941-4ca6-aa73-93e61d625c02",
+          "submitter_uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0",
+          "name": "Full Name",
+          "type": "text",
+          "required": true,
+          "areas": [
+            {
+              "x": 0.26,
+              "y": 0.16,
+              "w": 0.32,
+              "h": 0.04,
+              "attachment_uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+              "page": 1
+            }
+          ]
+        }
+      ],
+      "submitters": [
+        {
+          "name": "First Party",
+          "uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0"
+        }
+      ],
+      "author_id": 1,
+      "archived_at": null,
+      "created_at": "2024-08-05T15:21:57.375Z",
+      "updated_at": "2024-08-05T15:22:57.375Z",
+      "source": "native",
+      "folder_id": 7,
+      "folder_name": "Default",
+      "external_id": null,
+      "author": {
+        "id": 1,
+        "first_name": "Test",
+        "last_name": "Author",
+        "email": "author@example.com"
+      },
+      "documents": [
+        {
+          "id": 5001,
+          "uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+          "url": "https://docuseal.example.com/file/test-document.pdf",
+          "preview_image_url": "https://docuseal.example.com/file/0.jpg",
+          "filename": "test-document.pdf"
+        }
+      ]
+    },
+    {
+      "id": 1002,
+      "slug": "pKsjDX7WDK6CTq",
+      "name": "Archived Template",
+      "preferences": {},
+      "schema": [],
+      "fields": [
+        {
+          "uuid": "7a1f5b2e-3c4d-4e5f-8a9b-0c1d2e3f4a5b",
+          "submitter_uuid": "8b2a6c3d-4e5f-4a6b-9c7d-1e2f3a4b5c6d",
+          "name": "Date Signed",
+          "type": "date",
+          "required": false,
+          "areas": []
+        }
+      ],
+      "submitters": [
+        {
+          "name": "Second Party",
+          "uuid": "8b2a6c3d-4e5f-4a6b-9c7d-1e2f3a4b5c6d"
+        }
+      ],
+      "author_id": 1,
+      "archived_at": "2024-09-01T10:00:00.000Z",
+      "created_at": "2024-08-06T15:21:57.375Z",
+      "updated_at": "2024-09-01T10:00:00.000Z",
+      "source": "api",
+      "folder_id": null,
+      "folder_name": "Contracts",
+      "external_id": "contract-2",
+      "author": {
+        "id": 1,
+        "first_name": "Test",
+        "last_name": "Author",
+        "email": "author@example.com"
+      },
+      "documents": []
+    }
+  ],
+  "pagination": {
+    "count": 2,
+    "next": 1002,
+    "prev": 1001
+  }
+}

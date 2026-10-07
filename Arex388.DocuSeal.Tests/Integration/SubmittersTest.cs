@@ -17,7 +17,7 @@ public sealed class SubmittersTest {
 		_docuSeal = services.GetRequiredService<IDocuSealClient>();
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Get_Succeeds() {
 		//	========================================================================
 		//	Arrange
@@ -51,7 +51,7 @@ public sealed class SubmittersTest {
 		await _docuSeal.ArchiveTemplateAsync(template.Template!.Id);
 	}
 
-	[Theory]
+	[LiveTheory]
 	[InlineData(10, true, 0)]
 	[InlineData(100, true, 0)]
 	[InlineData(101, false, 1)]
@@ -82,7 +82,7 @@ public sealed class SubmittersTest {
 		response.Submitters.Count.Should().Be(response.Pagination.Count);
 	}
 
-	[Fact]
+	[LiveFact]
 	public async Task Update_Succeeds() {
 		//	========================================================================
 		//	Arrange
