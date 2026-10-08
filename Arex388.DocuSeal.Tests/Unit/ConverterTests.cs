@@ -223,6 +223,24 @@ public sealed class ConverterTests {
 		("native", TemplateSource.Native));
 
 	//	============================================================================
+	//	WebhookEventType
+	//	============================================================================
+
+	[Fact]
+	public void WebhookEventType_EveryToken_RoundTrips() => AssertConverter(
+		("form.completed", WebhookEventType.FormCompleted),
+		("form.declined", WebhookEventType.FormDeclined),
+		("form.started", WebhookEventType.FormStarted),
+		("form.viewed", WebhookEventType.FormViewed),
+		("submission.archived", WebhookEventType.SubmissionArchived),
+		("submission.completed", WebhookEventType.SubmissionCompleted),
+		("submission.created", WebhookEventType.SubmissionCreated),
+		("submission.expired", WebhookEventType.SubmissionExpired),
+		("template.archived", WebhookEventType.TemplateArchived),
+		("template.created", WebhookEventType.TemplateCreated),
+		("template.updated", WebhookEventType.TemplateUpdated));
+
+	//	============================================================================
 	//	Fixtures
 	//	============================================================================
 

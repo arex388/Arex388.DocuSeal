@@ -1,0 +1,74 @@
+{
+  "event_type": "form.started",
+  "timestamp": "2023-09-24T13:48:36Z",
+  "data": {
+    "id": 1,
+    "email": "john.doe@example.com",
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+    "ip": "132.216.88.83",
+    "sent_at": "2023-08-20T10:09:05.459Z",
+    "opened_at": "2023-08-20T10:10:00.451Z",
+    "completed_at": "2023-08-20T10:12:47.579Z",
+    "declined_at": null,
+    "created_at": "2023-08-20T10:09:02.459Z",
+    "updated_at": "2023-08-20T10:12:47.907Z",
+    "name": null,
+    "phone": null,
+    "role": "First Party",
+    "external_id": null,
+    "decline_reason": null,
+    "status": "completed",
+    "preferences": {
+      "send_email": true,
+      "send_sms": false
+    },
+    "submission": {
+      "id": 12,
+      "audit_log_url": "https://docuseal.com/blobs/proxy/eyJfcmFpbHMiOnsib/audit-log.pdf",
+      "combined_document_url": "https://docuseal.com/blobs/proxy/eyJfcmFpbHMiOnsib/document.pdf",
+      "status": "completed",
+      "url": "https://docuseal.com/e/N5JsdkFGPeQF7J",
+      "variables": {
+        "custom_variable": "value"
+      },
+      "created_at": "2023-08-20T10:09:05.258Z"
+    },
+    "template": {
+      "id": 6,
+      "name": "Invoice",
+      "external_id": null,
+      "created_at": "2023-08-19T11:09:21.487Z",
+      "updated_at": "2023-08-19T11:11:47.804Z",
+      "folder_name": "Default"
+    },
+    "values": [
+      {
+        "field": "First Name",
+        "value": "John"
+      },
+      {
+        "field": "Last Name",
+        "value": "Doe"
+      },
+      {
+        "field": "Signature",
+        "value": "https://docuseal.com/blobs/proxy/eyJfcmFpbHMiOnsib/signature.png"
+      },
+      {
+        "field": "Signature",
+        "value": "John Doe"
+      }
+    ],
+    "metadata": {
+      "customData": "custom value"
+    },
+    "audit_log_url": "https://docuseal.com/blobs/proxy/eyJfcmFpbHMiOnsib/audit-log.pdf",
+    "submission_url": "https://docuseal.com/e/N5JsdkFGPeQF7J",
+    "documents": [
+      {
+        "name": "sample-document",
+        "url": "https://docuseal.com/blobs/proxy/eyJfcmFpbHMiOnsib/sample-document.pdf"
+      }
+    ]
+  }
+}

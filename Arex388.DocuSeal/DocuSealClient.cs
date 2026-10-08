@@ -26,11 +26,17 @@ internal sealed class DocuSealClient(
 			new SubmissionStatusJsonConverter(),
 			new SubmitterOrderJsonConverter(),
 			new SubmitterStatusJsonConverter(),
-			new TemplateSourceJsonConverter()
+			new TemplateSourceJsonConverter(),
+			new WebhookEventTypeJsonConverter()
 		},
 		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 	};
+
+	/// <summary>
+	/// The serializer options every request and response goes through, shared with <see cref="DocuSealWebhook"/> so webhook payloads bind exactly as API responses do.
+	/// </summary>
+	internal static JsonSerializerOptions SerializerOptions => _jsonSerializerOptions;
 
 	private readonly IValidator<ArchiveSubmission.Request> _archiveSubmissionRequestValidator = services.GetRequiredService<IValidator<ArchiveSubmission.Request>>();
 	private readonly IValidator<ArchiveTemplate.Request> _archiveTemplateRequestValidator = services.GetRequiredService<IValidator<ArchiveTemplate.Request>>();

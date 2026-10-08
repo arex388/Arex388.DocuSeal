@@ -82,6 +82,52 @@ The client provides methods for interacting with Templates, Submissions, and Sub
 
 
 
+#### Webhooks
+
+DocuSeal posts webhook events to an endpoint you host, so parsing them needs no client or authorization token. `DocuSealWebhook.Parse()` takes the request body, as a `string` or as UTF-8 bytes, and returns the event as the subtype matching its `event_type`:
+
+- `FormWebhookEvent` - `form.viewed`, `form.started`, `form.completed`, and `form.declined`. `Data` is the submitter, with its `Submission` and `Template`.
+- `SubmissionWebhookEvent` - `submission.created`, `submission.completed`, and `submission.expired`. `Data` is the `Submission`.
+- `SubmissionArchivedWebhookEvent` and `TemplateArchivedWebhookEvent` - `submission.archived` and `template.archived`. `Data` carries the archived object's `Id` and `ArchivedAtUtc`.
+- `TemplateWebhookEvent` - `template.created` and `template.updated`. `Data` is the `Template`.
+- `UnknownWebhookEvent` - any `event_type` the client doesn't know yet, with the raw `event_type` in `RawType` and the unparsed `data` in `Data`.
+
+It never throws. It returns `null` when it can't read the payload, which doesn't by itself mean the request didn't come from DocuSeal:
+
+- The body isn't valid JSON, including invalid UTF-16 or UTF-8 text.
+- The body's root isn't an object.
+- `event_type` is missing or isn't a string.
+- `timestamp` is missing or isn't an ISO 8601 date string.
+- `data` is missing.
+- The `event_type` is known, but its `data` isn't an object or doesn't bind to its model.
+
+```c#
+app.MapPost("/webhooks/docuseal", async (HttpRequest request) => {
+    using var reader = new StreamReader(request.Body);
+
+    var webhookEvent = DocuSealWebhook.Parse(await reader.ReadToEndAsync());
+
+    switch (webhookEvent) {
+        case FormWebhookEvent { Type: WebhookEventType.FormCompleted } formCompleted:
+            //  formCompleted.Data.Email, formCompleted.Data.Values, ...
+            break;
+
+        case SubmissionWebhookEvent { Type: WebhookEventType.SubmissionCompleted } submissionCompleted:
+            //  submissionCompleted.Data.Documents, ...
+            break;
+
+        case null:
+            return Results.BadRequest();
+    }
+
+    return Results.Ok();
+});
+```
+
+`Parse()` only reads the body; it doesn't authenticate the request, so check that it came from DocuSeal before acting on it.
+
+
+
 #### Hoping for API Improvements
 
 For the most part the API is one of the most well structured ones I've built a client for, and the [OpenAPI spec](https://console.docuseal.com/openapi.yml) has since settled most of what used to bother me. Creating a submission returns the submitters of the one submission that was created, not a submission that sometimes comes back as an array: in each of them `id` is the submitter's id and `submission_id` is the submission's id, which is why `CreateSubmission.Response` exposes `SubmissionId` and `Submitters` and `Submission.Id` is simply the `id` of the submission body. The status values, and every other enum, are defined, so the client types them (`SubmissionStatus`, `SubmitterStatus`, and the rest). It still has a couple of flaws:
