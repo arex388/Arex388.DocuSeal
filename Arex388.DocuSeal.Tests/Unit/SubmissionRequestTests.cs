@@ -431,9 +431,19 @@ public sealed class SubmissionRequestTests {
 	}
 
 	[Fact]
-	public Task CreateSubmission_SubmitterWithoutEmailOrPhone_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
-		Name = "John Doe"
-	})), "'Email' or 'Phone' must be set.");
+	public Task CreateSubmission_SubmitterWithoutEmailPhoneOrName_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
+		Role = "First Party"
+	})), "'Email', 'Phone' or 'Name' must be set.");
+
+	[Fact]
+	public async Task CreateSubmission_SubmitterWithOnlyName_IsValid() {
+		var request = await CaptureCreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
+			Name = "John Doe",
+			Role = "First Party"
+		}));
+
+		ShouldBeJson(request.Body, """{"submitters":[{"name":"John Doe","role":"First Party"}],"template_id":1001}""");
+	}
 
 	[Fact]
 	public Task CreateSubmission_SubmitterWithInvalidEmail_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
@@ -807,7 +817,7 @@ public sealed class SubmissionRequestTests {
 				Body = "Please sign {{submitter.link}}",
 				Subject = "Sign here"
 			},
-			SendEmail = false,
+			MustEmail = false,
 			TemplateId = new TemplateId(1)
 		}), "[]");
 
@@ -906,7 +916,7 @@ public sealed class SubmissionRequestTests {
 			Documents = [
 				new CreateSubmissionFromPdf.RequestDocument {
 					Fields = [
-						new CreateTemplate.RequestDocumentField {
+						new CreateSubmissionFromPdf.RequestDocumentField {
 							Areas = [
 								new CreateTemplate.RequestDocumentFieldArea {
 									Height = .02M,
@@ -1282,7 +1292,7 @@ public sealed class SubmissionRequestTests {
 	[Fact]
 	public Task CreateSubmissionFromPdf_FieldWithUnknownType_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(new CreateSubmissionFromPdf.RequestDocument {
 		Fields = [
-			new CreateTemplate.RequestDocumentField {
+			new CreateSubmissionFromPdf.RequestDocumentField {
 				Name = "Name",
 				Type = FieldType.Unknown
 			}
@@ -1299,6 +1309,89 @@ public sealed class SubmissionRequestTests {
 		FileBase64 = "base64",
 		Name = "Demo PDF"
 	})), "'Fields' must not contain null entries.");
+
+	[Fact]
+	public async Task CreateSubmissionFromPdf_FieldWithOnlyTypeAndAreas_IsValid() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(new CreateSubmissionFromPdf.RequestDocument {
+			Fields = [
+				new CreateSubmissionFromPdf.RequestDocumentField {
+					Areas = [
+						new CreateTemplate.RequestDocumentFieldArea {
+							Height = .06M,
+							Page = 1,
+							Width = .335M,
+							X = .42M,
+							Y = .15M
+						}
+					],
+					Type = FieldType.Signature
+				}
+			],
+			FileBase64 = "base64",
+			Name = "Demo PDF"
+		})));
+
+		ShouldBeJson(request.Body, """
+			{
+				"documents": [
+					{
+						"name": "Demo PDF",
+						"file": "base64",
+						"fields": [
+							{
+								"type": "signature",
+								"areas": [
+									{ "x": 0.42, "y": 0.15, "w": 0.335, "h": 0.06, "page": 1 }
+								]
+							}
+						]
+					}
+				],
+				"submitters": [
+					{ "email": "john.doe@example.com", "role": "First Party" }
+				]
+			}
+			""");
+	}
+
+	[Fact]
+	public void CreateSubmissionFromPdf_Field_HasNoTemplateOnlyMembers() {
+		var members = typeof(CreateSubmissionFromPdf.RequestDocumentField).GetProperties().Select(p => p.Name);
+
+		members.Should().BeEquivalentTo("Areas", "Description", "IsRequired", "Name", "Options", "Role", "Title", "Type");
+	}
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_FieldWithInvalidArea_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(new CreateSubmissionFromPdf.RequestDocument {
+		Fields = [
+			new CreateSubmissionFromPdf.RequestDocumentField {
+				Areas = [
+					new CreateTemplate.RequestDocumentFieldArea {
+						Height = .06M,
+						Page = 1,
+						Width = .335M,
+						X = -.1M,
+						Y = .15M
+					}
+				]
+			}
+		],
+		FileBase64 = "base64",
+		Name = "Demo PDF"
+	})), "'X' must be greater than or equal to '0'.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_FieldWithNullArea_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(new CreateSubmissionFromPdf.RequestDocument {
+		Fields = [
+			new CreateSubmissionFromPdf.RequestDocumentField {
+				Areas = [
+					null!
+				]
+			}
+		],
+		FileBase64 = "base64",
+		Name = "Demo PDF"
+	})), "'Areas' must not contain null entries.");
 
 	[Fact]
 	public Task CreateSubmissionFromDocx_DocumentWithoutFile_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(FromDocxRequest(new CreateSubmissionFromDocx.RequestDocument {
@@ -1331,9 +1424,19 @@ public sealed class SubmissionRequestTests {
 	})), "'Position' must be greater than or equal to '0'.");
 
 	[Fact]
-	public Task CreateSubmissionFromPdf_SubmitterWithoutEmailOrPhone_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(submitter: new CreateSubmission.RequestSubmitter {
-		Name = "John Doe"
-	})), "'Email' or 'Phone' must be set.");
+	public Task CreateSubmissionFromPdf_SubmitterWithoutEmailPhoneOrName_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(submitter: new CreateSubmission.RequestSubmitter {
+		Role = "First Party"
+	})), "'Email', 'Phone' or 'Name' must be set.");
+
+	[Fact]
+	public async Task CreateSubmissionFromPdf_SubmitterWithOnlyName_IsValid() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(submitter: new CreateSubmission.RequestSubmitter {
+			Name = "John Doe",
+			Role = "First Party"
+		})));
+
+		ShouldBeJson(JsonNode.Parse(request.Body!)!["submitters"]!.ToJsonString(), """[{"name":"John Doe","role":"First Party"}]""");
+	}
 
 	[Fact]
 	public Task CreateSubmissionFromDocx_EmptyMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {

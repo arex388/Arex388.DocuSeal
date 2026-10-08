@@ -33,7 +33,7 @@ public static class CreateSubmissionFromEmails {
 		/// Set `false` to disable signature request emails sending. The API defaults to `true`.
 		/// </summary>
 		[JsonPropertyName("send_email")]
-		public bool? SendEmail { get; init; }
+		public bool? MustEmail { get; init; }
 
 		/// <summary>
 		/// The unique identifier of the template.

@@ -339,6 +339,25 @@ public sealed class TemplateRequestTests {
 	public Task CreateTemplate_DynamicDocument_OnPdf_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateTemplateAsync(CreateTemplateRequest(CreateTemplate.Endpoints.Pdf, isDynamic: false)),
 		"'Is Dynamic' is only supported when creating a template from a DOCX file.");
 
+	[Theory]
+	[InlineData("/templates/pdf")]
+	[InlineData("templates/PDF")]
+	[InlineData("templates/html")]
+	[InlineData("submissions")]
+	public Task CreateTemplate_UnknownEndpoint_ReturnsInvalid(
+		string endpoint) => ShouldBeInvalidAsync(c => c.CreateTemplateAsync(CreateTemplateRequest(endpoint)),
+		"'Endpoint' must be 'CreateTemplate.Endpoints.Pdf' or 'CreateTemplate.Endpoints.Docx'.");
+
+	[Fact]
+	public async Task CreateTemplate_EmptyEndpoint_ReturnsOneError() {
+		var docuSeal = TestClients.CreateWithJson("{}", out var handler);
+
+		var response = await docuSeal.CreateTemplateAsync(CreateTemplateRequest(""));
+
+		response.Errors.Should().Equal("'Endpoint' must not be empty.");
+		handler.Requests.Should().BeEmpty();
+	}
+
 	[Fact]
 	public async Task CreateTemplate_NullDocument_OnPdf_DoesNotThrow() {
 		var docuSeal = TestClients.CreateWithJson("{}", out _);

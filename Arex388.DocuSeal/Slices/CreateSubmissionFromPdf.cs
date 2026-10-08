@@ -112,7 +112,7 @@ public static class CreateSubmissionFromPdf {
 		/// <summary>
 		/// Fields are optional if you use {{...}} text tags to define fields in the document.
 		/// </summary>
-		public IList<CreateTemplate.RequestDocumentField>? Fields { get; init; }
+		public IList<RequestDocumentField>? Fields { get; init; }
 
 		/// <summary>
 		/// Base64-encoded content of the PDF file or downloadable file URL.
@@ -129,6 +129,52 @@ public static class CreateSubmissionFromPdf {
 		/// The document's position in the submission. When not set, the document is added in the order it appears in <see cref="Request.Documents" />.
 		/// </summary>
 		public int? Position { get; init; }
+	}
+
+	/// <summary>
+	/// Create submission from PDF request document field. Every member is optional; unlike a template field, a one-off field takes no display preferences or validation rules.
+	/// </summary>
+	public sealed class RequestDocumentField {
+		/// <summary>
+		/// The areas where the field is located in the document.
+		/// </summary>
+		public IList<CreateTemplate.RequestDocumentFieldArea>? Areas { get; init; }
+
+		/// <summary>
+		/// Field description displayed on the signing form. Supports Markdown.
+		/// </summary>
+		public string? Description { get; init; }
+
+		/// <summary>
+		/// Flag indicating if the field is required.
+		/// </summary>
+		[JsonPropertyName("required")]
+		public bool? IsRequired { get; init; }
+
+		/// <summary>
+		/// Name of the field.
+		/// </summary>
+		public string? Name { get; init; }
+
+		/// <summary>
+		/// The option values for a <see cref="FieldType.Select" /> field.
+		/// </summary>
+		public IList<string>? Options { get; init; }
+
+		/// <summary>
+		/// Role name of the signer.
+		/// </summary>
+		public string? Role { get; init; }
+
+		/// <summary>
+		/// Field title displayed on the signing form instead of the name. Supports Markdown.
+		/// </summary>
+		public string? Title { get; init; }
+
+		/// <summary>
+		/// Type of the field (e.g., text, signature, date, initials).
+		/// </summary>
+		public FieldType? Type { get; init; }
 	}
 
 	/// <summary>
@@ -166,10 +212,19 @@ file sealed class RequestValidator :
 file sealed class RequestDocumentValidator :
 	AbstractValidator<RequestDocument> {
 	public RequestDocumentValidator(
-		IValidator<CreateTemplate.RequestDocumentField> requestDocumentFieldValidator) {
+		IValidator<RequestDocumentField> requestDocumentFieldValidator) {
 		RuleFor(r => r.Fields!).ForEach(r => r.NotNull().WithMessage("'Fields' must not contain null entries.").SetValidator(requestDocumentFieldValidator)).When(r => r.Fields is not null);
 		RuleFor(r => r.FileBase64).NotEmpty();
 		RuleFor(r => r.Name).NotEmpty();
 		RuleFor(r => r.Position).GreaterThanOrEqualTo(0).When(r => r.Position.HasValue);
+	}
+}
+
+file sealed class RequestDocumentFieldValidator :
+	AbstractValidator<RequestDocumentField> {
+	public RequestDocumentFieldValidator(
+		IValidator<CreateTemplate.RequestDocumentFieldArea> requestDocumentFieldAreaValidator) {
+		RuleFor(r => r.Areas!).ForEach(r => r.NotNull().WithMessage("'Areas' must not contain null entries.").SetValidator(requestDocumentFieldAreaValidator)).When(r => r.Areas is not null);
+		RuleFor(r => r.Type).Must(t => t != FieldType.Unknown).WithMessage("'{PropertyName}' must not be empty.");
 	}
 }

@@ -55,7 +55,7 @@ public interface IDocuSealClient {
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
-	/// Create a submission for each of the given email addresses from a template, which sends each of them a signature request unless <see cref="CreateSubmissionFromEmails.Request.SendEmail" /> is <see langword="false" />.
+	/// Create a submission for each of the given email addresses from a template, which sends each of them a signature request unless <see cref="CreateSubmissionFromEmails.Request.MustEmail" /> is <see langword="false" />.
 	/// </summary>
 	/// <param name="request">The submissions creation request.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>

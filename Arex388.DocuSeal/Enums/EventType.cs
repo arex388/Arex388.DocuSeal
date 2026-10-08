@@ -27,7 +27,7 @@ public enum EventType {
 	/// <summary>
 	/// A spam complaint was received for an email.
 	/// </summary>
-	ComplaintEmail,
+	ComplainedEmail,
 
 	/// <summary>
 	/// The form was completed.

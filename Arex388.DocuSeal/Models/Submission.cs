@@ -64,6 +64,11 @@ public sealed class Submission {
 	public DateTime? ExpireAtUtc { get; init; }
 
 	/// <summary>
+	/// The one-off submission's fields. Populated only by the one-off create responses (<c>CreateSubmissionFromPdfAsync</c>, <c>CreateSubmissionFromDocxAsync</c>, and <c>CreateSubmissionFromHtmlAsync</c>); empty on every other path.
+	/// </summary>
+	public IList<Field> Fields { get; init; } = [];
+
+	/// <summary>
 	/// The submission's id.
 	/// </summary>
 	[JsonPropertyName("id")]
@@ -73,6 +78,12 @@ public sealed class Submission {
 	/// The submission's name.
 	/// </summary>
 	public string? Name { get; init; }
+
+	/// <summary>
+	/// The one-off submission's document files. Populated only by the one-off create responses (<c>CreateSubmissionFromPdfAsync</c>, <c>CreateSubmissionFromDocxAsync</c>, and <c>CreateSubmissionFromHtmlAsync</c>); empty on every other path.
+	/// </summary>
+	[JsonPropertyName("schema")]
+	public IList<Schema> Schemas { get; init; } = [];
 
 	/// <summary>
 	/// The submission's slug.

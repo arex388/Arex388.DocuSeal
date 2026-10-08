@@ -99,7 +99,7 @@ public static class CreateSubmission {
 	}
 
 	/// <summary>
-	/// Create submission request submitter. At least one of <see cref="Email" /> or <see cref="Phone" /> must be set.
+	/// Create submission request submitter. At least one of <see cref="Email" />, <see cref="Phone" />, or <see cref="Name" /> must be set.
 	/// </summary>
 	public sealed class RequestSubmitter {
 		/// <summary>
@@ -309,7 +309,7 @@ file sealed class RequestSubmitterValidator :
 		IValidator<RequestMessage> requestMessageValidator,
 		IValidator<RequestSubmitterField> requestSubmitterFieldValidator) {
 		RuleFor(r => r.Email).EmailAddress().When(r => r.Email.HasValue());
-		RuleFor(r => r.Phone).NotEmpty().When(r => !r.Email.HasValue()).WithMessage("'Email' or 'Phone' must be set.");
+		RuleFor(r => r.Name).NotEmpty().When(r => !r.Email.HasValue() && !r.Phone.HasValue()).WithMessage("'Email', 'Phone' or 'Name' must be set.");
 		RuleFor(r => r.Fields!).ForEach(r => r.SetValidator(requestSubmitterFieldValidator)).When(r => r.Fields is not null);
 		RuleFor(r => r.Message).SetValidator(requestMessageValidator!);
 		RuleFor(r => r.OrderGroup).GreaterThanOrEqualTo(0).When(r => r.OrderGroup.HasValue);

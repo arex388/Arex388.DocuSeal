@@ -33,7 +33,7 @@ public static class CreateTemplate {
 		public required IList<RequestDocument> Documents { get; init; } = [];
 
 		/// <summary>
-		/// The endpoint to send the request to: <see cref="Endpoints.Pdf" /> or <see cref="Endpoints.Docx" />.
+		/// The endpoint to send the request to: <see cref="Endpoints.Pdf" /> or <see cref="Endpoints.Docx" />. Any other value fails validation.
 		/// </summary>
 		[JsonIgnore]
 		public string Endpoint { get; init; } = null!;
@@ -217,7 +217,7 @@ file sealed class RequestValidator :
 		IValidator<RequestDocument> requestDocumentValidator) {
 		RuleFor(r => r.Documents).ForEach(r => r.SetValidator(requestDocumentValidator)).NotEmpty();
 		RuleFor(r => r.Documents).Must(d => d.All(rd => rd?.IsDynamic is null)).When(r => r.Endpoint == Endpoints.Pdf && r.Documents is not null).WithMessage("'Is Dynamic' is only supported when creating a template from a DOCX file.");
-		RuleFor(r => r.Endpoint).NotEmpty();
+		RuleFor(r => r.Endpoint).Cascade(CascadeMode.Stop).NotEmpty().Must(e => e == Endpoints.Pdf || e == Endpoints.Docx).WithMessage("'{PropertyName}' must be 'CreateTemplate.Endpoints.Pdf' or 'CreateTemplate.Endpoints.Docx'.");
 		RuleFor(r => r.MustFlatten).Null().When(r => r.Endpoint == Endpoints.Docx).WithMessage("'{PropertyName}' is only supported when creating a template from a PDF file.");
 		RuleFor(r => r.MustRemoveTags).Null().When(r => r.Endpoint == Endpoints.Docx).WithMessage("'{PropertyName}' is only supported when creating a template from a PDF file.");
 	}

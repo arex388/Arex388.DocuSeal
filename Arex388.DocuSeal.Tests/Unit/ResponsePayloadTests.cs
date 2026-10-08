@@ -664,6 +664,28 @@ public sealed class ResponsePayloadTests {
 		submission.Events.Should().BeEmpty();
 		submission.Template.Should().BeNull();
 
+		var schema = submission.Schemas.Should().ContainSingle().Subject;
+
+		schema.Name.Should().Be("Demo PDF");
+		schema.AttachmentId.Should().Be(Guid.Parse("48d2998f-266b-47e4-beb2-250ab7ccebdf"));
+
+		var field = submission.Fields.Should().ContainSingle().Subject;
+
+		field.Name.Should().Be("Name");
+		field.Type.Should().Be(FieldType.Text);
+		field.IsRequired.Should().BeTrue();
+		field.Id.Should().Be(Guid.Parse("d0bf3c0c-1928-40c8-80f9-d9f3c6ad4eff"));
+		field.SubmitterId.Should().Be(Guid.Parse("0b0bff58-bc9a-475d-b4a9-2f3e5323faf7"));
+
+		var area = field.Areas.Should().ContainSingle().Subject;
+
+		area.Page.Should().Be(1);
+		area.AttachmentId.Should().Be(schema.AttachmentId);
+		area.X.Should().Be(0.403158189124654M);
+		area.Y.Should().Be(0.04211750189825361M);
+		area.Width.Should().Be(0.100684625476058M);
+		area.Height.Should().Be(0.01423690205011389M);
+
 		var submitter = submission.Submitters.Should().ContainSingle().Subject;
 
 		submitter.Id.Should().Be(new SubmitterId(1));
@@ -698,6 +720,19 @@ public sealed class ResponsePayloadTests {
 		submission.Submitters.Select(s => s.Id).Should().Equal(ClientOperations.SubmitterId, new SubmitterId(3002));
 		submission.Submitters.Select(s => s.SubmissionId).Should().AllBeEquivalentTo(ClientOperations.SubmissionId);
 		submission.Submitters.Select(s => s.Status).Should().Equal(SubmitterStatus.Sent, SubmitterStatus.Unknown);
+		submission.Schemas.Should().ContainSingle().Which.Name.Should().Be("test-document");
+		submission.Fields.Should().ContainSingle().Which.Type.Should().Be(FieldType.Signature);
+	}
+
+	[Fact]
+	public async Task GetSubmission_LeavesOneoffMembersEmpty() {
+		var docuSeal = TestClients.CreateWithJson(Spec("submission"), out _);
+
+		var response = await docuSeal.GetSubmissionAsync(ClientOperations.SubmissionId);
+
+		response.Success.Should().BeTrue();
+		response.Submission!.Schemas.Should().BeEmpty();
+		response.Submission.Fields.Should().BeEmpty();
 	}
 
 	[Theory]

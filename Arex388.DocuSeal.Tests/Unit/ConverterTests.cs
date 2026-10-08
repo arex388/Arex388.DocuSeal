@@ -67,7 +67,7 @@ public sealed class ConverterTests {
 		("click_sms", EventType.ClickedSms),
 		("complete_form", EventType.CompletedForm),
 		("complete_verification", EventType.CompletedVerification),
-		("complaint_email", EventType.ComplaintEmail),
+		("complaint_email", EventType.ComplainedEmail),
 		("decline_form", EventType.DeclinedForm),
 		("invite_party", EventType.InvitedParty),
 		("open_email", EventType.OpenedEmail),
