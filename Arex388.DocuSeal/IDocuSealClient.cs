@@ -51,7 +51,7 @@ public interface IDocuSealClient {
 	/// <summary>
 	/// Create a template.
 	/// </summary>
-	/// <param name="file">The file to use for creating the template.</param>
+	/// <param name="file">The file to use for creating the template. Must be a <c>.pdf</c> or <c>.docx</c> file; any other extension, or a file that does not exist, returns an invalid response without calling the API.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>A response indicating if the operation completed with the created template.</returns>
 	Task<CreateTemplate.Response> CreateTemplateAsync(

@@ -100,5 +100,6 @@ file sealed class RequestDocumentValidator :
 	public RequestDocumentValidator() {
 		RuleFor(r => r.FileBase64).NotEmpty().When(r => r.MustRemove != true && !r.Html.HasValue());
 		RuleFor(r => r.Html).NotEmpty().When(r => r.MustRemove != true && !r.FileBase64.HasValue());
+		RuleFor(r => r.Position).NotNull().When(r => r.MustRemove == true && !r.Name.HasValue()).WithMessage("'Name' or 'Position' must be set to remove a document.");
 	}
 }

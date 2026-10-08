@@ -21,9 +21,16 @@ public static class CloneTemplate {
 		internal string Endpoint => $"templates/{Id}/clone";
 
 		/// <summary>
+		/// Your application-specific unique string key to identify the cloned template within your app.
+		/// </summary>
+		[JsonPropertyName("external_id")]
+		public string? ExternalId { get; init; }
+
+		/// <summary>
 		/// The unique identifier of the documents template.
 		/// </summary>
-		public required TemplateId Id { get; init; }
+		[JsonIgnore]
+		public TemplateId Id { get; init; }
 
 		/// <summary>
 		/// Template name. Existing name with (Clone) suffix will be used if not specified.

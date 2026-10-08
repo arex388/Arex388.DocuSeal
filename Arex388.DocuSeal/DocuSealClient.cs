@@ -1,5 +1,6 @@
 ﻿using Arex388.DocuSeal.Converters;
 using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -177,21 +178,39 @@ internal sealed class DocuSealClient(
 	public Task<CreateTemplate.Response> CreateTemplateAsync(
 		FileInfo file,
 		CancellationToken cancellationToken = default) {
-		if (!file.Exists
-			|| cancellationToken.IsSupportedAndCancelled()) {
+		if (cancellationToken.IsSupportedAndCancelled()) {
 			return Task.FromResult(CreateTemplate.Response.Cancelled);
 		}
 
 		var fileName = file.FullName;
-		var fileBytes = File.ReadAllBytes(fileName);
-		var fileExtension = Path.GetExtension(fileName);
+		var endpoint = Path.GetExtension(fileName).ToLowerInvariant() switch {
+			".docx" => CreateTemplate.Endpoints.Docx,
+			".pdf" => CreateTemplate.Endpoints.Pdf,
+			_ => null
+		};
+
+		if (endpoint is null) {
+			return Task.FromResult(CreateTemplate.Response.Invalid(new ValidationResult([
+				new ValidationFailure(nameof(file), "'File' must be a .pdf or .docx file.")
+			])));
+		}
+
+		if (!file.Exists) {
+			return Task.FromResult(CreateTemplate.Response.Invalid(new ValidationResult([
+				new ValidationFailure(nameof(file), "'File' does not exist.")
+			])));
+		}
+
+		byte[] fileBytes;
+
+		try {
+			fileBytes = File.ReadAllBytes(fileName);
+		} catch {
+			return Task.FromResult(CreateTemplate.Response.Failed);
+		}
 
 		return CreateTemplateAsync(new CreateTemplate.Request {
-			Endpoint = fileExtension switch {
-				".docx" => CreateTemplate.Endpoints.Docx,
-				".pdf" => CreateTemplate.Endpoints.Pdf,
-				_ => null!
-			},
+			Endpoint = endpoint,
 			Documents = [
 				new CreateTemplate.RequestDocument {
 					Name = Path.GetFileNameWithoutExtension(fileName),
