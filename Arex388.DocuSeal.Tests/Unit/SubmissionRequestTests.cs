@@ -851,4 +851,525 @@ public sealed class SubmissionRequestTests {
 
 	[Fact]
 	public Task CreateSubmissionFromEmails_EmptyMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(new CreateSubmissionFromEmails.RequestMessage())), "'Body' or 'Subject' must be set.");
+
+	//	============================================================================
+	//	CreateSubmissionFromPdf, CreateSubmissionFromDocx, and CreateSubmissionFromHtml
+	//	============================================================================
+
+	private static CreateSubmission.RequestSubmitter OneoffSubmitter() => new() {
+		Email = "john.doe@example.com",
+		Role = "First Party"
+	};
+
+	private static CreateSubmissionFromPdf.Request FromPdfRequest(
+		CreateSubmissionFromPdf.RequestDocument? document = null,
+		CreateSubmission.RequestSubmitter? submitter = null) => new() {
+			Documents = [
+				document ?? new CreateSubmissionFromPdf.RequestDocument {
+					FileBase64 = "base64",
+					Name = "Demo PDF"
+				}
+			],
+			Submitters = [
+				submitter ?? OneoffSubmitter()
+			]
+		};
+
+	private static CreateSubmissionFromDocx.Request FromDocxRequest(
+		CreateSubmissionFromDocx.RequestDocument? document = null) => new() {
+			Documents = [
+				document ?? new CreateSubmissionFromDocx.RequestDocument {
+					FileBase64 = "base64",
+					Name = "Demo DOCX"
+				}
+			],
+			Submitters = [
+				OneoffSubmitter()
+			]
+		};
+
+	private static CreateSubmissionFromHtml.Request FromHtmlRequest(
+		CreateSubmissionFromHtml.RequestDocument? document = null) => new() {
+			Documents = [
+				document ?? new CreateSubmissionFromHtml.RequestDocument {
+					Html = "<p>Test</p>"
+				}
+			],
+			Submitters = [
+				OneoffSubmitter()
+			]
+		};
+
+	[Fact]
+	public async Task CreateSubmissionFromPdf_WritesSpecBody() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+			Documents = [
+				new CreateSubmissionFromPdf.RequestDocument {
+					Fields = [
+						new CreateTemplate.RequestDocumentField {
+							Areas = [
+								new CreateTemplate.RequestDocumentFieldArea {
+									Height = .02M,
+									Option = "Option A",
+									Page = 1,
+									Width = .1M,
+									X = .4M,
+									Y = .04M
+								}
+							],
+							Description = "Your **legal** name.",
+							IsRequired = true,
+							Name = "Name",
+							Options = [
+								"Option A",
+								"Option B"
+							],
+							Role = "First Party",
+							Title = "Full *name*",
+							Type = FieldType.Select
+						}
+					],
+					FileBase64 = "base64",
+					Name = "Demo PDF",
+					Position = 0
+				}
+			],
+			ExpireAtUtc = new DateTime(2024, 9, 1, 12, 0, 0, DateTimeKind.Utc),
+			Message = new CreateSubmission.RequestMessage {
+				Body = "Hi {{submission.name}}, sign at {{submitter.link}}.",
+				Subject = "Please sign"
+			},
+			MustEmail = true,
+			MustFlatten = false,
+			MustMergeDocuments = true,
+			MustRemoveTags = false,
+			MustSms = false,
+			Name = "Test Submission Document",
+			OnCompletedBccEmail = "bcc@example.com",
+			OnCompletedUrl = "https://example.com/done",
+			Order = SubmitterOrder.Preserved,
+			ReplyToEmail = "reply@example.com",
+			Submitters = [
+				new CreateSubmission.RequestSubmitter {
+					Email = "john.doe@example.com",
+					Name = "John Doe",
+					Role = "First Party",
+					Values = new Dictionary<string, object?> {
+						["Name"] = "John Doe"
+					}
+				}
+			],
+			TemplateIds = [
+				new TemplateId(1000001),
+				new TemplateId(1000002)
+			]
+		}));
+
+		request.Method.Should().Be(HttpMethod.Post);
+		request.Uri.Should().Be(new Uri(TestClients.BaseAddress, "submissions/pdf"));
+		ShouldBeJson(request.Body, """
+			{
+				"name": "Test Submission Document",
+				"send_email": true,
+				"send_sms": false,
+				"order": "preserved",
+				"completed_redirect_url": "https://example.com/done",
+				"bcc_completed": "bcc@example.com",
+				"reply_to": "reply@example.com",
+				"expire_at": "2024-09-01 12:00:00 UTC",
+				"template_ids": [ 1000001, 1000002 ],
+				"documents": [
+					{
+						"name": "Demo PDF",
+						"file": "base64",
+						"fields": [
+							{
+								"name": "Name",
+								"type": "select",
+								"role": "First Party",
+								"required": true,
+								"title": "Full *name*",
+								"description": "Your **legal** name.",
+								"areas": [
+									{ "x": 0.4, "y": 0.04, "w": 0.1, "h": 0.02, "page": 1, "option": "Option A" }
+								],
+								"options": [ "Option A", "Option B" ]
+							}
+						],
+						"position": 0
+					}
+				],
+				"submitters": [
+					{
+						"name": "John Doe",
+						"role": "First Party",
+						"email": "john.doe@example.com",
+						"values": { "Name": "John Doe" }
+					}
+				],
+				"message": {
+					"subject": "Please sign",
+					"body": "Hi {{submission.name}}, sign at {{submitter.link}}."
+				},
+				"flatten": false,
+				"merge_documents": true,
+				"remove_tags": false
+			}
+			""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromPdf_WithRequiredMembersOnly_OmitsUnsetMembers() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest()));
+
+		ShouldBeJson(request.Body, """{"documents":[{"name":"Demo PDF","file":"base64"}],"submitters":[{"email":"john.doe@example.com","role":"First Party"}]}""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromDocx_WritesSpecBody() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
+			Documents = [
+				new CreateSubmissionFromDocx.RequestDocument {
+					FileBase64 = "base64",
+					Name = "Demo DOCX",
+					Position = 1
+				}
+			],
+			ExpireAtUtc = new DateTime(2024, 9, 1, 12, 0, 0, DateTimeKind.Utc),
+			Message = new CreateSubmission.RequestMessage {
+				Subject = "Please sign"
+			},
+			MustEmail = false,
+			MustMergeDocuments = false,
+			MustRemoveTags = true,
+			MustSms = true,
+			Name = "Test Submission Document",
+			OnCompletedBccEmail = "bcc@example.com",
+			OnCompletedUrl = "https://example.com/done",
+			Order = SubmitterOrder.Random,
+			ReplyToEmail = "reply@example.com",
+			Submitters = [
+				new CreateSubmission.RequestSubmitter {
+					Phone = "+1234567890",
+					Role = "First Party"
+				}
+			],
+			TemplateIds = [
+				new TemplateId(1000001)
+			],
+			Variables = new Dictionary<string, object?> {
+				["variable_name"] = "value",
+				["items"] = new List<object> {
+					new Dictionary<string, object?> {
+						["name"] = "Item",
+						["price"] = 9.5M
+					}
+				}
+			}
+		}));
+
+		request.Method.Should().Be(HttpMethod.Post);
+		request.Uri.Should().Be(new Uri(TestClients.BaseAddress, "submissions/docx"));
+		ShouldBeJson(request.Body, """
+			{
+				"name": "Test Submission Document",
+				"send_email": false,
+				"send_sms": true,
+				"variables": {
+					"variable_name": "value",
+					"items": [ { "name": "Item", "price": 9.5 } ]
+				},
+				"order": "random",
+				"completed_redirect_url": "https://example.com/done",
+				"bcc_completed": "bcc@example.com",
+				"reply_to": "reply@example.com",
+				"expire_at": "2024-09-01 12:00:00 UTC",
+				"template_ids": [ 1000001 ],
+				"documents": [
+					{ "name": "Demo DOCX", "file": "base64", "position": 1 }
+				],
+				"submitters": [
+					{ "role": "First Party", "phone": "+1234567890" }
+				],
+				"message": { "subject": "Please sign" },
+				"merge_documents": false,
+				"remove_tags": true
+			}
+			""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromDocx_WithRequiredMembersOnly_OmitsUnsetMembers() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromDocxAsync(FromDocxRequest()));
+
+		ShouldBeJson(request.Body, """{"documents":[{"name":"Demo DOCX","file":"base64"}],"submitters":[{"email":"john.doe@example.com","role":"First Party"}]}""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromHtml_WritesSpecBody() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+			Documents = [
+				new CreateSubmissionFromHtml.RequestDocument {
+					Html = """<p>Lorem Ipsum <text-field name="Industry" role="First Party" required="false"></text-field></p>""",
+					HtmlFooter = "<p>Footer</p>",
+					HtmlHeader = "<p>Header</p>",
+					Name = "Test Document",
+					Position = 0,
+					Size = PageSize.A4
+				}
+			],
+			ExpireAtUtc = new DateTime(2024, 9, 1, 12, 0, 0, DateTimeKind.Utc),
+			Message = new CreateSubmission.RequestMessage {
+				Body = "Sign {{template.name}}."
+			},
+			MustEmail = true,
+			MustMergeDocuments = true,
+			MustSms = false,
+			Name = "Test Submission Document",
+			OnCompletedBccEmail = "bcc@example.com",
+			OnCompletedUrl = "https://example.com/done",
+			Order = SubmitterOrder.Preserved,
+			ReplyToEmail = "reply@example.com",
+			Submitters = [
+				OneoffSubmitter()
+			],
+			TemplateIds = [
+				new TemplateId(1000001)
+			]
+		}));
+
+		request.Method.Should().Be(HttpMethod.Post);
+		request.Uri.Should().Be(new Uri(TestClients.BaseAddress, "submissions/html"));
+		ShouldBeJson(request.Body, """
+			{
+				"name": "Test Submission Document",
+				"send_email": true,
+				"send_sms": false,
+				"order": "preserved",
+				"completed_redirect_url": "https://example.com/done",
+				"bcc_completed": "bcc@example.com",
+				"reply_to": "reply@example.com",
+				"expire_at": "2024-09-01 12:00:00 UTC",
+				"template_ids": [ 1000001 ],
+				"documents": [
+					{
+						"name": "Test Document",
+						"html": "<p>Lorem Ipsum <text-field name=\"Industry\" role=\"First Party\" required=\"false\"></text-field></p>",
+						"html_header": "<p>Header</p>",
+						"html_footer": "<p>Footer</p>",
+						"size": "A4",
+						"position": 0
+					}
+				],
+				"submitters": [
+					{ "role": "First Party", "email": "john.doe@example.com" }
+				],
+				"message": { "body": "Sign {{template.name}}." },
+				"merge_documents": true
+			}
+			""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromHtml_WithRequiredMembersOnly_OmitsUnsetMembers() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromHtmlAsync(FromHtmlRequest()));
+
+		ShouldBeJson(request.Body, """{"documents":[{"html":"<p>Test</p>"}],"submitters":[{"email":"john.doe@example.com","role":"First Party"}]}""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromPdf_TakesUnspecifiedExpireAt_AsUtc() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+			Documents = FromPdfRequest().Documents,
+			ExpireAtUtc = new DateTime(2024, 9, 1, 12, 0, 0, DateTimeKind.Unspecified),
+			Submitters = [
+				OneoffSubmitter()
+			]
+		}));
+
+		JsonNode.Parse(request.Body!)!["expire_at"]!.GetValue<string>().Should().Be("2024-09-01 12:00:00 UTC");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromHtml_ConvertsLocalExpireAt_ToUtc() {
+		var instant = new DateTimeOffset(2024, 9, 1, 12, 0, 0, TimeSpan.FromHours(-5));
+
+		SkipWhenLocalIsUtc(instant);
+
+		var request = await CaptureAsync(c => c.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+			Documents = FromHtmlRequest().Documents,
+			ExpireAtUtc = instant.LocalDateTime,
+			Submitters = [
+				OneoffSubmitter()
+			]
+		}));
+
+		JsonNode.Parse(request.Body!)!["expire_at"]!.GetValue<string>().Should().Be("2024-09-01 17:00:00 UTC");
+	}
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_NoDocuments_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+		Documents = [],
+		Submitters = [
+			OneoffSubmitter()
+		]
+	}), "'Documents' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromDocx_NoDocuments_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
+		Documents = [],
+		Submitters = [
+			OneoffSubmitter()
+		]
+	}), "'Documents' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromHtml_NoDocuments_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+		Documents = [],
+		Submitters = [
+			OneoffSubmitter()
+		]
+	}), "'Documents' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_NoSubmitters_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+		Documents = FromPdfRequest().Documents,
+		Submitters = []
+	}), "'Submitters' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromDocx_NoSubmitters_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
+		Documents = FromDocxRequest().Documents,
+		Submitters = []
+	}), "'Submitters' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromHtml_NoSubmitters_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+		Documents = FromHtmlRequest().Documents,
+		Submitters = []
+	}), "'Submitters' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_NullDocument_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+		Documents = [
+			null!
+		],
+		Submitters = [
+			OneoffSubmitter()
+		]
+	}), "'Documents' must not contain null entries.");
+
+	[Fact]
+	public Task CreateSubmissionFromHtml_NullSubmitter_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+		Documents = FromHtmlRequest().Documents,
+		Submitters = [
+			null!
+		]
+	}), "'Submitters' must not contain null entries.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_DocumentWithoutFile_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(new CreateSubmissionFromPdf.RequestDocument {
+		FileBase64 = "",
+		Name = "Demo PDF"
+	})), "'File Base64' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_DocumentWithoutName_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(new CreateSubmissionFromPdf.RequestDocument {
+		FileBase64 = "base64",
+		Name = ""
+	})), "'Name' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_FieldWithUnknownType_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(new CreateSubmissionFromPdf.RequestDocument {
+		Fields = [
+			new CreateTemplate.RequestDocumentField {
+				Name = "Name",
+				Type = FieldType.Unknown
+			}
+		],
+		FileBase64 = "base64",
+		Name = "Demo PDF"
+	})), "'Type' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_NullField_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(new CreateSubmissionFromPdf.RequestDocument {
+		Fields = [
+			null!
+		],
+		FileBase64 = "base64",
+		Name = "Demo PDF"
+	})), "'Fields' must not contain null entries.");
+
+	[Fact]
+	public Task CreateSubmissionFromDocx_DocumentWithoutFile_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(FromDocxRequest(new CreateSubmissionFromDocx.RequestDocument {
+		FileBase64 = " ",
+		Name = "Demo DOCX"
+	})), "'File Base64' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromDocx_DocumentWithoutName_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(FromDocxRequest(new CreateSubmissionFromDocx.RequestDocument {
+		FileBase64 = "base64",
+		Name = ""
+	})), "'Name' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromHtml_DocumentWithoutHtml_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromHtmlAsync(FromHtmlRequest(new CreateSubmissionFromHtml.RequestDocument {
+		Html = ""
+	})), "'Html' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromHtml_DocumentWithUnknownSize_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromHtmlAsync(FromHtmlRequest(new CreateSubmissionFromHtml.RequestDocument {
+		Html = "<p>Test</p>",
+		Size = PageSize.Unknown
+	})), "'Size' must not be unknown.");
+
+	[Fact]
+	public Task CreateSubmissionFromDocx_NegativePosition_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(FromDocxRequest(new CreateSubmissionFromDocx.RequestDocument {
+		FileBase64 = "base64",
+		Name = "Demo DOCX",
+		Position = -1
+	})), "'Position' must be greater than or equal to '0'.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_SubmitterWithoutEmailOrPhone_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(FromPdfRequest(submitter: new CreateSubmission.RequestSubmitter {
+		Name = "John Doe"
+	})), "'Email' or 'Phone' must be set.");
+
+	[Fact]
+	public Task CreateSubmissionFromDocx_EmptyMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
+		Documents = FromDocxRequest().Documents,
+		Message = new CreateSubmission.RequestMessage(),
+		Submitters = [
+			OneoffSubmitter()
+		]
+	}), "'Body' or 'Subject' must be set.");
+
+	[Fact]
+	public Task CreateSubmissionFromHtml_UnknownOrder_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+		Documents = FromHtmlRequest().Documents,
+		Order = SubmitterOrder.Unknown,
+		Submitters = [
+			OneoffSubmitter()
+		]
+	}), "'Order' must not be unknown.");
+
+	[Fact]
+	public Task CreateSubmissionFromPdf_InvalidBccEmail_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+		Documents = FromPdfRequest().Documents,
+		OnCompletedBccEmail = "not-an-email",
+		Submitters = [
+			OneoffSubmitter()
+		]
+	}), "'On Completed Bcc Email' is not a valid email address.");
+
+	[Fact]
+	public Task CreateSubmissionFromDocx_EmptyTemplateId_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
+		Documents = FromDocxRequest().Documents,
+		Submitters = [
+			OneoffSubmitter()
+		],
+		TemplateIds = [
+			new TemplateId(0)
+		]
+	}), "'Template Ids' must not be empty.");
 }

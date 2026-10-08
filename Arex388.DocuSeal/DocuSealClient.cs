@@ -36,7 +36,10 @@ internal sealed class DocuSealClient(
 	private readonly IValidator<ArchiveTemplate.Request> _archiveTemplateRequestValidator = services.GetRequiredService<IValidator<ArchiveTemplate.Request>>();
 	private readonly IValidator<CloneTemplate.Request> _cloneTemplateRequestValidator = services.GetRequiredService<IValidator<CloneTemplate.Request>>();
 	private readonly IValidator<CreateSubmission.Request> _createSubmissionRequestValidator = services.GetRequiredService<IValidator<CreateSubmission.Request>>();
+	private readonly IValidator<CreateSubmissionFromDocx.Request> _createSubmissionFromDocxRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionFromDocx.Request>>();
 	private readonly IValidator<CreateSubmissionFromEmails.Request> _createSubmissionFromEmailsRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionFromEmails.Request>>();
+	private readonly IValidator<CreateSubmissionFromHtml.Request> _createSubmissionFromHtmlRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionFromHtml.Request>>();
+	private readonly IValidator<CreateSubmissionFromPdf.Request> _createSubmissionFromPdfRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionFromPdf.Request>>();
 	private readonly IValidator<CreateTemplate.Request> _createTemplateRequestValidator = services.GetRequiredService<IValidator<CreateTemplate.Request>>();
 	private readonly IValidator<CreateTemplateFromHtml.Request> _createTemplateFromHtmlRequestValidator = services.GetRequiredService<IValidator<CreateTemplateFromHtml.Request>>();
 	private readonly IValidator<GetSubmissionDocuments.Request> _getSubmissionDocumentsRequestValidator = services.GetRequiredService<IValidator<GetSubmissionDocuments.Request>>();
@@ -141,6 +144,25 @@ internal sealed class DocuSealClient(
 		}, cancellationToken).ConfigureAwait(false);
 	}
 
+	public async Task<CreateSubmissionFromDocx.Response> CreateSubmissionFromDocxAsync(
+		CreateSubmissionFromDocx.Request request,
+		CancellationToken cancellationToken = default) {
+		if (cancellationToken.IsSupportedAndCancelled()) {
+			return CreateSubmissionFromDocx.Response.Cancelled;
+		}
+
+		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
+		var validationResult = _createSubmissionFromDocxRequestValidator.Validate(request);
+
+		if (!validationResult.IsValid) {
+			return CreateSubmissionFromDocx.Response.Invalid(validationResult);
+		}
+
+		return await SendAsync<Submission, CreateSubmissionFromDocx.Response>(HttpMethod.Post, request.Endpoint, request, s => s.Error, s => new CreateSubmissionFromDocx.Response {
+			Submission = s
+		}, cancellationToken).ConfigureAwait(false);
+	}
+
 	public async Task<CreateSubmissionFromEmails.Response> CreateSubmissionFromEmailsAsync(
 		CreateSubmissionFromEmails.Request request,
 		CancellationToken cancellationToken = default) {
@@ -157,6 +179,44 @@ internal sealed class DocuSealClient(
 
 		return await SendAsync<CreatedSubmitters, CreateSubmissionFromEmails.Response>(HttpMethod.Post, request.Endpoint, request, DeserializeCreatedSubmitters, c => c.Error, c => new CreateSubmissionFromEmails.Response {
 			Submitters = c.Submitters
+		}, cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task<CreateSubmissionFromHtml.Response> CreateSubmissionFromHtmlAsync(
+		CreateSubmissionFromHtml.Request request,
+		CancellationToken cancellationToken = default) {
+		if (cancellationToken.IsSupportedAndCancelled()) {
+			return CreateSubmissionFromHtml.Response.Cancelled;
+		}
+
+		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
+		var validationResult = _createSubmissionFromHtmlRequestValidator.Validate(request);
+
+		if (!validationResult.IsValid) {
+			return CreateSubmissionFromHtml.Response.Invalid(validationResult);
+		}
+
+		return await SendAsync<Submission, CreateSubmissionFromHtml.Response>(HttpMethod.Post, request.Endpoint, request, s => s.Error, s => new CreateSubmissionFromHtml.Response {
+			Submission = s
+		}, cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task<CreateSubmissionFromPdf.Response> CreateSubmissionFromPdfAsync(
+		CreateSubmissionFromPdf.Request request,
+		CancellationToken cancellationToken = default) {
+		if (cancellationToken.IsSupportedAndCancelled()) {
+			return CreateSubmissionFromPdf.Response.Cancelled;
+		}
+
+		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
+		var validationResult = _createSubmissionFromPdfRequestValidator.Validate(request);
+
+		if (!validationResult.IsValid) {
+			return CreateSubmissionFromPdf.Response.Invalid(validationResult);
+		}
+
+		return await SendAsync<Submission, CreateSubmissionFromPdf.Response>(HttpMethod.Post, request.Endpoint, request, s => s.Error, s => new CreateSubmissionFromPdf.Response {
+			Submission = s
 		}, cancellationToken).ConfigureAwait(false);
 	}
 

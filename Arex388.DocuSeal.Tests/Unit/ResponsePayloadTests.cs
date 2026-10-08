@@ -571,4 +571,145 @@ public sealed class ResponsePayloadTests {
 		response.Id.Should().BeNull();
 		response.Documents.Should().BeEmpty();
 	}
+
+	//	============================================================================
+	//	CreateSubmissionFromPdf, CreateSubmissionFromDocx, and CreateSubmissionFromHtml
+	//	============================================================================
+
+	public static TheoryData<string, string> OneoffOperations => new() {
+		{ nameof(IDocuSealClient.CreateSubmissionFromDocxAsync), "submission-docx" },
+		{ nameof(IDocuSealClient.CreateSubmissionFromHtmlAsync), "submission-html" },
+		{ nameof(IDocuSealClient.CreateSubmissionFromPdfAsync), "submission-pdf" }
+	};
+
+	public static TheoryData<string> OneoffOperationNames => [
+		nameof(IDocuSealClient.CreateSubmissionFromDocxAsync),
+		nameof(IDocuSealClient.CreateSubmissionFromHtmlAsync),
+		nameof(IDocuSealClient.CreateSubmissionFromPdfAsync)
+	];
+
+	private static async Task<(bool Success, IList<string> Errors, Submission? Submission)> CreateOneoffSubmissionAsync(
+		IDocuSealClient docuSeal,
+		string operation) {
+		IList<CreateSubmission.RequestSubmitter> submitters = [
+			new CreateSubmission.RequestSubmitter {
+				Email = "john.doe@example.com"
+			}
+		];
+
+		switch (operation) {
+			case nameof(IDocuSealClient.CreateSubmissionFromDocxAsync): {
+				var response = await docuSeal.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
+					Documents = [
+						new CreateSubmissionFromDocx.RequestDocument {
+							FileBase64 = "base64",
+							Name = "Demo DOCX"
+						}
+					],
+					Submitters = submitters
+				});
+
+				return (response.Success, response.Errors, response.Submission);
+			}
+			case nameof(IDocuSealClient.CreateSubmissionFromHtmlAsync): {
+				var response = await docuSeal.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+					Documents = [
+						new CreateSubmissionFromHtml.RequestDocument {
+							Html = "<p>Test</p>"
+						}
+					],
+					Submitters = submitters
+				});
+
+				return (response.Success, response.Errors, response.Submission);
+			}
+			case nameof(IDocuSealClient.CreateSubmissionFromPdfAsync): {
+				var response = await docuSeal.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+					Documents = [
+						new CreateSubmissionFromPdf.RequestDocument {
+							FileBase64 = "base64",
+							Name = "Demo PDF"
+						}
+					],
+					Submitters = submitters
+				});
+
+				return (response.Success, response.Errors, response.Submission);
+			}
+			default:
+				throw new ArgumentOutOfRangeException(nameof(operation), operation, null);
+		}
+	}
+
+	[Theory]
+	[MemberData(nameof(OneoffOperations))]
+	public async Task CreateSubmissionOneoff_BindsSpecExample(
+		string operation,
+		string spec) {
+		var docuSeal = TestClients.CreateWithJson(Spec(spec), out var handler);
+
+		var (success, _, submission) = await CreateOneoffSubmissionAsync(docuSeal, operation);
+
+		handler.Requests.Should().ContainSingle().Which.Method.Should().Be(HttpMethod.Post);
+		success.Should().BeTrue();
+		submission.Should().NotBeNull();
+		submission!.Id.Should().Be(new SubmissionId(5));
+		submission.Name.Should().Be("Test Submission");
+		submission.Source.Should().Be(SubmissionSource.Api);
+		submission.SubmittersOrder.Should().Be(SubmitterOrder.Preserved);
+		submission.Status.Should().Be(SubmissionStatus.Pending);
+		submission.ExpireAtUtc.Should().BeNull();
+		submission.CreatedAtUtc.Should().Be(Utc(2025, 6, 2, 15, 55, 50, 270));
+		submission.Documents.Should().BeEmpty("the one-off result carries the document files as schema, not documents");
+		submission.Events.Should().BeEmpty();
+		submission.Template.Should().BeNull();
+
+		var submitter = submission.Submitters.Should().ContainSingle().Subject;
+
+		submitter.Id.Should().Be(new SubmitterId(1));
+		submitter.Uuid.Should().Be(Guid.Parse("884d545b-3396-49f1-8c07-05b8b2a78755"));
+		submitter.Email.Should().Be("john.doe@example.com");
+		submitter.Slug.Should().Be("pAMimKcyrLjqVt");
+		submitter.SentAtUtc.Should().Be(Utc(2025, 6, 2, 15, 55, 51, 310));
+		submitter.OpenedAtUtc.Should().BeNull();
+		submitter.CreatedAtUtc.Should().Be(Utc(2025, 6, 2, 15, 55, 50, 320));
+		submitter.Name.Should().Be("string");
+		submitter.Phone.Should().Be("+1234567890");
+		submitter.ExternalId.Should().Be("2321");
+		submitter.Metadata!["customData"]!.GetValue<string>().Should().Be("custom value");
+		submitter.Status.Should().Be(SubmitterStatus.Sent);
+		submitter.Values.Should().ContainSingle().Which.Value!.ToString().Should().Be("John Doe");
+		submitter.Role.Should().Be("First Party");
+		submitter.EmbedSrc.Should().Be(new Uri("https://docuseal.com/s/pAMimKcyrLjqVt"));
+	}
+
+	[Theory]
+	[MemberData(nameof(OneoffOperationNames))]
+	public async Task CreateSubmissionOneoff_BindsTheSharedFixture(
+		string operation) {
+		var docuSeal = TestClients.CreateWithFixtures();
+
+		var (success, _, submission) = await CreateOneoffSubmissionAsync(docuSeal, operation);
+
+		success.Should().BeTrue();
+		submission!.Id.Should().Be(ClientOperations.SubmissionId);
+		submission.Name.Should().Be("One-off Submission");
+		submission.Status.Should().Be(SubmissionStatus.Pending);
+		submission.Submitters.Select(s => s.Id).Should().Equal(ClientOperations.SubmitterId, new SubmitterId(3002));
+		submission.Submitters.Select(s => s.SubmissionId).Should().AllBeEquivalentTo(ClientOperations.SubmissionId);
+		submission.Submitters.Select(s => s.Status).Should().Equal(SubmitterStatus.Sent, SubmitterStatus.Unknown);
+	}
+
+	[Theory]
+	[MemberData(nameof(OneoffOperationNames))]
+	public async Task CreateSubmissionOneoff_ReturnsApiError(
+		string operation) {
+		var docuSeal = TestClients.CreateWithJson("""{ "error": "Unable to read the document" }""", out _, System.Net.HttpStatusCode.UnprocessableEntity);
+
+		var (success, errors, submission) = await CreateOneoffSubmissionAsync(docuSeal, operation);
+
+		success.Should().BeFalse();
+		errors.Should().Equal("Unable to read the document");
+		submission.Should().BeNull();
+	}
 }

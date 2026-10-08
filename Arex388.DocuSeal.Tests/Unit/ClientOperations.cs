@@ -20,7 +20,10 @@ internal static class ClientOperations {
 		nameof(IDocuSealClient.ArchiveTemplateAsync),
 		nameof(IDocuSealClient.CloneTemplateAsync),
 		nameof(IDocuSealClient.CreateSubmissionAsync),
+		nameof(IDocuSealClient.CreateSubmissionFromDocxAsync),
 		nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync),
+		nameof(IDocuSealClient.CreateSubmissionFromHtmlAsync),
+		nameof(IDocuSealClient.CreateSubmissionFromPdfAsync),
 		nameof(IDocuSealClient.CreateTemplateAsync),
 		CreateTemplateFromFile,
 		nameof(IDocuSealClient.CreateTemplateFromHtmlAsync),
@@ -76,6 +79,19 @@ internal static class ClientOperations {
 				],
 				TemplateId = TemplateId
 			}, cancellationToken), r => r.SubmissionId),
+			nameof(IDocuSealClient.CreateSubmissionFromDocxAsync) => ShapeAsync(docuSeal.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
+				Documents = [
+					new CreateSubmissionFromDocx.RequestDocument {
+						FileBase64 = _fileBase64,
+						Name = "Test Document"
+					}
+				],
+				Submitters = [
+					new CreateSubmission.RequestSubmitter {
+						Email = "signer1@example.com"
+					}
+				]
+			}, cancellationToken), r => r.Submission),
 			nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync) => ShapeAsync(docuSeal.CreateSubmissionFromEmailsAsync(new CreateSubmissionFromEmails.Request {
 				Emails = [
 					"signer1@example.com",
@@ -83,6 +99,31 @@ internal static class ClientOperations {
 				],
 				TemplateId = TemplateId
 			}, cancellationToken), r => r.Submitters.Count > 0 ? r.Submitters : null),
+			nameof(IDocuSealClient.CreateSubmissionFromHtmlAsync) => ShapeAsync(docuSeal.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+				Documents = [
+					new CreateSubmissionFromHtml.RequestDocument {
+						Html = "<p>Test Document</p>"
+					}
+				],
+				Submitters = [
+					new CreateSubmission.RequestSubmitter {
+						Email = "signer1@example.com"
+					}
+				]
+			}, cancellationToken), r => r.Submission),
+			nameof(IDocuSealClient.CreateSubmissionFromPdfAsync) => ShapeAsync(docuSeal.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+				Documents = [
+					new CreateSubmissionFromPdf.RequestDocument {
+						FileBase64 = _fileBase64,
+						Name = "Test Document"
+					}
+				],
+				Submitters = [
+					new CreateSubmission.RequestSubmitter {
+						Email = "signer1@example.com"
+					}
+				]
+			}, cancellationToken), r => r.Submission),
 			nameof(IDocuSealClient.CreateTemplateAsync) => ShapeAsync(docuSeal.CreateTemplateAsync(new CreateTemplate.Request {
 				Documents = [
 					new CreateTemplate.RequestDocument {

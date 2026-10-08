@@ -45,6 +45,16 @@ public interface IDocuSealClient {
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
+	/// Create a one-off submission from DOCX documents with dynamic content variables, without a saved template.
+	/// </summary>
+	/// <param name="request">The submission creation request.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns>A response indicating if the operation completed with the created submission.</returns>
+	Task<CreateSubmissionFromDocx.Response> CreateSubmissionFromDocxAsync(
+		CreateSubmissionFromDocx.Request request,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
 	/// Create a submission for each of the given email addresses from a template, which sends each of them a signature request unless <see cref="CreateSubmissionFromEmails.Request.SendEmail" /> is <see langword="false" />.
 	/// </summary>
 	/// <param name="request">The submissions creation request.</param>
@@ -52,6 +62,26 @@ public interface IDocuSealClient {
 	/// <returns>A response indicating if the operation completed with the created submissions' submitters.</returns>
 	Task<CreateSubmissionFromEmails.Response> CreateSubmissionFromEmailsAsync(
 		CreateSubmissionFromEmails.Request request,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Create a one-off submission from HTML documents with field tags, without a saved template.
+	/// </summary>
+	/// <param name="request">The submission creation request.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns>A response indicating if the operation completed with the created submission.</returns>
+	Task<CreateSubmissionFromHtml.Response> CreateSubmissionFromHtmlAsync(
+		CreateSubmissionFromHtml.Request request,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Create a one-off submission from PDF documents, without a saved template.
+	/// </summary>
+	/// <param name="request">The submission creation request.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns>A response indicating if the operation completed with the created submission.</returns>
+	Task<CreateSubmissionFromPdf.Response> CreateSubmissionFromPdfAsync(
+		CreateSubmissionFromPdf.Request request,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
