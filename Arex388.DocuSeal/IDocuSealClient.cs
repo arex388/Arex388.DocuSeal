@@ -44,9 +44,15 @@ public interface IDocuSealClient {
 		CreateSubmission.Request request,
 		CancellationToken cancellationToken = default);
 
-	//Task<CreateSubmissionSimple.Response> CreateSubmissionSimpleAsync(
-	//	CreateSubmissionSimple.Request request,
-	//	CancellationToken cancellationToken = default);
+	/// <summary>
+	/// Create a submission for each of the given email addresses from a template, which sends each of them a signature request unless <see cref="CreateSubmissionFromEmails.Request.SendEmail" /> is <see langword="false" />.
+	/// </summary>
+	/// <param name="request">The submissions creation request.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns>A response indicating if the operation completed with the created submissions' submitters.</returns>
+	Task<CreateSubmissionFromEmails.Response> CreateSubmissionFromEmailsAsync(
+		CreateSubmissionFromEmails.Request request,
+		CancellationToken cancellationToken = default);
 
 	/// <summary>
 	/// Create a template.

@@ -31,6 +31,7 @@ public sealed class EndpointTests {
 	[InlineData(nameof(IDocuSealClient.ArchiveTemplateAsync), "DELETE", "templates/1001")]
 	[InlineData(nameof(IDocuSealClient.CloneTemplateAsync), "POST", "templates/1001/clone")]
 	[InlineData(nameof(IDocuSealClient.CreateSubmissionAsync), "POST", "submissions")]
+	[InlineData(nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync), "POST", "submissions/emails")]
 	[InlineData(nameof(IDocuSealClient.CreateTemplateAsync), "POST", "templates/pdf")]
 	[InlineData(ClientOperations.CreateTemplateFromFile, "POST", "templates/pdf")]
 	[InlineData(nameof(IDocuSealClient.CreateTemplateFromHtmlAsync), "POST", "templates/html")]

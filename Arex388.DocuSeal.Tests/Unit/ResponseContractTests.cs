@@ -270,6 +270,26 @@ public sealed class ResponseContractTests {
 		response.Payload.Should().BeNull();
 	}
 
+	[Theory]
+	[InlineData("[]")]
+	[InlineData("{}")]
+	[InlineData("""{ "id": 3009, "submission_id": 2009 }""")]
+	[InlineData("""{ "error": 42 }""")]
+	[InlineData("2001")]
+	[InlineData("null")]
+	[InlineData("""{ "error": "" }""")]
+	[InlineData("""[{ "id": 3001, "submission_id": 2001 }, null]""")]
+	public async Task CreateSubmissionFromEmails_UnusableSuccessBody_ReturnsFailed(
+		string json) {
+		var docuSeal = TestClients.CreateWithJson(json, out _);
+
+		var response = await ClientOperations.InvokeAsync(docuSeal, nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync));
+
+		response.Success.Should().BeFalse();
+		response.Errors.Should().ContainSingle().Which.Should().Be(_failed);
+		response.Payload.Should().BeNull();
+	}
+
 	//	============================================================================
 	//	Canned responses are not shared
 	//	============================================================================

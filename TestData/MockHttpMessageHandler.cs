@@ -74,6 +74,7 @@ internal sealed class MockHttpMessageHandler :
 			["templates", _, "documents"] when method == HttpMethod.Put => "template.json",
 			["submissions"] when method == HttpMethod.Get => "submissions.json",
 			["submissions"] when method == HttpMethod.Post => "submissions-created.json",
+			["submissions", "emails"] when method == HttpMethod.Post => "submissions-created.json",
 			["submissions", _] when method == HttpMethod.Get => "submission.json",
 			["submissions", _] when method == HttpMethod.Put => "submission-updated.json",
 			["submissions", _] when method == HttpMethod.Delete => "submission-archived.json",

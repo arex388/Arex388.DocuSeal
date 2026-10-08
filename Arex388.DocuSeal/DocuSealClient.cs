@@ -36,7 +36,7 @@ internal sealed class DocuSealClient(
 	private readonly IValidator<ArchiveTemplate.Request> _archiveTemplateRequestValidator = services.GetRequiredService<IValidator<ArchiveTemplate.Request>>();
 	private readonly IValidator<CloneTemplate.Request> _cloneTemplateRequestValidator = services.GetRequiredService<IValidator<CloneTemplate.Request>>();
 	private readonly IValidator<CreateSubmission.Request> _createSubmissionRequestValidator = services.GetRequiredService<IValidator<CreateSubmission.Request>>();
-	//private readonly IValidator<CreateSubmissionSimple.Request> _createSubmissionSimpleRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionSimple.Request>>();
+	private readonly IValidator<CreateSubmissionFromEmails.Request> _createSubmissionFromEmailsRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionFromEmails.Request>>();
 	private readonly IValidator<CreateTemplate.Request> _createTemplateRequestValidator = services.GetRequiredService<IValidator<CreateTemplate.Request>>();
 	private readonly IValidator<CreateTemplateFromHtml.Request> _createTemplateFromHtmlRequestValidator = services.GetRequiredService<IValidator<CreateTemplateFromHtml.Request>>();
 	private readonly IValidator<GetSubmissionDocuments.Request> _getSubmissionDocumentsRequestValidator = services.GetRequiredService<IValidator<GetSubmissionDocuments.Request>>();
@@ -141,42 +141,24 @@ internal sealed class DocuSealClient(
 		}, cancellationToken).ConfigureAwait(false);
 	}
 
-	//public async Task<CreateSubmissionSimple.Response> CreateSubmissionSimpleAsync(
-	//	CreateSubmissionSimple.Request request,
-	//	CancellationToken cancellationToken = default) {
-	//	if (cancellationToken.IsSupportedAndCancelled()) {
-	//		return CreateSubmissionSimple.Response.Cancelled;
-	//	}
+	public async Task<CreateSubmissionFromEmails.Response> CreateSubmissionFromEmailsAsync(
+		CreateSubmissionFromEmails.Request request,
+		CancellationToken cancellationToken = default) {
+		if (cancellationToken.IsSupportedAndCancelled()) {
+			return CreateSubmissionFromEmails.Response.Cancelled;
+		}
 
-	//	// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-	//	var validationResult = _createSubmissionSimpleRequestValidator.Validate(request);
+		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
+		var validationResult = _createSubmissionFromEmailsRequestValidator.Validate(request);
 
-	//	if (!validationResult.IsValid) {
-	//		return CreateSubmissionSimple.Response.Invalid(validationResult);
-	//	}
+		if (!validationResult.IsValid) {
+			return CreateSubmissionFromEmails.Response.Invalid(validationResult);
+		}
 
-	//	try {
-	//		var response = await _httpClient.PostAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-	//		var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-	//		Submission? submission;
-
-	//		try {
-	//			var submissions = JsonSerializer.Deserialize<IList<Submission>>(responseContent, _jsonSerializerOptions);
-
-	//			submission = submissions![0];
-	//		} catch {
-	//			submission = JsonSerializer.Deserialize<Submission>(responseContent, _jsonSerializerOptions);
-	//		}
-
-	//		return new CreateSubmissionSimple.Response {
-	//			Errors = submission!.Error.HasValue()
-	//				? [submission.Error]
-	//				: []
-	//		};
-	//	} catch {
-	//		return CreateSubmissionSimple.Response.Failed;
-	//	}
-	//}
+		return await SendAsync<CreatedSubmitters, CreateSubmissionFromEmails.Response>(HttpMethod.Post, request.Endpoint, request, DeserializeCreatedSubmitters, c => c.Error, c => new CreateSubmissionFromEmails.Response {
+			Submitters = c.Submitters
+		}, cancellationToken).ConfigureAwait(false);
+	}
 
 	public Task<CreateTemplate.Response> CreateTemplateAsync(
 		FileInfo file,
@@ -518,9 +500,10 @@ internal sealed class DocuSealClient(
 	//	============================================================================
 
 	/// <summary>
-	/// The create-submission endpoint returns an array of submitters, one per
-	/// submitter in the request, and all of them carry the same
-	/// <c>submission_id</c>. An error arrives as a single object with an
+	/// The create-submission endpoints return an array of submitters: one per
+	/// submitter in the request for <c>POST /submissions</c>, all carrying the same
+	/// <c>submission_id</c>, and one per email address for <c>POST /submissions/emails</c>,
+	/// each carrying its own. An error arrives as a single object with an
 	/// <c>error</c> member. Anything else is not a usable body and maps to
 	/// <c>Failed</c>: an empty array, an array with a null element, an object
 	/// without a non-empty <c>error</c> string, or a scalar.
@@ -620,7 +603,7 @@ internal sealed class DocuSealClient(
 	//	============================================================================
 
 	/// <summary>
-	/// A create-submission body once read: the submitters of an array body, or the
+	/// A create-submission body (either endpoint) once read: the submitters of an array body, or the
 	/// <c>error</c> of an object body.
 	/// </summary>
 	private sealed record CreatedSubmitters(

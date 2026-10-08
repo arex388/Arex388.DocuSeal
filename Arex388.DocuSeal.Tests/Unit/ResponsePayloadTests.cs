@@ -124,6 +124,84 @@ public sealed class ResponsePayloadTests {
 	}
 
 	//	============================================================================
+	//	CreateSubmissionFromEmails
+	//	============================================================================
+
+	private static CreateSubmissionFromEmails.Request CreateSubmissionFromEmailsRequest() => new() {
+		Emails = [
+			"john.doe@example.com",
+			"alan.smith@example.com"
+		],
+		TemplateId = ClientOperations.TemplateId
+	};
+
+	[Fact]
+	public async Task CreateSubmissionFromEmails_BindsSpecExample() {
+		var docuSeal = TestClients.CreateWithJson(Spec("submission-emails"), out var handler);
+
+		var response = await docuSeal.CreateSubmissionFromEmailsAsync(CreateSubmissionFromEmailsRequest());
+
+		handler.Requests.Should().ContainSingle().Which.Method.Should().Be(HttpMethod.Post);
+		response.Success.Should().BeTrue();
+		response.Submitters.Should().HaveCount(2);
+		response.Submitters.Select(s => s.Id).Should().Equal(new SubmitterId(1), new SubmitterId(2));
+		response.Submitters.Select(s => s.SubmissionId).Should().Equal(new SubmissionId(1), new SubmissionId(1));
+		response.Submitters.Select(s => s.Uuid).Should().AllBeEquivalentTo(Guid.Parse("884d545b-3396-49f1-8c07-05b8b2a78755"));
+		response.Submitters.Select(s => s.Email).Should().Equal("john.doe@example.com", "alan.smith@example.com");
+		response.Submitters.Select(s => s.Slug).Should().Equal("pAMimKcyrLjqVt", "SEwc65vHNDH3QS");
+		response.Submitters.Select(s => s.SentAtUtc).Should().AllBeEquivalentTo(Utc(2023, 12, 13, 23, 4, 4, 252));
+		response.Submitters.Select(s => s.CreatedAtUtc).Should().AllBeEquivalentTo(Utc(2023, 12, 14, 15, 50, 21, 799));
+		response.Submitters.Select(s => s.OpenedAtUtc).Should().AllBeEquivalentTo((DateTime?)null);
+		response.Submitters.Select(s => s.Phone).Should().AllBeEquivalentTo("+1234567890");
+		response.Submitters.Select(s => s.ExternalId).Should().AllBeEquivalentTo("2321");
+		response.Submitters.Select(s => s.Status).Should().AllBeEquivalentTo(SubmitterStatus.Sent);
+		response.Submitters.Select(s => s.Role).Should().AllBeEquivalentTo("First Party");
+		response.Submitters.Select(s => s.Values.Single().Value!.ToString()).Should().Equal("John Doe", "Roe Moe");
+		response.Submitters.Select(s => s.EmbedSrc).Should().Equal(
+			new Uri("https://docuseal.com/s/pAMimKcyrLjqVt"),
+			new Uri("SEwc65vHNDH3QS", UriKind.Relative));
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromEmails_EachSubmitterCarriesItsOwnSubmissionId() {
+		const string json = """
+			[
+				{ "id": 3001, "submission_id": 2001, "email": "john.doe@example.com", "status": "sent" },
+				{ "id": 3002, "submission_id": 2002, "email": "alan.smith@example.com", "status": "sent" }
+			]
+			""";
+
+		var docuSeal = TestClients.CreateWithJson(json, out _);
+
+		var response = await docuSeal.CreateSubmissionFromEmailsAsync(CreateSubmissionFromEmailsRequest());
+
+		response.Success.Should().BeTrue();
+		response.Submitters.Select(s => s.Id).Should().Equal(new SubmitterId(3001), new SubmitterId(3002));
+		response.Submitters.Select(s => s.SubmissionId).Should().Equal(new SubmissionId(2001), new SubmissionId(2002));
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromEmails_BindsTheSharedFixture() {
+		var docuSeal = TestClients.CreateWithFixtures();
+
+		var response = await docuSeal.CreateSubmissionFromEmailsAsync(CreateSubmissionFromEmailsRequest());
+
+		response.Success.Should().BeTrue();
+		response.Submitters.Select(s => s.Email).Should().Equal("signer1@example.com", "signer2@example.com");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromEmails_ErrorObject_ReturnsTheError_AndNoSubmitters() {
+		var docuSeal = TestClients.CreateWithJson("""{ "error": "Template not found" }""", out _, System.Net.HttpStatusCode.NotFound);
+
+		var response = await docuSeal.CreateSubmissionFromEmailsAsync(CreateSubmissionFromEmailsRequest());
+
+		response.Success.Should().BeFalse();
+		response.Errors.Should().Equal("Template not found");
+		response.Submitters.Should().BeEmpty();
+	}
+
+	//	============================================================================
 	//	UpdateSubmitter
 	//	============================================================================
 

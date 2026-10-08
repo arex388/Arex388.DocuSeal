@@ -20,6 +20,7 @@ internal static class ClientOperations {
 		nameof(IDocuSealClient.ArchiveTemplateAsync),
 		nameof(IDocuSealClient.CloneTemplateAsync),
 		nameof(IDocuSealClient.CreateSubmissionAsync),
+		nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync),
 		nameof(IDocuSealClient.CreateTemplateAsync),
 		CreateTemplateFromFile,
 		nameof(IDocuSealClient.CreateTemplateFromHtmlAsync),
@@ -75,6 +76,13 @@ internal static class ClientOperations {
 				],
 				TemplateId = TemplateId
 			}, cancellationToken), r => r.SubmissionId),
+			nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync) => ShapeAsync(docuSeal.CreateSubmissionFromEmailsAsync(new CreateSubmissionFromEmails.Request {
+				Emails = [
+					"signer1@example.com",
+					"signer2@example.com"
+				],
+				TemplateId = TemplateId
+			}, cancellationToken), r => r.Submitters.Count > 0 ? r.Submitters : null),
 			nameof(IDocuSealClient.CreateTemplateAsync) => ShapeAsync(docuSeal.CreateTemplateAsync(new CreateTemplate.Request {
 				Documents = [
 					new CreateTemplate.RequestDocument {

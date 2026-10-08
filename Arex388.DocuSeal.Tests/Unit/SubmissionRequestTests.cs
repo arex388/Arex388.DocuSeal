@@ -762,4 +762,93 @@ public sealed class SubmissionRequestTests {
 
 	[Fact]
 	public Task GetSubmissionDocuments_EmptyId_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.GetSubmissionDocumentsAsync(new SubmissionId(0)), "'Id' must not be empty.");
+
+	//	============================================================================
+	//	CreateSubmissionFromEmails
+	//	============================================================================
+
+	private static CreateSubmissionFromEmails.Request FromEmailsRequest(
+		CreateSubmissionFromEmails.RequestMessage? message = null,
+		params string[] emails) => new() {
+			Emails = emails.Length == 0
+				? [
+					"a@x.com",
+					"b@x.com"
+				]
+				: emails,
+			Message = message,
+			TemplateId = new TemplateId(1)
+		};
+
+	[Fact]
+	public async Task CreateSubmissionFromEmails_WithRequiredMembersOnly_SendsTemplateIdAndJoinedEmails() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest()), "[]");
+
+		request.Method.Should().Be(HttpMethod.Post);
+		request.Uri.Should().Be(new Uri(TestClients.BaseAddress, "submissions/emails"));
+		ShouldBeJson(request.Body, """{"template_id":1,"emails":"a@x.com,b@x.com"}""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromEmails_WithOneEmail_SendsItWithoutADelimiter() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(null, "a@x.com")), "[]");
+
+		ShouldBeJson(request.Body, """{"template_id":1,"emails":"a@x.com"}""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromEmails_WritesExplicitValues() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromEmailsAsync(new CreateSubmissionFromEmails.Request {
+			Emails = [
+				"a@x.com",
+				"b@x.com"
+			],
+			Message = new CreateSubmissionFromEmails.RequestMessage {
+				Body = "Please sign {{submitter.link}}",
+				Subject = "Sign here"
+			},
+			SendEmail = false,
+			TemplateId = new TemplateId(1)
+		}), "[]");
+
+		ShouldBeJson(request.Body, """{"template_id":1,"emails":"a@x.com,b@x.com","send_email":false,"message":{"subject":"Sign here","body":"Please sign {{submitter.link}}"}}""");
+	}
+
+	[Fact]
+	public async Task CreateSubmissionFromEmails_WithOnlyAMessageSubject_OmitsTheBody() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(new CreateSubmissionFromEmails.RequestMessage {
+			Subject = "Sign here"
+		})), "[]");
+
+		ShouldBeJson(request.Body, """{"template_id":1,"emails":"a@x.com,b@x.com","message":{"subject":"Sign here"}}""");
+	}
+
+	[Fact]
+	public Task CreateSubmissionFromEmails_EmptyTemplateId_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(new CreateSubmissionFromEmails.Request {
+		Emails = [
+			"a@x.com"
+		],
+		TemplateId = new TemplateId(0)
+	}), "'Template Id' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromEmails_NoEmails_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(new CreateSubmissionFromEmails.Request {
+		Emails = [],
+		TemplateId = new TemplateId(1)
+	}), "'Emails' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromEmails_MalformedEmail_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(null, "a@x.com", "not-an-email")), "'Emails' is not a valid email address.");
+
+	[Theory]
+	[InlineData("")]
+	[InlineData(" ")]
+	public Task CreateSubmissionFromEmails_BlankEmail_ReturnsInvalid(
+		string email) => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(null, "a@x.com", email)), "'Emails' must not be empty.");
+
+	[Fact]
+	public Task CreateSubmissionFromEmails_EmailWithAComma_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(null, "a@x.com,b@x.com")), "'Emails' must not contain a comma within an address.");
+
+	[Fact]
+	public Task CreateSubmissionFromEmails_EmptyMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(new CreateSubmissionFromEmails.RequestMessage())), "'Body' or 'Subject' must be set.");
 }

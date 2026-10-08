@@ -63,6 +63,7 @@ The client provides methods for interacting with Templates, Submissions, and Sub
 
 - `ArchiveSubmissionAsync()` - Archive a submission so it can't be used. This is essentially a soft delete.
 - `CreateSubmissionAsync()` - Create a new submission for a template. The response carries the new submission's id (`SubmissionId`) and one `Submitter` per submitter in the request (`Submitters`), each with the `EmbedSrc` of its signing form. It does not carry the submission itself, so call `GetSubmissionAsync()` with the id when you need it.
+- `CreateSubmissionFromEmailsAsync()` - Create one submission per email address for a template, with the simplified `POST /submissions/emails` request. The response carries one `Submitter` per address (`Submitters`), each with its own `SubmissionId` and the `EmbedSrc` of its signing form.
 - `GetSubmissionAsync()` - Get an existing submission.
 - `GetSubmissionDocumentsAsync()` - Get a submission's documents: the signed documents once it is completed, the partially filled ones before then. Set `MustMerge` on the request to merge them into a single PDF.
 - `ListSubmissionsAsync()` - List submissions, optionally filtered by status, folder, template, or archived state. Archived submissions are not hidden unless you set `IsArchived` to `false`.
