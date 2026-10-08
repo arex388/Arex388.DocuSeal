@@ -324,46 +324,13 @@ public sealed class ConverterTests {
 		response.Submissions[1].Template!.Name.Should().Be("Archived Template");
 	}
 
-	[Fact]
-	public async Task CreateSubmission_ParsesCreatedFixture_IdIsTheSubmissionId() {
-		var docuSeal = TestClients.CreateWithFixtures();
-
-		var response = await docuSeal.CreateSubmissionAsync(new CreateSubmission.Request {
-			Submitters = [
-				new CreateSubmission.RequestSubmitter {
-					Email = "signer1@example.com"
-				}
-			],
-			TemplateId = ClientOperations.TemplateId
-		});
-
-		response.Success.Should().BeTrue();
-
-		//	The created fixture's first object has `id` 3001 (the submitter) and
-		//	`submission_id` 2001 (the submission); Id must be the latter.
-		response.Submission!.Id.Should().Be(ClientOperations.SubmissionId);
-		response.Submission.Id.Should().NotBe(new SubmissionId(ClientOperations.SubmitterId.Value));
-	}
-
 	[Theory]
 	[InlineData("""{ "id": 2001 }""", 2001)]
-	[InlineData("""{ "id": 3001, "submission_id": 2001 }""", 2001)]
-	[InlineData("""{ "submission_id": 2001, "id": 3001 }""", 2001)]
-	[InlineData("""{ "submission_id": 2001 }""", 2001)]
-	[InlineData("""{ "id": 2001, "submission_id": null }""", 2001)]
-	public void Submission_Id_PrefersSubmissionId_OverId(
+	[InlineData("""{ "id": 2001, "submission_id": 3001 }""", 2001)]
+	[InlineData("""{ "submission_id": 2001, "id": 3001 }""", 3001)]
+	public void Submission_Id_BindsId_AndIgnoresSubmissionId(
 		string json,
 		int expected) => JsonSerializer.Deserialize<Submission>(json, _options)!.Id.Should().Be(new SubmissionId(expected));
-
-	[Theory]
-	[InlineData("[]")]
-	[InlineData("2001")]
-	public void Submission_NonObject_Throws(
-		string json) {
-		var read = () => JsonSerializer.Deserialize<Submission>(json, _options);
-
-		read.Should().Throw<JsonException>();
-	}
 
 	[Fact]
 	public void Submission_Write_EmitsId() {

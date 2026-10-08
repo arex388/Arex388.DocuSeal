@@ -35,6 +35,12 @@ public sealed class Submitter {
 	/// </summary>
 	public string? Email { get; init; }
 
+	/// <summary>
+	/// The submitter's embed source. It is the URL of the submitter's signing form, and only the create and update submitter responses carry it.
+	/// </summary>
+	[JsonPropertyName("embed_src")]
+	public Uri? EmbedSrc { get; init; }
+
 	[JsonInclude]
 	internal string? Error { get; init; }
 

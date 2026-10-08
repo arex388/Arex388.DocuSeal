@@ -1,0 +1,47 @@
+{
+  "id": 3001,
+  "submission_id": 2001,
+  "uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0",
+  "email": "signer1@example.com",
+  "slug": "dsEeWrhRD8yDXT",
+  "sent_at": "2024-08-05T15:30:05.000Z",
+  "opened_at": "2024-08-05T15:45:00.000Z",
+  "completed_at": "2024-08-05T16:00:00.000Z",
+  "declined_at": null,
+  "created_at": "2024-08-05T15:30:00.000Z",
+  "updated_at": "2024-08-05T16:00:00.000Z",
+  "name": "Signer One",
+  "phone": "+15555550101",
+  "status": "completed",
+  "external_id": null,
+  "metadata": {},
+  "preferences": {},
+  "template": {
+    "id": 1001,
+    "name": "Test Template",
+    "created_at": "2024-08-05T15:21:57.375Z",
+    "updated_at": "2024-08-05T15:22:57.375Z"
+  },
+  "submission_events": [
+    {
+      "id": 4005,
+      "submitter_id": 3001,
+      "event_type": "complete_form",
+      "event_timestamp": "2024-08-05T16:00:00.000Z"
+    }
+  ],
+  "values": [
+    {
+      "field": "Full Name",
+      "value": "Signer One"
+    }
+  ],
+  "documents": [
+    {
+      "name": "test-document",
+      "url": "https://docuseal.example.com/file/test-document-signed.pdf"
+    }
+  ],
+  "role": "First Party",
+  "embed_src": "https://docuseal.example.com/s/dsEeWrhRD8yDXT"
+}

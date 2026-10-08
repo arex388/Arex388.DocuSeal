@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.ArchiveSubmission;
 
 namespace Arex388.DocuSeal;
@@ -23,7 +24,21 @@ public static class ArchiveSubmission {
 	/// Archive submission response.
 	/// </summary>
 	public sealed class Response :
-		ResponseBase<Response>;
+		ResponseBase<Response> {
+		/// <summary>
+		/// The archived submission's archived timestamp.
+		/// </summary>
+		[JsonPropertyName("archived_at")]
+		public DateTime? ArchivedAtUtc { get; init; }
+
+		[JsonInclude]
+		internal string? Error { get; init; }
+
+		/// <summary>
+		/// The archived submission's id.
+		/// </summary>
+		public SubmissionId? Id { get; init; }
+	}
 }
 
 //	================================================================================

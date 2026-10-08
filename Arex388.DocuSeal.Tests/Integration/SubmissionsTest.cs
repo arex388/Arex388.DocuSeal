@@ -33,7 +33,7 @@ public sealed class SubmissionsTest {
 		//	Act
 		//	========================================================================
 
-		var archived = await _docuSeal.ArchiveSubmissionAsync(created.Submission!.Id);
+		var archived = await _docuSeal.ArchiveSubmissionAsync(created.SubmissionId!.Value);
 
 		_console.WriteLineWithHeader(nameof(archived), archived);
 
@@ -72,7 +72,7 @@ public sealed class SubmissionsTest {
 		created.Errors.Should().BeEmpty();
 		created.Success.Should().BeTrue();
 
-		await _docuSeal.ArchiveSubmissionAsync(created.Submission!.Id);
+		await _docuSeal.ArchiveSubmissionAsync(created.SubmissionId!.Value);
 		await _docuSeal.ArchiveTemplateAsync(template.Template!.Id);
 	}
 
@@ -92,7 +92,7 @@ public sealed class SubmissionsTest {
 		//	Act
 		//	========================================================================
 
-		var gotten = await _docuSeal.GetSubmissionAsync(created.Submission!.Id);
+		var gotten = await _docuSeal.GetSubmissionAsync(created.SubmissionId!.Value);
 
 		_console.WriteLineWithHeader(nameof(gotten), gotten);
 
@@ -104,7 +104,7 @@ public sealed class SubmissionsTest {
 		gotten.Success.Should().BeTrue();
 		gotten.Submission.Should().NotBeNull();
 
-		await _docuSeal.ArchiveSubmissionAsync(created.Submission!.Id);
+		await _docuSeal.ArchiveSubmissionAsync(created.SubmissionId!.Value);
 		await _docuSeal.ArchiveTemplateAsync(template.Template!.Id);
 	}
 

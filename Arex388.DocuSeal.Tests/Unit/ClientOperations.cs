@@ -12,9 +12,12 @@ internal static class ClientOperations {
 	public static readonly SubmitterId SubmitterId = new(3001);
 
 	/// <summary>
-	/// Operations whose response carries a payload (<c>Template</c>, <c>Submission</c>, <c>Submitter</c>).
+	/// Operations whose response carries a payload (a <c>Template</c>, <c>Submission</c>,
+	/// <c>Submitter</c>, or an id), which is null unless the call succeeded.
 	/// </summary>
 	public static readonly string[] WithPayload = [
+		nameof(IDocuSealClient.ArchiveSubmissionAsync),
+		nameof(IDocuSealClient.ArchiveTemplateAsync),
 		nameof(IDocuSealClient.CloneTemplateAsync),
 		nameof(IDocuSealClient.CreateSubmissionAsync),
 		nameof(IDocuSealClient.CreateTemplateAsync),
@@ -22,15 +25,7 @@ internal static class ClientOperations {
 		nameof(IDocuSealClient.GetSubmissionAsync),
 		nameof(IDocuSealClient.GetSubmitterAsync),
 		nameof(IDocuSealClient.GetTemplateAsync),
-		nameof(IDocuSealClient.MergeTemplatesAsync)
-	];
-
-	/// <summary>
-	/// Operations whose response is only <c>Errors</c> / <c>Success</c>.
-	/// </summary>
-	public static readonly string[] WithoutPayload = [
-		nameof(IDocuSealClient.ArchiveSubmissionAsync),
-		nameof(IDocuSealClient.ArchiveTemplateAsync),
+		nameof(IDocuSealClient.MergeTemplatesAsync),
 		nameof(IDocuSealClient.UpdateSubmitterAsync),
 		nameof(IDocuSealClient.UpdateTemplateAsync),
 		nameof(IDocuSealClient.UpdateTemplateDocumentsAsync)
@@ -49,16 +44,11 @@ internal static class ClientOperations {
 
 	public static TheoryData<string> All => [
 		.. WithPayload,
-		.. WithoutPayload,
 		.. Lists
 	];
 
 	public static TheoryData<string> AllWithPayload => [
 		.. WithPayload
-	];
-
-	public static TheoryData<string> AllWithoutPayload => [
-		.. WithoutPayload
 	];
 
 	public static TheoryData<string> AllLists => [
@@ -69,8 +59,8 @@ internal static class ClientOperations {
 		IDocuSealClient docuSeal,
 		string operation,
 		CancellationToken cancellationToken = default) => operation switch {
-			nameof(IDocuSealClient.ArchiveSubmissionAsync) => ShapeAsync(docuSeal.ArchiveSubmissionAsync(SubmissionId, cancellationToken)),
-			nameof(IDocuSealClient.ArchiveTemplateAsync) => ShapeAsync(docuSeal.ArchiveTemplateAsync(TemplateId, cancellationToken)),
+			nameof(IDocuSealClient.ArchiveSubmissionAsync) => ShapeAsync(docuSeal.ArchiveSubmissionAsync(SubmissionId, cancellationToken), r => r.Id),
+			nameof(IDocuSealClient.ArchiveTemplateAsync) => ShapeAsync(docuSeal.ArchiveTemplateAsync(TemplateId, cancellationToken), r => r.Id),
 			nameof(IDocuSealClient.CloneTemplateAsync) => ShapeAsync(docuSeal.CloneTemplateAsync(new CloneTemplate.Request {
 				Id = TemplateId
 			}, cancellationToken), r => r.Template),
@@ -81,7 +71,7 @@ internal static class ClientOperations {
 					}
 				],
 				TemplateId = TemplateId
-			}, cancellationToken), r => r.Submission),
+			}, cancellationToken), r => r.SubmissionId),
 			nameof(IDocuSealClient.CreateTemplateAsync) => ShapeAsync(docuSeal.CreateTemplateAsync(new CreateTemplate.Request {
 				Documents = [
 					new CreateTemplate.RequestDocument {
@@ -108,11 +98,11 @@ internal static class ClientOperations {
 			nameof(IDocuSealClient.UpdateSubmitterAsync) => ShapeAsync(docuSeal.UpdateSubmitterAsync(new UpdateSubmitter.Request {
 				Id = SubmitterId,
 				Name = "Signer One"
-			}, cancellationToken)),
+			}, cancellationToken), r => r.Submitter),
 			nameof(IDocuSealClient.UpdateTemplateAsync) => ShapeAsync(docuSeal.UpdateTemplateAsync(new UpdateTemplate.Request {
 				Id = TemplateId,
 				Name = "Renamed Template"
-			}, cancellationToken)),
+			}, cancellationToken), r => r.Id),
 			nameof(IDocuSealClient.UpdateTemplateDocumentsAsync) => ShapeAsync(docuSeal.UpdateTemplateDocumentsAsync(new UpdateTemplateDocuments.Request {
 				Documents = [
 					new UpdateTemplateDocuments.RequestDocument {
@@ -121,7 +111,7 @@ internal static class ClientOperations {
 					}
 				],
 				Id = TemplateId
-			}, cancellationToken)),
+			}, cancellationToken), r => r.Template),
 			_ => throw new ArgumentOutOfRangeException(nameof(operation), operation, "Unknown client operation.")
 		};
 

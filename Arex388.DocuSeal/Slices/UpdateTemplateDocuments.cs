@@ -74,7 +74,12 @@ public static class UpdateTemplateDocuments {
 	/// Update template documents response.
 	/// </summary>
 	public sealed class Response :
-		ResponseBase<Response>;
+		ResponseBase<Response> {
+		/// <summary>
+		/// The updated template.
+		/// </summary>
+		public Template? Template { get; init; }
+	}
 }
 
 //	================================================================================

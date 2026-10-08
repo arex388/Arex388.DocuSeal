@@ -21,7 +21,6 @@ internal sealed class DocuSealClient(
 			new FieldTypeJsonConverter(),
 			new FieldVerticalAlignJsonConverter(),
 			new PageSizeJsonConverter(),
-			new SubmissionJsonConverter(),
 			new SubmissionSourceJsonConverter(),
 			new SubmissionStatusJsonConverter(),
 			new SubmitterOrderJsonConverter(),
@@ -73,7 +72,7 @@ internal sealed class DocuSealClient(
 			return ArchiveSubmission.Response.Invalid(validationResult);
 		}
 
-		return await SendAsync<Submission, ArchiveSubmission.Response>(HttpMethod.Delete, request.Endpoint, null, s => s.Error, _ => new ArchiveSubmission.Response(), cancellationToken).ConfigureAwait(false);
+		return await SendAsync<ArchiveSubmission.Response, ArchiveSubmission.Response>(HttpMethod.Delete, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task<ArchiveTemplate.Response> ArchiveTemplateAsync(
@@ -96,7 +95,7 @@ internal sealed class DocuSealClient(
 			return ArchiveTemplate.Response.Invalid(validationResult);
 		}
 
-		return await SendAsync<Template, ArchiveTemplate.Response>(HttpMethod.Delete, request.Endpoint, null, t => t.Error, _ => new ArchiveTemplate.Response(), cancellationToken).ConfigureAwait(false);
+		return await SendAsync<ArchiveTemplate.Response, ArchiveTemplate.Response>(HttpMethod.Delete, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<CloneTemplate.Response> CloneTemplateAsync(
@@ -132,8 +131,9 @@ internal sealed class DocuSealClient(
 			return CreateSubmission.Response.Invalid(validationResult);
 		}
 
-		return await SendAsync<Submission, CreateSubmission.Response>(HttpMethod.Post, request.Endpoint, request, DeserializeCreatedSubmission, s => s.Error, s => new CreateSubmission.Response {
-			Submission = s
+		return await SendAsync<CreatedSubmitters, CreateSubmission.Response>(HttpMethod.Post, request.Endpoint, request, DeserializeCreatedSubmitters, c => c.Error, c => new CreateSubmission.Response {
+			SubmissionId = c.Submitters[0].SubmissionId,
+			Submitters = c.Submitters
 		}, cancellationToken).ConfigureAwait(false);
 	}
 
@@ -389,7 +389,9 @@ internal sealed class DocuSealClient(
 			return UpdateSubmitter.Response.Invalid(validationResult);
 		}
 
-		return await SendAsync<Submitter, UpdateSubmitter.Response>(HttpMethod.Put, request.Endpoint, request, s => s.Error, _ => new UpdateSubmitter.Response(), cancellationToken).ConfigureAwait(false);
+		return await SendAsync<Submitter, UpdateSubmitter.Response>(HttpMethod.Put, request.Endpoint, request, s => s.Error, s => new UpdateSubmitter.Response {
+			Submitter = s
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<UpdateTemplate.Response> UpdateTemplateAsync(
@@ -406,7 +408,7 @@ internal sealed class DocuSealClient(
 			return UpdateTemplate.Response.Invalid(validationResult);
 		}
 
-		return await SendAsync<Template, UpdateTemplate.Response>(HttpMethod.Put, request.Endpoint, request, t => t.Error, _ => new UpdateTemplate.Response(), cancellationToken).ConfigureAwait(false);
+		return await SendAsync<UpdateTemplate.Response, UpdateTemplate.Response>(HttpMethod.Put, request.Endpoint, request, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<UpdateTemplateDocuments.Response> UpdateTemplateDocumentsAsync(
@@ -423,7 +425,9 @@ internal sealed class DocuSealClient(
 			return UpdateTemplateDocuments.Response.Invalid(validationResult);
 		}
 
-		return await SendAsync<Template, UpdateTemplateDocuments.Response>(HttpMethod.Put, request.Endpoint, request, t => t.Error, _ => new UpdateTemplateDocuments.Response(), cancellationToken).ConfigureAwait(false);
+		return await SendAsync<Template, UpdateTemplateDocuments.Response>(HttpMethod.Put, request.Endpoint, request, t => t.Error, t => new UpdateTemplateDocuments.Response {
+			Template = t
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	//	============================================================================
@@ -431,17 +435,40 @@ internal sealed class DocuSealClient(
 	//	============================================================================
 
 	/// <summary>
-	/// The create-submission endpoint returns an array of submitter-shaped objects
-	/// (or, on some paths, a single one); the first carries the submission.
+	/// The create-submission endpoint returns an array of submitters, one per
+	/// submitter in the request, and all of them carry the same
+	/// <c>submission_id</c>. An error arrives as a single object with an
+	/// <c>error</c> member. Anything else is not a usable body and maps to
+	/// <c>Failed</c>: an empty array, an array with a null element, an object
+	/// without a non-empty <c>error</c> string, or a scalar.
 	/// </summary>
-	private static Submission? DeserializeCreatedSubmission(
+	private static CreatedSubmitters? DeserializeCreatedSubmitters(
 		string content) {
-		try {
-			var submissions = JsonSerializer.Deserialize<IList<Submission>>(content, _jsonSerializerOptions);
+		using var document = JsonDocument.Parse(content);
 
-			return submissions![0];
-		} catch {
-			return JsonSerializer.Deserialize<Submission>(content, _jsonSerializerOptions);
+		var root = document.RootElement;
+
+		switch (root.ValueKind) {
+			case JsonValueKind.Array:
+				var submitters = root.Deserialize<IList<Submitter>>(_jsonSerializerOptions);
+
+				return submitters is { Count: > 0 }
+					   && submitters.All(s => s is not null)
+					? new CreatedSubmitters(submitters, null)
+					: null;
+			case JsonValueKind.Object:
+				if (!root.TryGetProperty("error", out var error)
+					|| error.ValueKind != JsonValueKind.String) {
+					return null;
+				}
+
+				var message = error.GetString();
+
+				return message.HasValue()
+					? new CreatedSubmitters([], message)
+					: null;
+			default:
+				return null;
 		}
 	}
 
@@ -504,4 +531,16 @@ internal sealed class DocuSealClient(
 			return ResponseBase<TResponse>.Failed;
 		}
 	}
+
+	//	============================================================================
+	//	Types
+	//	============================================================================
+
+	/// <summary>
+	/// A create-submission body once read: the submitters of an array body, or the
+	/// <c>error</c> of an object body.
+	/// </summary>
+	private sealed record CreatedSubmitters(
+		IList<Submitter> Submitters,
+		string? Error);
 }

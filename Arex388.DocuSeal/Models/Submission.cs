@@ -48,11 +48,6 @@ public sealed class Submission {
 	/// </summary>
 	public IList<SubmissionDocument> Documents { get; init; } = [];
 
-	/// <summary>
-	/// The submission's email.
-	/// </summary>
-	public string Email { get; init; } = null!;
-
 	[JsonInclude]
 	internal string? Error { get; init; }
 
@@ -78,18 +73,6 @@ public sealed class Submission {
 	/// The submission's name.
 	/// </summary>
 	public string? Name { get; init; }
-
-	/// <summary>
-	/// The submission's opened timestamp.
-	/// </summary>
-	[JsonPropertyName("opened_at")]
-	public DateTime? OpenedAtUtc { get; init; }
-
-	/// <summary>
-	/// The submission's sent timestamp.
-	/// </summary>
-	[JsonPropertyName("sent_at")]
-	public DateTime? SentAtUtc { get; init; }
 
 	/// <summary>
 	/// The submission's slug.

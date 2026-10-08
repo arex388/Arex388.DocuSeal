@@ -61,7 +61,7 @@ The client provides methods for interacting with Templates, Submissions, and Sub
 ###### Submissions
 
 - `ArchiveSubmissionAsync()` - Archive a submission so it can't be used. This is essentially a soft delete.
-- `CreateSubmissionAsync()` - Create a new submission for a template.
+- `CreateSubmissionAsync()` - Create a new submission for a template. The response carries the new submission's id (`SubmissionId`) and one `Submitter` per submitter in the request (`Submitters`), each with the `EmbedSrc` of its signing form. It does not carry the submission itself, so call `GetSubmissionAsync()` with the id when you need it.
 - `GetSubmissionAsync()` - Get an existing submission.
 
 
@@ -70,19 +70,16 @@ The client provides methods for interacting with Templates, Submissions, and Sub
 
 - `GetSubmitterAsync()` - Get a submitter for a submission.
 - `ListSubmittersAsync()` - List the submitters for a submission.
-- `UpdateSubmitterAsync()` - Update a submitter.
+- `UpdateSubmitterAsync()` - Update a submitter. The response carries the updated submitter, with its `EmbedSrc`.
 
 
 
 #### Hoping for API Improvements
 
-For the most part the API is one of the most well structured ones I've built a client for, but it still has some flaws:
+For the most part the API is one of the most well structured ones I've built a client for, and the [OpenAPI spec](https://console.docuseal.com/openapi.yml) has since settled most of what used to bother me. Creating a submission returns the submitters of the one submission that was created, not a submission that sometimes comes back as an array: in each of them `id` is the submitter's id and `submission_id` is the submission's id, which is why `CreateSubmission.Response` exposes `SubmissionId` and `Submitters` and `Submission.Id` is simply the `id` of the submission body. The status values, and every other enum, are defined, so the client types them (`SubmissionStatus`, `SubmitterStatus`, and the rest). It still has a couple of flaws:
 
-- You can't ever delete something in DocuSeal, you can only archive it, which is just a soft delete. I would have preferred it if deleting was actually deleting, and archiving was just a specific update.
-- When creating a submission, the API may return an array of a single object or the single object. I don't understand why an array will ever be a possible return even though you can only create a single submission?...
-- Return values for certain properties, such as a status, are not defined in the documentation.
+- You can't ever delete something in DocuSeal, you can only archive it, which is just a soft delete. I would have preferred it if deleting was actually deleting, and archiving was just a specific update. The API can at least unarchive now, with an update that sets `archived` to `false`.
 - Responses have properties that just don't seem to be relevant to anything. I've kept the majority, simply because I wasn't sure if users of this library might find them useful or not.
-- One weird response structure took me a bit to figure out while implementing the integration tests. The create submission response will return an `id` and a `submission_id` property, with each one having a different value. Initially I just used the `id` property, but then when I would try to get a submission with the returned `id` all I got was 404 responses. Turns out the `submission_id` is the real `id` for the submission. What the `id` property actually is, I have no idea... The client now normalizes this, so `Submission.Id` is always the submission's id, whether it came from creating, getting, or listing submissions.
 
 I'm sure there's something I've missed, but that's all I can remember now that I am at the end of two weeks of building this client. Hopefully, the DocuSeal API will improve in the future to address these, in my opinion, flaws.
 

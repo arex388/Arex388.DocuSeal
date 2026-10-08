@@ -25,7 +25,7 @@ public sealed class SubmittersTest {
 
 		var template = await Utilities.CreateTemplateAsync(_docuSeal);
 		var created = await Utilities.CreateSubmissionAsync(_docuSeal, template.Template!);
-		var submission = await _docuSeal.GetSubmissionAsync(created.Submission!.Id);
+		var submission = await _docuSeal.GetSubmissionAsync(created.SubmissionId!.Value);
 
 		_console.WriteLineWithHeader(nameof(template), template);
 		_console.WriteLineWithHeader(nameof(created), created);
@@ -47,7 +47,7 @@ public sealed class SubmittersTest {
 		gotten.Success.Should().BeTrue();
 		gotten.Submitter.Should().NotBeNull();
 
-		await _docuSeal.ArchiveSubmissionAsync(created.Submission!.Id);
+		await _docuSeal.ArchiveSubmissionAsync(created.SubmissionId!.Value);
 		await _docuSeal.ArchiveTemplateAsync(template.Template!.Id);
 	}
 
@@ -90,7 +90,7 @@ public sealed class SubmittersTest {
 
 		var template = await Utilities.CreateTemplateAsync(_docuSeal);
 		var created = await Utilities.CreateSubmissionAsync(_docuSeal, template.Template!);
-		var submission = await _docuSeal.GetSubmissionAsync(created.Submission!.Id);
+		var submission = await _docuSeal.GetSubmissionAsync(created.SubmissionId!.Value);
 		var submitterId = submission.Submission!.Submitters[0].Id;
 		var gotten = await _docuSeal.GetSubmitterAsync(submitterId);
 
@@ -117,7 +117,7 @@ public sealed class SubmittersTest {
 		updated.Errors.Should().BeEmpty();
 		updated.Success.Should().BeTrue();
 
-		await _docuSeal.ArchiveSubmissionAsync(created.Submission!.Id);
+		await _docuSeal.ArchiveSubmissionAsync(created.SubmissionId!.Value);
 		await _docuSeal.ArchiveTemplateAsync(template.Template!.Id);
 	}
 }

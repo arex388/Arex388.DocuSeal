@@ -67,18 +67,18 @@ internal sealed class MockHttpMessageHandler :
 		return segments switch {
 			["templates"] when method == HttpMethod.Get => "templates.json",
 			["templates", "pdf" or "docx" or "merge"] when method == HttpMethod.Post => "template.json",
-			["templates", _] when method == HttpMethod.Get
-								  || method == HttpMethod.Put
-								  || method == HttpMethod.Delete => "template.json",
+			["templates", _] when method == HttpMethod.Get => "template.json",
+			["templates", _] when method == HttpMethod.Put => "template-updated.json",
+			["templates", _] when method == HttpMethod.Delete => "template-archived.json",
 			["templates", _, "clone"] when method == HttpMethod.Post => "template.json",
 			["templates", _, "documents"] when method == HttpMethod.Put => "template.json",
 			["submissions"] when method == HttpMethod.Get => "submissions.json",
 			["submissions"] when method == HttpMethod.Post => "submissions-created.json",
-			["submissions", _] when method == HttpMethod.Get
-									|| method == HttpMethod.Delete => "submission.json",
+			["submissions", _] when method == HttpMethod.Get => "submission.json",
+			["submissions", _] when method == HttpMethod.Delete => "submission-archived.json",
 			["submitters"] when method == HttpMethod.Get => "submitters.json",
-			["submitters", _] when method == HttpMethod.Get
-								   || method == HttpMethod.Put => "submitter.json",
+			["submitters", _] when method == HttpMethod.Get => "submitter.json",
+			["submitters", _] when method == HttpMethod.Put => "submitter-updated.json",
 			_ => null
 		};
 	}

@@ -181,9 +181,14 @@ public static class CreateSubmission {
 	public sealed class Response :
 		ResponseBase<Response> {
 		/// <summary>
-		/// The submission.
+		/// The id of the created submission. Every submitter in <see cref="Submitters"/> belongs to it; call <c>GetSubmissionAsync</c> with it to get the submission itself.
 		/// </summary>
-		public Submission? Submission { get; set; }
+		public SubmissionId? SubmissionId { get; init; }
+
+		/// <summary>
+		/// The created submission's submitters, one per submitter in the request.
+		/// </summary>
+		public IList<Submitter> Submitters { get; init; } = [];
 	}
 }
 

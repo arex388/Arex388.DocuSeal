@@ -47,7 +47,21 @@ public static class UpdateTemplate {
 	/// Update template response.
 	/// </summary>
 	public sealed class Response :
-		ResponseBase<Response>;
+		ResponseBase<Response> {
+		[JsonInclude]
+		internal string? Error { get; init; }
+
+		/// <summary>
+		/// The updated template's id.
+		/// </summary>
+		public TemplateId? Id { get; init; }
+
+		/// <summary>
+		/// The updated template's updated timestamp.
+		/// </summary>
+		[JsonPropertyName("updated_at")]
+		public DateTime? UpdatedAtUtc { get; init; }
+	}
 }
 
 //	================================================================================

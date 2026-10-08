@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.ArchiveTemplate;
 
 namespace Arex388.DocuSeal;
@@ -23,7 +24,21 @@ public static class ArchiveTemplate {
 	/// Archive template response.
 	/// </summary>
 	public sealed class Response :
-		ResponseBase<Response>;
+		ResponseBase<Response> {
+		/// <summary>
+		/// The archived template's archived timestamp.
+		/// </summary>
+		[JsonPropertyName("archived_at")]
+		public DateTime? ArchivedAtUtc { get; init; }
+
+		[JsonInclude]
+		internal string? Error { get; init; }
+
+		/// <summary>
+		/// The archived template's id.
+		/// </summary>
+		public TemplateId? Id { get; init; }
+	}
 }
 
 //	================================================================================

@@ -14,7 +14,6 @@ public sealed class ResponseContractTests {
 
 	private static readonly string[] _allOperations = [
 		.. ClientOperations.WithPayload,
-		.. ClientOperations.WithoutPayload,
 		.. ClientOperations.Lists
 	];
 
@@ -200,18 +199,6 @@ public sealed class ResponseContractTests {
 	}
 
 	[Theory]
-	[MemberData(nameof(ClientOperations.AllWithoutPayload), MemberType = typeof(ClientOperations))]
-	public async Task ErrorBody_ReturnsError(
-		string operation) {
-		var docuSeal = TestClients.CreateWithJson("""{ "error": "Not Found" }""", out _);
-
-		var result = await ClientOperations.InvokeAsync(docuSeal, operation);
-
-		result.Success.Should().BeFalse();
-		result.Errors.Should().Equal("Not Found");
-	}
-
-	[Theory]
 	[MemberData(nameof(ErrorBodyRows))]
 	public async Task ErrorBody_WithAnyStatus_ReturnsError_AndNullsPayload(
 		string operation,
@@ -260,61 +247,27 @@ public sealed class ResponseContractTests {
 	}
 
 	//	============================================================================
-	//	CreateSubmission array-vs-object fallback
+	//	CreateSubmission body shapes
 	//	============================================================================
 
-	[Fact]
-	public async Task CreateSubmission_ArrayBody_TakesTheFirstSubmitterShapedObject() {
-		var docuSeal = TestClients.CreateWithFixtures();
-
-		var response = await ClientOperations.InvokeAsync(docuSeal, nameof(IDocuSealClient.CreateSubmissionAsync));
-
-		response.Success.Should().BeTrue();
-
-		var submission = response.Payload.Should().BeOfType<Submission>().Subject;
-
-		//	The create endpoint returns submitters; `id` is the submitter and
-		//	`submission_id` is the submission, which is what Submission.Id maps.
-		submission.Id.Should().Be(ClientOperations.SubmissionId);
-		submission.Email.Should().Be("signer1@example.com");
-		//	The fixture's `sent` is a submitter status, which SubmissionStatus has no member for.
-		submission.Status.Should().Be(SubmissionStatus.Unknown);
-	}
-
-	[Fact]
-	public async Task CreateSubmission_ObjectBody_FallsBackToASingleSubmission() {
-		const string json = """
-			{
-				"id": 3009,
-				"submission_id": 2009,
-				"email": "signer9@example.com",
-				"status": "pending",
-				"created_at": "2024-08-05T15:30:00.000Z",
-				"updated_at": "2024-08-05T15:30:00.000Z"
-			}
-			""";
-
+	[Theory]
+	[InlineData("[]")]
+	[InlineData("{}")]
+	[InlineData("""{ "id": 3009, "submission_id": 2009 }""")]
+	[InlineData("""{ "error": 42 }""")]
+	[InlineData("2001")]
+	[InlineData("null")]
+	[InlineData("""{ "error": "" }""")]
+	[InlineData("""[{ "id": 3001, "submission_id": 2001 }, null]""")]
+	public async Task CreateSubmission_UnusableSuccessBody_ReturnsFailed(
+		string json) {
 		var docuSeal = TestClients.CreateWithJson(json, out _);
-
-		var response = await ClientOperations.InvokeAsync(docuSeal, nameof(IDocuSealClient.CreateSubmissionAsync));
-
-		response.Success.Should().BeTrue();
-
-		var submission = response.Payload.Should().BeOfType<Submission>().Subject;
-
-		submission.Id.Should().Be(new SubmissionId(2009));
-		submission.Email.Should().Be("signer9@example.com");
-		submission.Status.Should().Be(SubmissionStatus.Pending);
-	}
-
-	[Fact]
-	public async Task CreateSubmission_EmptyArrayBody_ReturnsFailed() {
-		var docuSeal = TestClients.CreateWithJson("[]", out _);
 
 		var response = await ClientOperations.InvokeAsync(docuSeal, nameof(IDocuSealClient.CreateSubmissionAsync));
 
 		response.Success.Should().BeFalse();
 		response.Errors.Should().ContainSingle().Which.Should().Be(_failed);
+		response.Payload.Should().BeNull();
 	}
 
 	//	============================================================================

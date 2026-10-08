@@ -134,7 +134,12 @@ public static class UpdateSubmitter {
 	/// Update submitter response.
 	/// </summary>
 	public sealed class Response :
-		ResponseBase<Response>;
+		ResponseBase<Response> {
+		/// <summary>
+		/// The updated submitter, including its embed source.
+		/// </summary>
+		public Submitter? Submitter { get; init; }
+	}
 }
 
 //	================================================================================
