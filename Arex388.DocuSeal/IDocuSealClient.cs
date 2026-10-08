@@ -69,6 +69,16 @@ public interface IDocuSealClient {
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
+	/// Create a template from HTML with field tags. Set <see cref="CreateTemplateFromHtml.Request.Html" /> for a single document or <see cref="CreateTemplateFromHtml.Request.Documents" /> for several; one of the two is required.
+	/// </summary>
+	/// <param name="request">The template creation request.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns>A response indicating if the operation completed with the created template.</returns>
+	Task<CreateTemplateFromHtml.Response> CreateTemplateFromHtmlAsync(
+		CreateTemplateFromHtml.Request request,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
 	/// Get a submission.
 	/// </summary>
 	/// <param name="id">The submission's id.</param>

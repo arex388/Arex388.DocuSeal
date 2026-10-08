@@ -561,4 +561,122 @@ public sealed class TemplateRequestTests {
 
 		ShouldBeJson(request.Body, """{"documents":[{"file":"base64"}],"merge":true}""");
 	}
+	//	============================================================================
+	//	CreateTemplateFromHtml
+	//	============================================================================
+
+	//	The spec's createTemplateFromHtml html example, on one line.
+	private const string _specHtml = "<p>Lorem Ipsum is simply dummy text of the <text-field name=\"Industry\" role=\"First Party\" required=\"false\" style=\"width: 80px; height: 16px; display: inline-block; margin-bottom: -4px\"></text-field> and typesetting industry</p>";
+
+	[Fact]
+	public Task CreateTemplateFromHtml_WithoutHtmlOrDocuments_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+		Name = "Test Template"
+	}), "'Html' must not be empty unless 'Documents' contains at least one document.");
+
+	[Fact]
+	public Task CreateTemplateFromHtml_WithEmptyDocuments_AndNoHtml_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+		Documents = []
+	}), "'Html' must not be empty unless 'Documents' contains at least one document.");
+
+	[Fact]
+	public Task CreateTemplateFromHtml_WithDocumentWithoutHtml_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+		Documents = [
+			new CreateTemplateFromHtml.RequestDocument {
+				Html = " ",
+				Name = "Test Document"
+			}
+		]
+	}), "'Html' must not be empty.");
+
+	[Fact]
+	public Task CreateTemplateFromHtml_WithUnknownSize_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+		Html = _specHtml,
+		Size = PageSize.Unknown
+	}), "'Size' must not be empty.");
+
+	[Fact]
+	public Task CreateTemplateFromHtml_WithNullDocument_AndNoHtml_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+		Documents = [
+			null!
+		]
+	}), "'Documents' must not contain null entries.");
+
+	[Fact]
+	public Task CreateTemplateFromHtml_WithHtml_AndDocuments_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+		Documents = [
+			new CreateTemplateFromHtml.RequestDocument {
+				Html = "<p>Test</p>"
+			}
+		],
+		Html = "<p>Test</p>"
+	}), "'Html' and 'Documents' cannot both be set.");
+
+	[Fact]
+	public async Task CreateTemplateFromHtml_SingleDocument_WritesSpecBody() {
+		var request = await CaptureAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+			ExternalId = "714d974e-83d8-11ee-b962-0242ac120002",
+			Html = _specHtml,
+			Name = "Test Template",
+			Size = PageSize.A4
+		}));
+
+		request.Method.Should().Be(HttpMethod.Post);
+		request.Uri.Should().Be(new Uri(TestClients.BaseAddress, "templates/html"));
+
+		var expected = new JsonObject {
+			["html"] = _specHtml,
+			["name"] = "Test Template",
+			["size"] = "A4",
+			["external_id"] = "714d974e-83d8-11ee-b962-0242ac120002"
+		};
+
+		ShouldBeJson(request.Body, expected.ToJsonString());
+	}
+
+	[Fact]
+	public async Task CreateTemplateFromHtml_MultiDocument_WritesEveryMember() {
+		var request = await CaptureAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+			Documents = [
+				new CreateTemplateFromHtml.RequestDocument {
+					Html = _specHtml,
+					Name = "Test Document"
+				}
+			],
+			ExternalId = "714d974e-83d8-11ee-b962-0242ac120002",
+			Folder = "Default",
+			HasSharedLink = false,
+			HtmlFooter = "<p>Footer</p>",
+			HtmlHeader = "<p>Header</p>",
+			Name = "Test Template",
+			Size = PageSize.A4
+		}));
+
+		request.Method.Should().Be(HttpMethod.Post);
+		request.Uri.Should().Be(new Uri(TestClients.BaseAddress, "templates/html"));
+
+		var expected = new JsonObject {
+			["html_header"] = "<p>Header</p>",
+			["html_footer"] = "<p>Footer</p>",
+			["name"] = "Test Template",
+			["size"] = "A4",
+			["external_id"] = "714d974e-83d8-11ee-b962-0242ac120002",
+			["folder_name"] = "Default",
+			["shared_link"] = false,
+			["documents"] = new JsonArray(new JsonObject {
+				["html"] = _specHtml,
+				["name"] = "Test Document"
+			})
+		};
+
+		ShouldBeJson(request.Body, expected.ToJsonString());
+	}
+
+	[Fact]
+	public async Task CreateTemplateFromHtml_WithTopLevelHtml_OmitsUnsetMembers() {
+		var request = await CaptureAsync(c => c.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+			Html = "<p>Test</p>"
+		}));
+
+		ShouldBeJson(request.Body, """{"html":"<p>Test</p>"}""");
+	}
 }

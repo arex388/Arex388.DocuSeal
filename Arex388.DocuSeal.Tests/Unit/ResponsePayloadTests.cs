@@ -218,6 +218,50 @@ public sealed class ResponsePayloadTests {
 	}
 
 	//	============================================================================
+	//	CreateTemplateFromHtml
+	//	============================================================================
+
+	[Fact]
+	public async Task CreateTemplateFromHtml_BindsSpecExample() {
+		var docuSeal = TestClients.CreateWithJson(Spec("template-html"), out var handler);
+
+		var response = await docuSeal.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+			Html = "<p>Test</p>",
+			Name = "Demo Template"
+		});
+
+		handler.Requests.Should().ContainSingle().Which.Method.Should().Be(HttpMethod.Post);
+		response.Success.Should().BeTrue();
+
+		var template = response.Template!;
+
+		template.Id.Should().Be(new TemplateId(3));
+		template.Slug.Should().Be("ZQpF222rFBv71q");
+		template.Name.Should().Be("Demo Template");
+		template.Schemas.Should().ContainSingle().Which.Name.Should().Be("Demo Template");
+		template.Fields.Should().ContainSingle().Which.Name.Should().Be("Name");
+		template.Submitters.Should().ContainSingle().Which.Name.Should().Be("Submitter");
+		template.Source.Should().Be(TemplateSource.Api);
+		template.Folder.Should().Be("Default");
+		template.ExternalId.Should().Be("f0b4714f-e44b-4993-905b-68b4451eef8c");
+		template.HasSharedLink.Should().BeTrue();
+		template.Documents.Should().ContainSingle().Which.Url.Should().Be(new Uri("https://docuseal.com/file/hash/Test%20Template.pdf"));
+	}
+
+	[Fact]
+	public async Task CreateTemplateFromHtml_ReturnsApiError() {
+		var docuSeal = TestClients.CreateWithJson("""{ "error": "Invalid HTML" }""", out _, System.Net.HttpStatusCode.UnprocessableEntity);
+
+		var response = await docuSeal.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+			Html = "<p>Test</p>"
+		});
+
+		response.Success.Should().BeFalse();
+		response.Errors.Should().Equal("Invalid HTML");
+		response.Template.Should().BeNull();
+	}
+
+	//	============================================================================
 	//	UpdateTemplateDocuments
 	//	============================================================================
 

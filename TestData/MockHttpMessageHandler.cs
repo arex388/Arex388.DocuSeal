@@ -66,7 +66,7 @@ internal sealed class MockHttpMessageHandler :
 
 		return segments switch {
 			["templates"] when method == HttpMethod.Get => "templates.json",
-			["templates", "pdf" or "docx" or "merge"] when method == HttpMethod.Post => "template.json",
+			["templates", "html" or "pdf" or "docx" or "merge"] when method == HttpMethod.Post => "template.json",
 			["templates", _] when method == HttpMethod.Get => "template.json",
 			["templates", _] when method == HttpMethod.Put => "template-updated.json",
 			["templates", _] when method == HttpMethod.Delete => "template-archived.json",

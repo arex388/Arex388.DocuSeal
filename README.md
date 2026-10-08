@@ -50,6 +50,7 @@ The client provides methods for interacting with Templates, Submissions, and Sub
 - `ArchiveTemplateAsync()` - Archive a template so it can't be used. This is essentially a soft delete.
 - `CloneTemplateAsync()` - Clone a template.
 - `CreateTemplateAsync()` - Create a new template.
+- `CreateTemplateFromHtmlAsync()` - Create a new template from HTML with field tags.
 - `GetTemplateAsync()` - Get an existing template.
 - `ListTemplatesAsync()` - List all templates, with archived templates hidden by default.
 - `MergeTemplatesAsync()` - Merge two or more templates into one.

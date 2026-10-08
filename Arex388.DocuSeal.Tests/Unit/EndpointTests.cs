@@ -33,6 +33,7 @@ public sealed class EndpointTests {
 	[InlineData(nameof(IDocuSealClient.CreateSubmissionAsync), "POST", "submissions")]
 	[InlineData(nameof(IDocuSealClient.CreateTemplateAsync), "POST", "templates/pdf")]
 	[InlineData(ClientOperations.CreateTemplateFromFile, "POST", "templates/pdf")]
+	[InlineData(nameof(IDocuSealClient.CreateTemplateFromHtmlAsync), "POST", "templates/html")]
 	[InlineData(nameof(IDocuSealClient.GetSubmissionAsync), "GET", "submissions/2001")]
 	[InlineData(nameof(IDocuSealClient.GetSubmitterAsync), "GET", "submitters/3001")]
 	[InlineData(nameof(IDocuSealClient.GetTemplateAsync), "GET", "templates/1001")]

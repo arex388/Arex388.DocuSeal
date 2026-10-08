@@ -111,7 +111,7 @@ public sealed class DependencyInjectionTests {
 	}
 
 	[Fact]
-	public void RequestTypes_AreDiscovered() => RequestTypes.Should().HaveCount(15);
+	public void RequestTypes_AreDiscovered() => RequestTypes.Should().HaveCount(16);
 
 	[Theory]
 	[MemberData(nameof(RequestTypes))]

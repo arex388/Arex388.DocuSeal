@@ -38,6 +38,7 @@ internal sealed class DocuSealClient(
 	private readonly IValidator<CreateSubmission.Request> _createSubmissionRequestValidator = services.GetRequiredService<IValidator<CreateSubmission.Request>>();
 	//private readonly IValidator<CreateSubmissionSimple.Request> _createSubmissionSimpleRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionSimple.Request>>();
 	private readonly IValidator<CreateTemplate.Request> _createTemplateRequestValidator = services.GetRequiredService<IValidator<CreateTemplate.Request>>();
+	private readonly IValidator<CreateTemplateFromHtml.Request> _createTemplateFromHtmlRequestValidator = services.GetRequiredService<IValidator<CreateTemplateFromHtml.Request>>();
 	private readonly IValidator<GetSubmission.Request> _getSubmissionRequestValidator = services.GetRequiredService<IValidator<GetSubmission.Request>>();
 	private readonly IValidator<GetSubmitter.Request> _getSubmitterRequestValidator = services.GetRequiredService<IValidator<GetSubmitter.Request>>();
 	private readonly IValidator<GetTemplate.Request> _getTemplateRequestValidator = services.GetRequiredService<IValidator<GetTemplate.Request>>();
@@ -236,6 +237,25 @@ internal sealed class DocuSealClient(
 		}
 
 		return await SendAsync<Template, CreateTemplate.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new CreateTemplate.Response {
+			Template = t
+		}, cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task<CreateTemplateFromHtml.Response> CreateTemplateFromHtmlAsync(
+		CreateTemplateFromHtml.Request request,
+		CancellationToken cancellationToken = default) {
+		if (cancellationToken.IsSupportedAndCancelled()) {
+			return CreateTemplateFromHtml.Response.Cancelled;
+		}
+
+		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
+		var validationResult = _createTemplateFromHtmlRequestValidator.Validate(request);
+
+		if (!validationResult.IsValid) {
+			return CreateTemplateFromHtml.Response.Invalid(validationResult);
+		}
+
+		return await SendAsync<Template, CreateTemplateFromHtml.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new CreateTemplateFromHtml.Response {
 			Template = t
 		}, cancellationToken).ConfigureAwait(false);
 	}

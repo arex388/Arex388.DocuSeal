@@ -22,6 +22,7 @@ internal static class ClientOperations {
 		nameof(IDocuSealClient.CreateSubmissionAsync),
 		nameof(IDocuSealClient.CreateTemplateAsync),
 		CreateTemplateFromFile,
+		nameof(IDocuSealClient.CreateTemplateFromHtmlAsync),
 		nameof(IDocuSealClient.GetSubmissionAsync),
 		nameof(IDocuSealClient.GetSubmitterAsync),
 		nameof(IDocuSealClient.GetTemplateAsync),
@@ -80,6 +81,10 @@ internal static class ClientOperations {
 					}
 				],
 				Endpoint = CreateTemplate.Endpoints.Pdf,
+				Name = "Test Template"
+			}, cancellationToken), r => r.Template),
+			nameof(IDocuSealClient.CreateTemplateFromHtmlAsync) => ShapeAsync(docuSeal.CreateTemplateFromHtmlAsync(new CreateTemplateFromHtml.Request {
+				Html = "<p>Test Document</p>",
 				Name = "Test Template"
 			}, cancellationToken), r => r.Template),
 			CreateTemplateFromFile => ShapeAsync(docuSeal.CreateTemplateAsync(Utilities.DocuSealFile, cancellationToken), r => r.Template),
