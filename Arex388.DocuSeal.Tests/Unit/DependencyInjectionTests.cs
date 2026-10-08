@@ -59,6 +59,58 @@ public sealed class DependencyInjectionTests {
 	}
 
 	[Fact]
+	public void Options_DefaultRegion_IsGlobal() => new DocuSealClientOptions {
+		AuthorizationToken = "unit-test-token"
+	}.Region.Should().Be(DocuSealRegion.Global);
+
+	[Theory]
+	[InlineData(null, "https://api.docuseal.com/templates")]
+	[InlineData(DocuSealRegion.Global, "https://api.docuseal.com/templates")]
+	[InlineData(DocuSealRegion.Eu, "https://api.docuseal.eu/templates")]
+	public async Task AddDocuSealWithOptions_SendsToTheRegionHost(
+		DocuSealRegion? region,
+		string expectedUri) {
+		var handler = new CapturingHandler("{}");
+		var services = new ServiceCollection();
+
+		services.AddDocuSeal(region is null
+				? new DocuSealClientOptions {
+					AuthorizationToken = "unit-test-token"
+				}
+				: new DocuSealClientOptions {
+					AuthorizationToken = "unit-test-token",
+					Region = region.Value
+				})
+				.AddHttpClient(nameof(IDocuSealClient))
+				.ConfigurePrimaryHttpMessageHandler(() => handler);
+
+		var docuSeal = services.BuildServiceProvider().GetRequiredService<IDocuSealClient>();
+
+		await docuSeal.ListTemplatesAsync();
+
+		handler.Requests.Should().ContainSingle().Which.Uri.AbsoluteUri.Should().StartWith(expectedUri);
+	}
+
+	[Fact]
+	public async Task AddDocuSealWithEuOptions_ThenFactoryRegistration_StillSendsToTheEuHost() {
+		var handler = new CapturingHandler("{}");
+		var services = new ServiceCollection();
+
+		services.AddDocuSeal(new DocuSealClientOptions {
+			AuthorizationToken = "unit-test-token",
+			Region = DocuSealRegion.Eu
+		}).AddDocuSeal()
+				.AddHttpClient(nameof(IDocuSealClient))
+				.ConfigurePrimaryHttpMessageHandler(() => handler);
+
+		var docuSeal = services.BuildServiceProvider().GetRequiredService<IDocuSealClient>();
+
+		await docuSeal.ListTemplatesAsync();
+
+		handler.Requests.Should().ContainSingle().Which.Uri.AbsoluteUri.Should().StartWith("https://api.docuseal.eu/templates");
+	}
+
+	[Fact]
 	public void RequestTypes_AreDiscovered() => RequestTypes.Should().HaveCount(15);
 
 	[Theory]

@@ -1,7 +1,7 @@
 ﻿namespace Arex388.DocuSeal;
 
 /// <summary>
-/// DocuSeal.co API client.
+/// DocuSeal API client.
 /// </summary>
 public interface IDocuSealClient {
 	/// <summary>

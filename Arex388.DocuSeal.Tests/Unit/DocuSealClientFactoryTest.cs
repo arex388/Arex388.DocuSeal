@@ -70,7 +70,7 @@ public sealed class DocuSealClientFactoryTest {
 	}
 
 	[Fact]
-	public async Task CreatedClient_SendsToNamedClientBaseAddress_WithOneAuthorizationToken() {
+	public async Task CreatedClient_SendsToGlobalHost_WithOneAuthorizationToken() {
 		//	========================================================================
 		//	Arrange
 		//	========================================================================
@@ -80,7 +80,7 @@ public sealed class DocuSealClientFactoryTest {
 		var services = new ServiceCollection();
 
 		services.AddDocuSeal()
-				.AddHttpClient(nameof(IDocuSealClient), hc => hc.BaseAddress = TestClients.BaseAddress)
+				.AddHttpClient(nameof(IDocuSealClient))
 				.ConfigurePrimaryHttpMessageHandler(() => handler);
 
 		var docuSealFactory = services.BuildServiceProvider().GetRequiredService<IDocuSealClientFactory>();
@@ -103,7 +103,7 @@ public sealed class DocuSealClientFactoryTest {
 		//	X-Auth-Token throws inside the handler and no request is captured.
 		var request = handler.Requests.Should().ContainSingle().Subject;
 
-		request.Uri.AbsoluteUri.Should().StartWith($"{TestClients.BaseAddress}templates");
+		request.Uri.AbsoluteUri.Should().StartWith("https://api.docuseal.com/templates");
 		request.AuthorizationToken.Should().Be(authorizationToken);
 	}
 
@@ -122,7 +122,7 @@ public sealed class DocuSealClientFactoryTest {
 		services.AddDocuSeal(new DocuSealClientOptions {
 			AuthorizationToken = "single-account-token"
 		}).AddDocuSeal()
-				.AddHttpClient(nameof(IDocuSealClient), hc => hc.BaseAddress = TestClients.BaseAddress)
+				.AddHttpClient(nameof(IDocuSealClient))
 				.ConfigurePrimaryHttpMessageHandler(() => handler);
 
 		var docuSealFactory = services.BuildServiceProvider().GetRequiredService<IDocuSealClientFactory>();
@@ -142,5 +142,94 @@ public sealed class DocuSealClientFactoryTest {
 		//	========================================================================
 
 		handler.Requests.Should().ContainSingle().Which.AuthorizationToken.Should().Be(authorizationToken);
+	}
+
+	[Theory]
+	[InlineData(DocuSealRegion.Global, "https://api.docuseal.com/templates")]
+	[InlineData(DocuSealRegion.Eu, "https://api.docuseal.eu/templates")]
+	public async Task CreatedClient_SendsToTheRegionHost(
+		DocuSealRegion region,
+		string expectedUri) {
+		//	========================================================================
+		//	Arrange
+		//	========================================================================
+
+		var handler = new CapturingHandler("{}");
+		var services = new ServiceCollection();
+
+		services.AddDocuSeal()
+				.AddHttpClient(nameof(IDocuSealClient))
+				.ConfigurePrimaryHttpMessageHandler(() => handler);
+
+		var docuSealFactory = services.BuildServiceProvider().GetRequiredService<IDocuSealClientFactory>();
+
+		//	========================================================================
+		//	Act
+		//	========================================================================
+
+		var docuSeal = docuSealFactory.CreateClient(new DocuSealClientOptions {
+			AuthorizationToken = "region-token",
+			Region = region
+		});
+
+		await docuSeal.ListTemplatesAsync();
+
+		//	========================================================================
+		//	Assert
+		//	========================================================================
+
+		var request = handler.Requests.Should().ContainSingle().Subject;
+
+		request.Uri.AbsoluteUri.Should().StartWith(expectedUri);
+		request.AuthorizationToken.Should().Be("region-token");
+	}
+
+	[Fact]
+	public async Task CreatedClients_SameTokenInTwoRegions_AreSeparateClients_EachSendingToItsOwnHost() {
+		//	========================================================================
+		//	Arrange
+		//	========================================================================
+
+		var handler = new CapturingHandler("{}");
+		var services = new ServiceCollection();
+
+		services.AddDocuSeal()
+				.AddHttpClient(nameof(IDocuSealClient))
+				.ConfigurePrimaryHttpMessageHandler(() => handler);
+
+		var docuSealFactory = services.BuildServiceProvider().GetRequiredService<IDocuSealClientFactory>();
+
+		//	========================================================================
+		//	Act
+		//	========================================================================
+
+		var global = docuSealFactory.CreateClient(new DocuSealClientOptions {
+			AuthorizationToken = "shared-token"
+		});
+		var eu = docuSealFactory.CreateClient(new DocuSealClientOptions {
+			AuthorizationToken = "shared-token",
+			Region = DocuSealRegion.Eu
+		});
+		var globalCached = docuSealFactory.CreateClient(new DocuSealClientOptions {
+			AuthorizationToken = "shared-token",
+			Region = DocuSealRegion.Global
+		});
+		var euCached = docuSealFactory.CreateClient(new DocuSealClientOptions {
+			AuthorizationToken = "shared-token",
+			Region = DocuSealRegion.Eu
+		});
+
+		await global.ListTemplatesAsync();
+		await eu.ListTemplatesAsync();
+
+		//	========================================================================
+		//	Assert
+		//	========================================================================
+
+		global.Should().NotBeSameAs(eu);
+		globalCached.Should().BeSameAs(global);
+		euCached.Should().BeSameAs(eu);
+
+		handler.Requests.Select(r => r.Uri.Host).Should().Equal("api.docuseal.com", "api.docuseal.eu");
 	}
 }

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<Authors>Arex388</Authors>
-		<Description>A highly opinionated .NET Standard 2.0 library for the DocuSeal.co API.</Description>
+		<Description>A highly opinionated .NET Standard 2.0 library for the DocuSeal API.</Description>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<IncludeSymbols>true</IncludeSymbols>
@@ -10,7 +10,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/arex388/Arex388.DocuSeal</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageTags>docuseal docuseal.co arex388 document document-sign document-signing document-signature documents e-sign e-signing e-signature pdf pdf-sign pdf-signing pdf-signature open-source</PackageTags>
+		<PackageTags>docuseal arex388 document document-sign document-signing document-signature documents e-sign e-signing e-signature pdf pdf-sign pdf-signing pdf-signature open-source</PackageTags>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/arex388/Arex388.DocuSeal</RepositoryUrl>

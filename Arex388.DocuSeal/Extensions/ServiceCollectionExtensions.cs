@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions {
 	extension(
 		IServiceCollection services) {
 		/// <summary>
-		/// Add the DocuSeal.co API client factory for interacting with multiple accounts.
+		/// Add the DocuSeal API client factory for interacting with multiple accounts.
 		/// </summary>
 		/// <returns>The services collection.</returns>
 		public IServiceCollection AddDocuSeal() {
@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions {
 		}
 
 		/// <summary>
-		/// Add the DocuSeal.co API client for interacting with a single account.
+		/// Add the DocuSeal API client for interacting with a single account.
 		/// </summary>
 		/// <param name="options">The client's configuration options.</param>
 		/// <returns>The services collection.</returns>
@@ -45,10 +45,15 @@ public static class ServiceCollectionExtensions {
 	private static void AddDocuSealHttpClient(
 		IServiceCollection services,
 		DocuSealClientOptions? options = null) => services.AddHttpClient(nameof(IDocuSealClient), hc => {
-			hc.BaseAddress = HttpClientHelper.BaseAddress;
+			if (options is null) {
+				//	The factory sets the base address per client; this is only the
+				//	default, and must not undo a single-account registration's region.
+				hc.BaseAddress ??= HttpClientHelper.GetBaseAddress(DocuSealRegion.Global);
 
-			if (options is not null) {
-				hc.SetAuthorizationToken(options.AuthorizationToken);
+				return;
 			}
+
+			hc.BaseAddress = HttpClientHelper.GetBaseAddress(options.Region);
+			hc.SetAuthorizationToken(options.AuthorizationToken);
 		});
 }

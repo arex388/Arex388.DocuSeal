@@ -13,6 +13,8 @@ As noted above, it is highly opinionated. The [API documentation](https://www.do
 
 To configure dependency injection use the `AddDocuSeal()` extensions on `IServiceCollection`. There are two signatures, with and without passing in a `DocuSealClientOptions` object. If the options object is passed to the extension, it will register `IDocuSealClient` for use with a single account, otherwise it will register `IDocuSealClientFactory` for use with multiple accounts.
 
+Accounts on DocuSeal's EU region set `Region = DocuSealRegion.Eu` on the `DocuSealClientOptions` (it defaults to `DocuSealRegion.Global`), which sends requests to `api.docuseal.eu` instead of `api.docuseal.com`; the factory caches clients per authorization token and region.
+
 
 
 #### How to Use

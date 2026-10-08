@@ -18,7 +18,10 @@ internal sealed class DocuSealClientFactory(
 
 	public IDocuSealClient CreateClient(
 		DocuSealClientOptions options) {
-		var key = $"{nameof(Arex388)}.{nameof(DocuSeal)}.Key[{options.AuthorizationToken}]";
+		//	Resolved up front so an undefined region throws here, not inside the
+		//	Lazy, where the cache would keep the faulted entry.
+		var baseAddress = HttpClientHelper.GetBaseAddress(options.Region);
+		var key = $"{nameof(Arex388)}.{nameof(DocuSeal)}.Key[{options.AuthorizationToken}|{options.Region}]";
 
 		//	Fast path: a cache hit skips the lock entirely.
 		if (_cache.TryGetValue(key, out Lazy<IDocuSealClient>? cached)
@@ -28,7 +31,7 @@ internal sealed class DocuSealClientFactory(
 
 		//	The cache's value factory is not synchronized, so two racing first
 		//	calls for one token could each build a client. The lock serializes
-		//	entry creation (once per token per cache lifetime); the Lazy keeps
+		//	entry creation (once per token and region per cache lifetime); the Lazy keeps
 		//	client construction outside the lock.
 		Lazy<IDocuSealClient>? lazy;
 
@@ -39,6 +42,7 @@ internal sealed class DocuSealClientFactory(
 					var httpClientFactory = _services.GetRequiredService<IHttpClientFactory>();
 					var httpClient = httpClientFactory.CreateClient(nameof(IDocuSealClient));
 
+					httpClient.BaseAddress = baseAddress;
 					httpClient.SetAuthorizationToken(options.AuthorizationToken);
 
 					return new DocuSealClient(_services, httpClient);
