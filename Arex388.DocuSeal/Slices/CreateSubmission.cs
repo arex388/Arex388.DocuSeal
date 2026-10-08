@@ -23,13 +23,13 @@ public static class CreateSubmission {
 		/// Set `false` to disable signature request emails sending.
 		/// </summary>
 		[JsonPropertyName("send_email")]
-		public bool MustEmail { get; init; } = true;
+		public bool? MustEmail { get; init; }
 
 		/// <summary>
 		/// Set `true` to send signature request via phone number and SMS.
 		/// </summary>
 		[JsonPropertyName("send_sms")]
-		public bool MustSms { get; init; }
+		public bool? MustSms { get; init; }
 
 		/// <summary>
 		/// Specify BCC address to send signed documents to after the completion.
@@ -47,7 +47,7 @@ public static class CreateSubmission {
 		/// Pass 'random' to send signature request emails to all parties right away. The order is 'preserved' by default so the second party will receive a signature request email only after the document is signed by the first party.
 		/// </summary>
 		//[JsonConverter(typeof(SubmitterOrderJsonConverter))]
-		public SubmitterOrder Order { get; init; } = SubmitterOrder.Preserved;
+		public SubmitterOrder? Order { get; init; }
 
 		/// <summary>
 		/// Specify Reply-To address to use in the notification emails.
@@ -94,25 +94,25 @@ public static class CreateSubmission {
 		/// <summary>
 		/// A list of configurations for template document form fields.
 		/// </summary>
-		public IList<RequestSubmitterField> Fields { get; init; } = [];
+		public IList<RequestSubmitterField>? Fields { get; init; }
 
 		/// <summary>
 		/// Pass `true` to mark submitter as completed and auto-signed via API.
 		/// </summary>
 		[JsonPropertyName("completed")]
-		public bool IsCompleted { get; init; }
+		public bool? IsCompleted { get; init; }
 
 		/// <summary>
 		/// Set `false` to disable signature request emails sending.
 		/// </summary>
 		[JsonPropertyName("send_email")]
-		public bool MustEmail { get; init; } = true;
+		public bool? MustEmail { get; init; }
 
 		/// <summary>
 		/// Set `true` to send signature request via phone number and SMS.
 		/// </summary>
 		[JsonPropertyName("send_sms")]
-		public bool MustSms { get; init; }
+		public bool? MustSms { get; init; }
 
 		/// <summary>
 		/// The name of the submitter.
@@ -138,7 +138,7 @@ public static class CreateSubmission {
 		/// <summary>
 		/// An object with pre-filled values for the submission. Use field names for keys of the object. For more configurations see `fields` param.
 		/// </summary>
-		public IDictionary<string, string> Values { get; init; } = DictionaryHelper.Empty;
+		public IDictionary<string, string>? Values { get; init; }
 	}
 
 	/// <summary>
@@ -155,7 +155,7 @@ public static class CreateSubmission {
 		/// Set `true` to make it impossible for the submitter to edit predefined field value.
 		/// </summary>
 		[JsonPropertyName("readonly")]
-		public bool IsReadonly { get; init; }
+		public bool? IsReadonly { get; init; }
 
 		/// <summary>
 		/// Document template field name.
@@ -217,7 +217,7 @@ file sealed class RequestSubmitterValidator :
 	public RequestSubmitterValidator(
 		IValidator<RequestSubmitterField> requestSubmitterFieldValidator) {
 		RuleFor(r => r.Email).EmailAddress().NotEmpty();
-		RuleFor(r => r.Fields).ForEach(r => r.SetValidator(requestSubmitterFieldValidator));
+		RuleFor(r => r.Fields!).ForEach(r => r.SetValidator(requestSubmitterFieldValidator)).When(r => r.Fields is not null);
 	}
 }
 

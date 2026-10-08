@@ -13,7 +13,7 @@ public static class UpdateTemplateDocuments {
 	/// </summary>
 	public sealed class Request {
 		/// <summary>
-		/// The list of documents to add or replace in the template.
+		/// The list of documents to add, replace or remove in the template.
 		/// </summary>
 		public required IList<RequestDocument> Documents { get; init; } = [];
 
@@ -29,7 +29,7 @@ public static class UpdateTemplateDocuments {
 		/// Set to `true` to merge all existing and new documents into a single PDF document in the template.
 		/// </summary>
 		[JsonPropertyName("merge")]
-		public bool MustMerge { get; init; }
+		public bool? MustMerge { get; init; }
 	}
 
 	/// <summary>
@@ -51,23 +51,23 @@ public static class UpdateTemplateDocuments {
 		/// Set to `true` to replace existing document with a new file at `position`. Existing document fields will be transferred to the new document if it doesn't contain any fields
 		/// </summary>
 		[JsonPropertyName("replace")]
-		public bool MustReplace { get; init; }
+		public bool? MustReplace { get; init; }
 
 		/// <summary>
 		/// Set to `true` to remove existing document at given `position` or with given `name`.
 		/// </summary>
 		[JsonPropertyName("remove")]
-		public bool MustRemove { get; init; }
+		public bool? MustRemove { get; init; }
 
 		/// <summary>
 		/// Document name. Random uuid will be assigned when not specified.
 		/// </summary>
-		public required string Name { get; init; }
+		public string? Name { get; init; }
 
 		/// <summary>
 		/// Position of the document. By default will be added as the last document in the template.
 		/// </summary>
-		public int Position { get; init; }
+		public int? Position { get; init; }
 	}
 
 	/// <summary>
@@ -93,8 +93,7 @@ file sealed class RequestValidator :
 file sealed class RequestDocumentValidator :
 	AbstractValidator<RequestDocument> {
 	public RequestDocumentValidator() {
-		RuleFor(r => r.FileBase64).NotEmpty().When(r => !r.Html.HasValue());
-		RuleFor(r => r.Html).NotEmpty().When(r => !r.FileBase64.HasValue());
-		RuleFor(r => r.Name).NotEmpty();
+		RuleFor(r => r.FileBase64).NotEmpty().When(r => r.MustRemove != true && !r.Html.HasValue());
+		RuleFor(r => r.Html).NotEmpty().When(r => r.MustRemove != true && !r.FileBase64.HasValue());
 	}
 }

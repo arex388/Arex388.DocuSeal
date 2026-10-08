@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Arex388.DocuSeal;
 
@@ -27,6 +28,7 @@ internal sealed class DocuSealClient(
 			new SubmitterStatusJsonConverter(),
 			new TemplateSourceJsonConverter()
 		},
+		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 	};
 

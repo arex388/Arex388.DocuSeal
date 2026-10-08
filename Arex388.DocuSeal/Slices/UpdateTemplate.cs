@@ -30,7 +30,7 @@ public static class UpdateTemplate {
 		/// Set `false` to unarchive template.
 		/// </summary>
 		[JsonPropertyName("archived")]
-		public bool IsArchived { get; init; }
+		public bool? IsArchived { get; init; }
 
 		/// <summary>
 		/// The name of the template.
@@ -40,7 +40,7 @@ public static class UpdateTemplate {
 		/// <summary>
 		/// An array of submitter role names to update the template with.
 		/// </summary>
-		public IList<string> Roles { get; init; } = [];
+		public IList<string>? Roles { get; init; }
 	}
 
 	/// <summary>

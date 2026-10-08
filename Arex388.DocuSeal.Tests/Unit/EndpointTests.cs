@@ -161,7 +161,7 @@ public sealed class EndpointTests {
 		using var body = JsonDocument.Parse(request.Body!);
 
 		body.RootElement.GetProperty("template_id").GetInt32().Should().Be(1001);
-		body.RootElement.GetProperty("send_email").GetBoolean().Should().BeTrue();
+		body.RootElement.TryGetProperty("send_email", out _).Should().BeFalse("an unset optional member is omitted so the API default applies");
 		body.RootElement.GetProperty("order").GetString().Should().Be("random");
 		body.RootElement.GetProperty("submitters")[0].GetProperty("email").GetString().Should().Be("signer1@example.com");
 		body.RootElement.TryGetProperty("endpoint", out _).Should().BeFalse("the internal Endpoint must not leak into the body");

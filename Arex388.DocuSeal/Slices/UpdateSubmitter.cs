@@ -22,7 +22,7 @@ public static class UpdateSubmitter {
 		/// <summary>
 		/// A list of configurations for template document form fields.
 		/// </summary>
-		public IList<RequestField> Fields { get; init; } = [];
+		public IList<RequestField>? Fields { get; init; }
 
 		/// <summary>
 		/// The unique identifier of the submitter.
@@ -34,7 +34,7 @@ public static class UpdateSubmitter {
 		/// Pass `true` to mark submitter as completed and auto-signed via API.
 		/// </summary>
 		[JsonPropertyName("completed")]
-		public bool IsCompleted { get; init; }
+		public bool? IsCompleted { get; init; }
 
 		/// <summary>
 		/// The message for the submitter.
@@ -67,18 +67,18 @@ public static class UpdateSubmitter {
 		/// Set `true` to re-send signature request emails.
 		/// </summary>
 		[JsonPropertyName("send_email")]
-		public bool ResendEmail { get; init; }
+		public bool? ResendEmail { get; init; }
 
 		/// <summary>
 		/// Set `true` to re-send signature request via phone number SMS.
 		/// </summary>
 		[JsonPropertyName("send_sms")]
-		public bool ResendSms { get; init; }
+		public bool? ResendSms { get; init; }
 
 		/// <summary>
 		/// An object with pre-filled values for the submission. Use field names for keys of the object. For more configurations see `fields` param.
 		/// </summary>
-		public IDictionary<string, string> Values { get; init; } = DictionaryHelper.Empty;
+		public IDictionary<string, string>? Values { get; init; }
 	}
 
 	/// <summary>
@@ -110,7 +110,7 @@ public static class UpdateSubmitter {
 		/// Set `true` to make it impossible for the submitter to edit predefined field value.
 		/// </summary>
 		[JsonPropertyName("readonly")]
-		public bool IsReadonly { get; init; }
+		public bool? IsReadonly { get; init; }
 
 		/// <summary>
 		/// Document template field name.
@@ -146,7 +146,7 @@ file sealed class RequestValidator :
 	public RequestValidator(
 		IValidator<RequestMessage> requestMessageValidator,
 		IValidator<RequestField> requestFieldValidator) {
-		RuleFor(r => r.Fields).ForEach(r => r.SetValidator(requestFieldValidator));
+		RuleFor(r => r.Fields!).ForEach(r => r.SetValidator(requestFieldValidator)).When(r => r.Fields is not null);
 		RuleFor(r => r.Message).SetValidator(requestMessageValidator!);
 		RuleFor(r => r.ReplyToEmail).EmailAddress().NotEmpty().When(r => r.ReplyToEmail.HasValue());
 	}
