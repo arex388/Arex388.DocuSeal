@@ -86,9 +86,9 @@ public sealed class Submission {
 	public IList<Schema> Schemas { get; init; } = [];
 
 	/// <summary>
-	/// The submission's slug.
+	/// The submission's slug. <see langword="null" /> on the one-off create responses (<c>CreateSubmissionFromPdfAsync</c>, <c>CreateSubmissionFromDocxAsync</c>, and <c>CreateSubmissionFromHtmlAsync</c>), which do not carry it.
 	/// </summary>
-	public string Slug { get; init; } = null!;
+	public string? Slug { get; init; }
 
 	/// <summary>
 	/// The submission's source.

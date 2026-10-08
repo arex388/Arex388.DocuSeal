@@ -71,22 +71,9 @@ internal sealed class DocuSealClient(
 			Id = id
 		}, cancellationToken);
 
-	private async Task<ArchiveSubmission.Response> ArchiveSubmissionAsync(
+	private Task<ArchiveSubmission.Response> ArchiveSubmissionAsync(
 		ArchiveSubmission.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return ArchiveSubmission.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _archiveSubmissionRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return ArchiveSubmission.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<ArchiveSubmission.Response, ArchiveSubmission.Response>(HttpMethod.Delete, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
-	}
+		CancellationToken cancellationToken = default) => GuardAsync(request, _archiveSubmissionRequestValidator, (r, ct) => SendAsync<ArchiveSubmission.Response, ArchiveSubmission.Response>(HttpMethod.Delete, r.Endpoint, null, p => p.Error, p => p, ct), cancellationToken);
 
 	public Task<ArchiveTemplate.Response> ArchiveTemplateAsync(
 		TemplateId id,
@@ -94,137 +81,46 @@ internal sealed class DocuSealClient(
 			Id = id
 		}, cancellationToken);
 
-	private async Task<ArchiveTemplate.Response> ArchiveTemplateAsync(
+	private Task<ArchiveTemplate.Response> ArchiveTemplateAsync(
 		ArchiveTemplate.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return ArchiveTemplate.Response.Cancelled;
-		}
+		CancellationToken cancellationToken = default) => GuardAsync(request, _archiveTemplateRequestValidator, (r, ct) => SendAsync<ArchiveTemplate.Response, ArchiveTemplate.Response>(HttpMethod.Delete, r.Endpoint, null, p => p.Error, p => p, ct), cancellationToken);
 
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _archiveTemplateRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return ArchiveTemplate.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<ArchiveTemplate.Response, ArchiveTemplate.Response>(HttpMethod.Delete, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
-	}
-
-	public async Task<CloneTemplate.Response> CloneTemplateAsync(
+	public Task<CloneTemplate.Response> CloneTemplateAsync(
 		CloneTemplate.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return CloneTemplate.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _cloneTemplateRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return CloneTemplate.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Template, CloneTemplate.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new CloneTemplate.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _cloneTemplateRequestValidator, (r, ct) => SendAsync<Template, CloneTemplate.Response>(HttpMethod.Post, r.Endpoint, r, t => t.Error, t => new CloneTemplate.Response {
 			Template = t
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<CreateSubmission.Response> CreateSubmissionAsync(
+	public Task<CreateSubmission.Response> CreateSubmissionAsync(
 		CreateSubmission.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return CreateSubmission.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _createSubmissionRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return CreateSubmission.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<CreatedSubmitters, CreateSubmission.Response>(HttpMethod.Post, request.Endpoint, request, DeserializeCreatedSubmitters, c => c.Error, c => new CreateSubmission.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _createSubmissionRequestValidator, (r, ct) => SendAsync<CreatedSubmitters, CreateSubmission.Response>(HttpMethod.Post, r.Endpoint, r, DeserializeCreatedSubmitters, c => c.Error, c => new CreateSubmission.Response {
 			SubmissionId = c.Submitters[0].SubmissionId,
 			Submitters = c.Submitters
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<CreateSubmissionFromDocx.Response> CreateSubmissionFromDocxAsync(
+	public Task<CreateSubmissionFromDocx.Response> CreateSubmissionFromDocxAsync(
 		CreateSubmissionFromDocx.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return CreateSubmissionFromDocx.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _createSubmissionFromDocxRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return CreateSubmissionFromDocx.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Submission, CreateSubmissionFromDocx.Response>(HttpMethod.Post, request.Endpoint, request, s => s.Error, s => new CreateSubmissionFromDocx.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _createSubmissionFromDocxRequestValidator, (r, ct) => SendAsync<Submission, CreateSubmissionFromDocx.Response>(HttpMethod.Post, r.Endpoint, r, s => s.Error, s => new CreateSubmissionFromDocx.Response {
 			Submission = s
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<CreateSubmissionFromEmails.Response> CreateSubmissionFromEmailsAsync(
+	public Task<CreateSubmissionFromEmails.Response> CreateSubmissionFromEmailsAsync(
 		CreateSubmissionFromEmails.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return CreateSubmissionFromEmails.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _createSubmissionFromEmailsRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return CreateSubmissionFromEmails.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<CreatedSubmitters, CreateSubmissionFromEmails.Response>(HttpMethod.Post, request.Endpoint, request, DeserializeCreatedSubmitters, c => c.Error, c => new CreateSubmissionFromEmails.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _createSubmissionFromEmailsRequestValidator, (r, ct) => SendAsync<CreatedSubmitters, CreateSubmissionFromEmails.Response>(HttpMethod.Post, r.Endpoint, r, DeserializeCreatedSubmitters, c => c.Error, c => new CreateSubmissionFromEmails.Response {
 			Submitters = c.Submitters
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<CreateSubmissionFromHtml.Response> CreateSubmissionFromHtmlAsync(
+	public Task<CreateSubmissionFromHtml.Response> CreateSubmissionFromHtmlAsync(
 		CreateSubmissionFromHtml.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return CreateSubmissionFromHtml.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _createSubmissionFromHtmlRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return CreateSubmissionFromHtml.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Submission, CreateSubmissionFromHtml.Response>(HttpMethod.Post, request.Endpoint, request, s => s.Error, s => new CreateSubmissionFromHtml.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _createSubmissionFromHtmlRequestValidator, (r, ct) => SendAsync<Submission, CreateSubmissionFromHtml.Response>(HttpMethod.Post, r.Endpoint, r, s => s.Error, s => new CreateSubmissionFromHtml.Response {
 			Submission = s
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<CreateSubmissionFromPdf.Response> CreateSubmissionFromPdfAsync(
+	public Task<CreateSubmissionFromPdf.Response> CreateSubmissionFromPdfAsync(
 		CreateSubmissionFromPdf.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return CreateSubmissionFromPdf.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _createSubmissionFromPdfRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return CreateSubmissionFromPdf.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Submission, CreateSubmissionFromPdf.Response>(HttpMethod.Post, request.Endpoint, request, s => s.Error, s => new CreateSubmissionFromPdf.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _createSubmissionFromPdfRequestValidator, (r, ct) => SendAsync<Submission, CreateSubmissionFromPdf.Response>(HttpMethod.Post, r.Endpoint, r, s => s.Error, s => new CreateSubmissionFromPdf.Response {
 			Submission = s
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
 	public Task<CreateTemplate.Response> CreateTemplateAsync(
 		FileInfo file,
@@ -233,82 +129,65 @@ internal sealed class DocuSealClient(
 			return Task.FromResult(CreateTemplate.Response.Cancelled);
 		}
 
-		var fileName = file.FullName;
-		var endpoint = Path.GetExtension(fileName).ToLowerInvariant() switch {
-			".docx" => CreateTemplate.Endpoints.Docx,
-			".pdf" => CreateTemplate.Endpoints.Pdf,
-			_ => null
-		};
-
-		if (endpoint is null) {
-			return Task.FromResult(CreateTemplate.Response.Invalid(new ValidationResult([
-				new ValidationFailure(nameof(file), "'File' must be a .pdf or .docx file.")
-			])));
+		if (file is null) {
+			return Task.FromResult(CreateTemplate.Response.Invalid(NullArgument("File")));
 		}
 
-		if (!file.Exists) {
-			return Task.FromResult(CreateTemplate.Response.Invalid(new ValidationResult([
-				new ValidationFailure(nameof(file), "'File' does not exist.")
-			])));
-		}
+		CreateTemplate.Request request;
 
-		byte[] fileBytes;
-
+		//	Reading the path, its extension and the file itself can all throw, so every
+		//	step up to the request is inside the try and an exception is Failed.
 		try {
-			fileBytes = File.ReadAllBytes(fileName);
+			var fileName = file.FullName;
+			var endpoint = Path.GetExtension(fileName).ToLowerInvariant() switch {
+				".docx" => CreateTemplate.Endpoints.Docx,
+				".pdf" => CreateTemplate.Endpoints.Pdf,
+				_ => null
+			};
+
+			if (endpoint is null) {
+				return Task.FromResult(CreateTemplate.Response.Invalid(new ValidationResult([
+					new ValidationFailure(nameof(file), "'File' must be a .pdf or .docx file.")
+				])));
+			}
+
+			if (!file.Exists) {
+				return Task.FromResult(CreateTemplate.Response.Invalid(new ValidationResult([
+					new ValidationFailure(nameof(file), "'File' does not exist.")
+				])));
+			}
+
+			var fileBytes = File.ReadAllBytes(fileName);
+			var name = Path.GetFileNameWithoutExtension(fileName);
+
+			request = new CreateTemplate.Request {
+				Endpoint = endpoint,
+				Documents = [
+					new CreateTemplate.RequestDocument {
+						Name = name,
+						FileBase64 = Convert.ToBase64String(fileBytes)
+					}
+				],
+				Name = name
+			};
 		} catch {
 			return Task.FromResult(CreateTemplate.Response.Failed);
 		}
 
-		return CreateTemplateAsync(new CreateTemplate.Request {
-			Endpoint = endpoint,
-			Documents = [
-				new CreateTemplate.RequestDocument {
-					Name = Path.GetFileNameWithoutExtension(fileName),
-					FileBase64 = Convert.ToBase64String(fileBytes)
-				}
-			],
-			Name = Path.GetFileNameWithoutExtension(fileName)
-		}, cancellationToken);
+		return CreateTemplateAsync(request, cancellationToken);
 	}
 
-	public async Task<CreateTemplate.Response> CreateTemplateAsync(
+	public Task<CreateTemplate.Response> CreateTemplateAsync(
 		CreateTemplate.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return CreateTemplate.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _createTemplateRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return CreateTemplate.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Template, CreateTemplate.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new CreateTemplate.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _createTemplateRequestValidator, (r, ct) => SendAsync<Template, CreateTemplate.Response>(HttpMethod.Post, r.Endpoint, r, t => t.Error, t => new CreateTemplate.Response {
 			Template = t
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<CreateTemplateFromHtml.Response> CreateTemplateFromHtmlAsync(
+	public Task<CreateTemplateFromHtml.Response> CreateTemplateFromHtmlAsync(
 		CreateTemplateFromHtml.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return CreateTemplateFromHtml.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _createTemplateFromHtmlRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return CreateTemplateFromHtml.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Template, CreateTemplateFromHtml.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new CreateTemplateFromHtml.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _createTemplateFromHtmlRequestValidator, (r, ct) => SendAsync<Template, CreateTemplateFromHtml.Response>(HttpMethod.Post, r.Endpoint, r, t => t.Error, t => new CreateTemplateFromHtml.Response {
 			Template = t
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
 	public Task<GetSubmission.Response> GetSubmissionAsync(
 		SubmissionId id,
@@ -316,24 +195,11 @@ internal sealed class DocuSealClient(
 			Id = id
 		}, cancellationToken);
 
-	private async Task<GetSubmission.Response> GetSubmissionAsync(
+	private Task<GetSubmission.Response> GetSubmissionAsync(
 		GetSubmission.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return GetSubmission.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _getSubmissionRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return GetSubmission.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Submission, GetSubmission.Response>(HttpMethod.Get, request.Endpoint, null, s => s.Error, s => new GetSubmission.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _getSubmissionRequestValidator, (r, ct) => SendAsync<Submission, GetSubmission.Response>(HttpMethod.Get, r.Endpoint, null, s => s.Error, s => new GetSubmission.Response {
 			Submission = s
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
 	public Task<GetSubmissionDocuments.Response> GetSubmissionDocumentsAsync(
 		SubmissionId id,
@@ -341,22 +207,9 @@ internal sealed class DocuSealClient(
 			Id = id
 		}, cancellationToken);
 
-	public async Task<GetSubmissionDocuments.Response> GetSubmissionDocumentsAsync(
+	public Task<GetSubmissionDocuments.Response> GetSubmissionDocumentsAsync(
 		GetSubmissionDocuments.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return GetSubmissionDocuments.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _getSubmissionDocumentsRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return GetSubmissionDocuments.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<GetSubmissionDocuments.Response, GetSubmissionDocuments.Response>(HttpMethod.Get, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
-	}
+		CancellationToken cancellationToken = default) => GuardAsync(request, _getSubmissionDocumentsRequestValidator, (r, ct) => SendAsync<GetSubmissionDocuments.Response, GetSubmissionDocuments.Response>(HttpMethod.Get, r.Endpoint, null, p => p.Error, p => p, ct), cancellationToken);
 
 	public Task<GetSubmitter.Response> GetSubmitterAsync(
 		SubmitterId id,
@@ -364,24 +217,11 @@ internal sealed class DocuSealClient(
 			Id = id
 		}, cancellationToken);
 
-	private async Task<GetSubmitter.Response> GetSubmitterAsync(
+	private Task<GetSubmitter.Response> GetSubmitterAsync(
 		GetSubmitter.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return GetSubmitter.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _getSubmitterRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return GetSubmitter.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Submitter, GetSubmitter.Response>(HttpMethod.Get, request.Endpoint, null, s => s.Error, s => new GetSubmitter.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _getSubmitterRequestValidator, (r, ct) => SendAsync<Submitter, GetSubmitter.Response>(HttpMethod.Get, r.Endpoint, null, s => s.Error, s => new GetSubmitter.Response {
 			Submitter = s
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
 	public Task<GetTemplate.Response> GetTemplateAsync(
 		TemplateId id,
@@ -389,181 +229,105 @@ internal sealed class DocuSealClient(
 			Id = id
 		}, cancellationToken);
 
-	private async Task<GetTemplate.Response> GetTemplateAsync(
+	private Task<GetTemplate.Response> GetTemplateAsync(
 		GetTemplate.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return GetTemplate.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _getTemplateRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return GetTemplate.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Template, GetTemplate.Response>(HttpMethod.Get, request.Endpoint, null, t => t.Error, t => new GetTemplate.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _getTemplateRequestValidator, (r, ct) => SendAsync<Template, GetTemplate.Response>(HttpMethod.Get, r.Endpoint, null, t => t.Error, t => new GetTemplate.Response {
 			Template = t
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
 	public Task<ListSubmissions.Response> ListSubmissionsAsync(
 		CancellationToken cancellationToken = default) => ListSubmissionsAsync(ListSubmissions.Request.Instance, cancellationToken);
 
-	public async Task<ListSubmissions.Response> ListSubmissionsAsync(
+	public Task<ListSubmissions.Response> ListSubmissionsAsync(
 		ListSubmissions.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return ListSubmissions.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _listSubmissionsRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return ListSubmissions.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<ListSubmissions.Response, ListSubmissions.Response>(HttpMethod.Get, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
-	}
+		CancellationToken cancellationToken = default) => GuardAsync(request, _listSubmissionsRequestValidator, (r, ct) => SendAsync<ListSubmissions.Response, ListSubmissions.Response>(HttpMethod.Get, r.Endpoint, null, p => p.Error, p => p, ct), cancellationToken);
 
 	public Task<ListSubmitters.Response> ListSubmittersAsync(
 		CancellationToken cancellationToken = default) => ListSubmittersAsync(ListSubmitters.Request.Instance, cancellationToken);
 
-	public async Task<ListSubmitters.Response> ListSubmittersAsync(
+	public Task<ListSubmitters.Response> ListSubmittersAsync(
 		ListSubmitters.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return ListSubmitters.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _listSubmittersRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return ListSubmitters.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<ListSubmitters.Response, ListSubmitters.Response>(HttpMethod.Get, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
-	}
+		CancellationToken cancellationToken = default) => GuardAsync(request, _listSubmittersRequestValidator, (r, ct) => SendAsync<ListSubmitters.Response, ListSubmitters.Response>(HttpMethod.Get, r.Endpoint, null, p => p.Error, p => p, ct), cancellationToken);
 
 	public Task<ListTemplates.Response> ListTemplatesAsync(
 		CancellationToken cancellationToken = default) => ListTemplatesAsync(ListTemplates.Request.Instance, cancellationToken);
 
-	public async Task<ListTemplates.Response> ListTemplatesAsync(
+	public Task<ListTemplates.Response> ListTemplatesAsync(
 		ListTemplates.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return ListTemplates.Response.Cancelled;
-		}
+		CancellationToken cancellationToken = default) => GuardAsync(request, _listTemplatesRequestValidator, (r, ct) => SendAsync<ListTemplates.Response, ListTemplates.Response>(HttpMethod.Get, r.Endpoint, null, p => p.Error, p => p, ct), cancellationToken);
 
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _listTemplatesRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return ListTemplates.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<ListTemplates.Response, ListTemplates.Response>(HttpMethod.Get, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
-	}
-
-	public async Task<MergeTemplates.Response> MergeTemplatesAsync(
+	public Task<MergeTemplates.Response> MergeTemplatesAsync(
 		MergeTemplates.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return MergeTemplates.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _mergeTemplateRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return MergeTemplates.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Template, MergeTemplates.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new MergeTemplates.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _mergeTemplateRequestValidator, (r, ct) => SendAsync<Template, MergeTemplates.Response>(HttpMethod.Post, r.Endpoint, r, t => t.Error, t => new MergeTemplates.Response {
 			Template = t
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<UpdateSubmission.Response> UpdateSubmissionAsync(
+	public Task<UpdateSubmission.Response> UpdateSubmissionAsync(
 		UpdateSubmission.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return UpdateSubmission.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _updateSubmissionRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return UpdateSubmission.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Submission, UpdateSubmission.Response>(HttpMethod.Put, request.Endpoint, request.Body, s => s.Error, s => new UpdateSubmission.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _updateSubmissionRequestValidator, (r, ct) => SendAsync<Submission, UpdateSubmission.Response>(HttpMethod.Put, r.Endpoint, r.Body, s => s.Error, s => new UpdateSubmission.Response {
 			Submission = s
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<UpdateSubmitter.Response> UpdateSubmitterAsync(
+	public Task<UpdateSubmitter.Response> UpdateSubmitterAsync(
 		UpdateSubmitter.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return UpdateSubmitter.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _updateSubmitterRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return UpdateSubmitter.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Submitter, UpdateSubmitter.Response>(HttpMethod.Put, request.Endpoint, request, s => s.Error, s => new UpdateSubmitter.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _updateSubmitterRequestValidator, (r, ct) => SendAsync<Submitter, UpdateSubmitter.Response>(HttpMethod.Put, r.Endpoint, r, s => s.Error, s => new UpdateSubmitter.Response {
 			Submitter = s
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
-	public async Task<UpdateTemplate.Response> UpdateTemplateAsync(
+	public Task<UpdateTemplate.Response> UpdateTemplateAsync(
 		UpdateTemplate.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return UpdateTemplate.Response.Cancelled;
-		}
+		CancellationToken cancellationToken = default) => GuardAsync(request, _updateTemplateRequestValidator, (r, ct) => SendAsync<UpdateTemplate.Response, UpdateTemplate.Response>(HttpMethod.Put, r.Endpoint, r, p => p.Error, p => p, ct), cancellationToken);
 
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _updateTemplateRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return UpdateTemplate.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<UpdateTemplate.Response, UpdateTemplate.Response>(HttpMethod.Put, request.Endpoint, request, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
-	}
-
-	public async Task<UpdateTemplateDocuments.Response> UpdateTemplateDocumentsAsync(
+	public Task<UpdateTemplateDocuments.Response> UpdateTemplateDocumentsAsync(
 		UpdateTemplateDocuments.Request request,
-		CancellationToken cancellationToken = default) {
-		if (cancellationToken.IsSupportedAndCancelled()) {
-			return UpdateTemplateDocuments.Response.Cancelled;
-		}
-
-		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
-		var validationResult = _updateTemplateDocumentsRequestValidator.Validate(request);
-
-		if (!validationResult.IsValid) {
-			return UpdateTemplateDocuments.Response.Invalid(validationResult);
-		}
-
-		return await SendAsync<Template, UpdateTemplateDocuments.Response>(HttpMethod.Put, request.Endpoint, request, t => t.Error, t => new UpdateTemplateDocuments.Response {
+		CancellationToken cancellationToken = default) => GuardAsync(request, _updateTemplateDocumentsRequestValidator, (r, ct) => SendAsync<Template, UpdateTemplateDocuments.Response>(HttpMethod.Put, r.Endpoint, r, t => t.Error, t => new UpdateTemplateDocuments.Response {
 			Template = t
-		}, cancellationToken).ConfigureAwait(false);
-	}
+		}, ct), cancellationToken);
 
 	//	============================================================================
 	//	Utilities
 	//	============================================================================
+
+	/// <summary>
+	/// The one entry path every operation goes through, so the no-throw contract
+	/// holds before the request reaches <c>SendAsync</c>: a cancelled token is
+	/// <c>Cancelled</c>; a null request is <c>Invalid</c>; a failed validation is
+	/// <c>Invalid</c>; and an exception thrown while validating, building the
+	/// endpoint or body in <paramref name="send"/>, or sending is <c>Failed</c>.
+	/// </summary>
+	private static async Task<TResponse> GuardAsync<TRequest, TResponse>(
+		TRequest? request,
+		IValidator<TRequest> validator,
+		Func<TRequest, CancellationToken, Task<TResponse>> send,
+		CancellationToken cancellationToken)
+		where TRequest : class
+		where TResponse : ResponseBase<TResponse>, new() {
+		if (cancellationToken.IsSupportedAndCancelled()) {
+			return ResponseBase<TResponse>.Cancelled;
+		}
+
+		if (request is null) {
+			return ResponseBase<TResponse>.Invalid(NullArgument("Request"));
+		}
+
+		try {
+			// ReSharper disable once MethodHasAsyncOverloadWithCancellation
+			var validationResult = validator.Validate(request);
+
+			if (!validationResult.IsValid) {
+				return ResponseBase<TResponse>.Invalid(validationResult);
+			}
+
+			return await send(request, cancellationToken).ConfigureAwait(false);
+		} catch {
+			return ResponseBase<TResponse>.Failed;
+		}
+	}
+
+	private static ValidationResult NullArgument(
+		string name) => new([
+			new ValidationFailure(name, $"'{name}' must not be null.")
+		]);
 
 	/// <summary>
 	/// The create-submission endpoints return an array of submitters: one per

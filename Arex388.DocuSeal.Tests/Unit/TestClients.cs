@@ -1,4 +1,6 @@
 using Arex388.DocuSeal.Testing;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Reflection;
@@ -28,8 +30,14 @@ internal static class TestClients {
 		.Single(f => f.FieldType == typeof(JsonSerializerOptions))
 		.GetValue(null)!;
 
+	/// <summary>
+	/// Builds a client on <paramref name="handler"/>. <paramref name="configure"/>
+	/// runs after the library's registrations, so a test can replace a service
+	/// (a validator, for example) the client resolves.
+	/// </summary>
 	public static IDocuSealClient Create(
-		HttpMessageHandler handler) {
+		HttpMessageHandler handler,
+		Action<IServiceCollection>? configure = null) {
 		var services = new ServiceCollection();
 
 		services.AddDocuSeal(new DocuSealClientOptions {
@@ -37,7 +45,28 @@ internal static class TestClients {
 		}).AddHttpClient(nameof(IDocuSealClient), hc => hc.BaseAddress = BaseAddress)
 				.ConfigurePrimaryHttpMessageHandler(() => handler);
 
+		configure?.Invoke(services);
+
 		return services.BuildServiceProvider().GetRequiredService<IDocuSealClient>();
+	}
+
+	/// <summary>
+	/// Replaces every validator the library registered with one that throws, so
+	/// a test can drive an exception through the client's validation step.
+	/// </summary>
+	public static void UseThrowingValidators(
+		IServiceCollection services) {
+		var validatorTypes = services
+			.Where(d => d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(IValidator<>))
+			.Select(d => d.ServiceType)
+			.Distinct()
+			.ToList();
+
+		foreach (var validatorType in validatorTypes) {
+			var throwingType = typeof(ThrowingValidator<>).MakeGenericType(validatorType.GetGenericArguments());
+
+			services.AddSingleton(validatorType, Activator.CreateInstance(throwingType)!);
+		}
 	}
 
 	/// <summary>
@@ -90,6 +119,16 @@ internal sealed class CapturingHandler(
 			RequestMessage = request
 		};
 	}
+}
+
+/// <summary>
+/// Throws from validation, standing in for any exception raised while the
+/// client prepares a request.
+/// </summary>
+internal sealed class ThrowingValidator<T> :
+	AbstractValidator<T> {
+	public override ValidationResult Validate(
+		ValidationContext<T> context) => throw new InvalidOperationException("Simulated validator failure.");
 }
 
 /// <summary>

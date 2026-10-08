@@ -3,6 +3,9 @@
 /// <summary>
 /// DocuSeal API client.
 /// </summary>
+/// <remarks>
+/// Members do not throw. A cancelled token, a <see langword="null" /> request, a validation failure, an API error, and an exception while building or sending the request are all reported through <see cref="ResponseBase{TResponse}.Errors" /> with <see cref="ResponseBase{TResponse}.Success" /> set to <see langword="false" />.
+/// </remarks>
 public interface IDocuSealClient {
 	/// <summary>
 	/// Archive a submission.
@@ -87,7 +90,7 @@ public interface IDocuSealClient {
 	/// <summary>
 	/// Create a template.
 	/// </summary>
-	/// <param name="file">The file to use for creating the template. Must be a <c>.pdf</c> or <c>.docx</c> file; any other extension, or a file that does not exist, returns an invalid response without calling the API.</param>
+	/// <param name="file">The file to use for creating the template. Must be a <c>.pdf</c> or <c>.docx</c> file; a <see langword="null" /> file, any other extension, or a file that does not exist returns an invalid response without calling the API, and a file that cannot be read returns a failed response.</param>
 	/// <param name="cancellationToken">The cancellation token.</param>
 	/// <returns>A response indicating if the operation completed with the created template.</returns>
 	Task<CreateTemplate.Response> CreateTemplateAsync(

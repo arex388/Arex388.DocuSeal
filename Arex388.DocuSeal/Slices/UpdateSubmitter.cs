@@ -43,7 +43,7 @@ public static class UpdateSubmitter {
 		public bool? IsCompleted { get; init; }
 
 		/// <summary>
-		/// The message for the submitter.
+		/// The message for the submitter. Unset is omitted from the request body; a message with neither member set is sent as <c>"message": {}</c>; the spec requires neither member.
 		/// </summary>
 		public RequestMessage? Message { get; init; }
 
@@ -105,7 +105,7 @@ public static class UpdateSubmitter {
 	}
 
 	/// <summary>
-	/// Update submitter request message. At least one of <see cref="Body" /> or <see cref="Subject" /> must be set.
+	/// Update submitter request message. Both members are optional; an unset member is omitted, so a message with neither set is sent as <c>{}</c>.
 	/// </summary>
 	public sealed class RequestMessage {
 		/// <summary>
@@ -179,18 +179,9 @@ public static class UpdateSubmitter {
 file sealed class RequestValidator :
 	AbstractValidator<Request> {
 	public RequestValidator(
-		IValidator<RequestMessage> requestMessageValidator,
 		IValidator<RequestField> requestFieldValidator) {
 		RuleFor(r => r.Fields!).ForEach(r => r.SetValidator(requestFieldValidator)).When(r => r.Fields is not null);
-		RuleFor(r => r.Message).SetValidator(requestMessageValidator!);
 		RuleFor(r => r.ReplyToEmail).EmailAddress().NotEmpty().When(r => r.ReplyToEmail.HasValue());
-	}
-}
-
-file sealed class RequestMessageValidator :
-	AbstractValidator<RequestMessage> {
-	public RequestMessageValidator() {
-		RuleFor(r => r.Subject).NotEmpty().When(r => !r.Body.HasValue()).WithMessage("'Body' or 'Subject' must be set.");
 	}
 }
 

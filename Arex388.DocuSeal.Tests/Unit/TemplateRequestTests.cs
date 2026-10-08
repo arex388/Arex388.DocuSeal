@@ -321,9 +321,29 @@ public sealed class TemplateRequestTests {
 	}
 
 	[Fact]
-	public Task CreateTemplate_FieldWithoutName_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateTemplateAsync(CreateTemplateRequest(CreateTemplate.Endpoints.Pdf, field: new CreateTemplate.RequestDocumentField {
-		Name = ""
-	})), "'Name' must not be empty.");
+	public async Task CreateTemplate_FieldWithoutName_PassesValidation_AndOmitsName() {
+		var request = await CaptureAsync(c => c.CreateTemplateAsync(CreateTemplateRequest(CreateTemplate.Endpoints.Pdf, field: new CreateTemplate.RequestDocumentField {
+			Areas = [
+				new CreateTemplate.RequestDocumentFieldArea {
+					Height = .06M,
+					Page = 1,
+					Width = .335M,
+					X = .42M,
+					Y = .15M
+				}
+			],
+			Type = FieldType.Signature
+		})));
+
+		ShouldBeJson(request.Body, """{"documents":[{"fields":[{"areas":[{"h":0.06,"page":1,"w":0.335,"x":0.42,"y":0.15}],"type":"signature"}],"file":"base64","name":"Test Document"}]}""");
+	}
+
+	[Fact]
+	public async Task CreateTemplate_FieldWithNoMembers_PassesValidation() {
+		var request = await CaptureAsync(c => c.CreateTemplateAsync(CreateTemplateRequest(CreateTemplate.Endpoints.Pdf, field: new CreateTemplate.RequestDocumentField())));
+
+		ShouldBeJson(request.Body, """{"documents":[{"fields":[{}],"file":"base64","name":"Test Document"}]}""");
+	}
 
 	[Theory]
 	[InlineData(true, null)]

@@ -26,7 +26,7 @@ public static class CreateSubmission {
 		public DateTime? ExpireAtUtc { get; init; }
 
 		/// <summary>
-		/// The message for the submission.
+		/// The message for the submission. Unset is omitted from the request body; a message with neither member set is sent as <c>"message": {}</c>; the spec requires neither member.
 		/// </summary>
 		public RequestMessage? Message { get; init; }
 
@@ -84,7 +84,7 @@ public static class CreateSubmission {
 	}
 
 	/// <summary>
-	/// Create submission request message. At least one of <see cref="Body" /> or <see cref="Subject" /> must be set.
+	/// Create submission request message. Both members are optional; an unset member is omitted, so a message with neither set is sent as <c>{}</c>.
 	/// </summary>
 	public sealed class RequestMessage {
 		/// <summary>
@@ -131,7 +131,7 @@ public static class CreateSubmission {
 		public bool? IsCompleted { get; init; }
 
 		/// <summary>
-		/// The custom signature request email message for this submitter.
+		/// The custom signature request email message for this submitter. Unset is omitted from the request body; a message with neither member set is sent as <c>"message": {}</c>; the spec requires neither member.
 		/// </summary>
 		public RequestMessage? Message { get; init; }
 
@@ -286,9 +286,7 @@ public static class CreateSubmission {
 file sealed class RequestValidator :
 	AbstractValidator<Request> {
 	public RequestValidator(
-		IValidator<RequestMessage> requestMessageValidator,
 		IValidator<RequestSubmitter> requestSubmitterValidator) {
-		RuleFor(r => r.Message).SetValidator(requestMessageValidator!);
 		RuleFor(r => r.OnCompletedBccEmail).EmailAddress().When(r => r.OnCompletedBccEmail.HasValue());
 		RuleFor(r => r.ReplyToEmail).EmailAddress().NotEmpty().When(r => r.ReplyToEmail.HasValue());
 		RuleFor(r => r.Submitters).ForEach(r => r.SetValidator(requestSubmitterValidator)).NotEmpty();
@@ -296,22 +294,13 @@ file sealed class RequestValidator :
 	}
 }
 
-file sealed class RequestMessageValidator :
-	AbstractValidator<RequestMessage> {
-	public RequestMessageValidator() {
-		RuleFor(r => r.Subject).NotEmpty().When(r => !r.Body.HasValue()).WithMessage("'Body' or 'Subject' must be set.");
-	}
-}
-
 file sealed class RequestSubmitterValidator :
 	AbstractValidator<RequestSubmitter> {
 	public RequestSubmitterValidator(
-		IValidator<RequestMessage> requestMessageValidator,
 		IValidator<RequestSubmitterField> requestSubmitterFieldValidator) {
 		RuleFor(r => r.Email).EmailAddress().When(r => r.Email.HasValue());
 		RuleFor(r => r.Name).NotEmpty().When(r => !r.Email.HasValue() && !r.Phone.HasValue()).WithMessage("'Email', 'Phone' or 'Name' must be set.");
 		RuleFor(r => r.Fields!).ForEach(r => r.SetValidator(requestSubmitterFieldValidator)).When(r => r.Fields is not null);
-		RuleFor(r => r.Message).SetValidator(requestMessageValidator!);
 		RuleFor(r => r.OrderGroup).GreaterThanOrEqualTo(0).When(r => r.OrderGroup.HasValue);
 		RuleFor(r => r.ReplyToEmail).EmailAddress().When(r => r.ReplyToEmail.HasValue());
 	}

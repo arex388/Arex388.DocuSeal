@@ -31,7 +31,7 @@ public static class CreateSubmissionFromDocx {
 		public DateTime? ExpireAtUtc { get; init; }
 
 		/// <summary>
-		/// The message for the submission.
+		/// The message for the submission. Unset is omitted from the request body; a message with neither member set is sent as <c>"message": {}</c>; the spec requires neither member.
 		/// </summary>
 		public CreateSubmission.RequestMessage? Message { get; init; }
 
@@ -144,11 +144,9 @@ public static class CreateSubmissionFromDocx {
 file sealed class RequestValidator :
 	AbstractValidator<Request> {
 	public RequestValidator(
-		IValidator<CreateSubmission.RequestMessage> requestMessageValidator,
 		IValidator<CreateSubmission.RequestSubmitter> requestSubmitterValidator,
 		IValidator<RequestDocument> requestDocumentValidator) {
 		RuleFor(r => r.Documents).ForEach(r => r.NotNull().WithMessage("'Documents' must not contain null entries.").SetValidator(requestDocumentValidator)).NotEmpty();
-		RuleFor(r => r.Message).SetValidator(requestMessageValidator!);
 		RuleFor(r => r.OnCompletedBccEmail).EmailAddress().When(r => r.OnCompletedBccEmail.HasValue());
 		RuleFor(r => r.Order).Must(o => o != SubmitterOrder.Unknown).WithMessage("'{PropertyName}' must not be unknown.");
 		RuleFor(r => r.ReplyToEmail).EmailAddress().When(r => r.ReplyToEmail.HasValue());

@@ -323,7 +323,12 @@ public sealed class ResponsePayloadTests {
 		template.Folder.Should().Be("Default");
 		template.ExternalId.Should().Be("f0b4714f-e44b-4993-905b-68b4451eef8c");
 		template.HasSharedLink.Should().BeTrue();
-		template.Documents.Should().ContainSingle().Which.Url.Should().Be(new Uri("https://docuseal.com/file/hash/Test%20Template.pdf"));
+
+		var document = template.Documents.Should().ContainSingle().Subject;
+
+		document.Url.Should().Be(new Uri("https://docuseal.com/file/hash/Test%20Template.pdf"));
+		document.Name.Should().BeNull("the HTML create result carries no filename");
+		document.PreviewUri.Should().BeNull("the HTML create result carries no preview_image_url");
 	}
 
 	[Fact]
@@ -379,6 +384,8 @@ public sealed class ResponsePayloadTests {
 
 		document.Id.Should().Be(new DocumentId(3));
 		document.Url.Should().Be(new Uri("https://docuseal.com/file/hash/Test%20Template.pdf"));
+		document.Name.Should().BeNull("the documents update result carries no filename");
+		document.PreviewUri.Should().BeNull("the documents update result carries no preview_image_url");
 	}
 
 	[Fact]
@@ -655,6 +662,7 @@ public sealed class ResponsePayloadTests {
 		submission.Should().NotBeNull();
 		submission!.Id.Should().Be(new SubmissionId(5));
 		submission.Name.Should().Be("Test Submission");
+		submission.Slug.Should().BeNull("the one-off create result carries no slug");
 		submission.Source.Should().Be(SubmissionSource.Api);
 		submission.SubmittersOrder.Should().Be(SubmitterOrder.Preserved);
 		submission.Status.Should().Be(SubmissionStatus.Pending);
@@ -716,6 +724,7 @@ public sealed class ResponsePayloadTests {
 		success.Should().BeTrue();
 		submission!.Id.Should().Be(ClientOperations.SubmissionId);
 		submission.Name.Should().Be("One-off Submission");
+		submission.Slug.Should().BeNull("the one-off create result carries no slug");
 		submission.Status.Should().Be(SubmissionStatus.Pending);
 		submission.Submitters.Select(s => s.Id).Should().Equal(ClientOperations.SubmitterId, new SubmitterId(3002));
 		submission.Submitters.Select(s => s.SubmissionId).Should().AllBeEquivalentTo(ClientOperations.SubmissionId);
@@ -733,6 +742,7 @@ public sealed class ResponsePayloadTests {
 		response.Success.Should().BeTrue();
 		response.Submission!.Schemas.Should().BeEmpty();
 		response.Submission.Fields.Should().BeEmpty();
+		response.Submission.Slug.Should().Be("VyL4szTwYoSvXq", "the GET result carries the slug the one-off result omits");
 	}
 
 	[Theory]

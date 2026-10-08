@@ -47,11 +47,31 @@ internal static class ClientOperations {
 		nameof(IDocuSealClient.ListTemplatesAsync)
 	];
 
+	/// <summary>
+	/// Operations whose only public overload takes a value-type id, so no null
+	/// argument can reach them. Every other operation takes a request or a file.
+	/// </summary>
+	public static readonly string[] IdOnly = [
+		nameof(IDocuSealClient.ArchiveSubmissionAsync),
+		nameof(IDocuSealClient.ArchiveTemplateAsync),
+		nameof(IDocuSealClient.GetSubmissionAsync),
+		nameof(IDocuSealClient.GetSubmitterAsync),
+		nameof(IDocuSealClient.GetTemplateAsync)
+	];
+
 	public const string CreateTemplateFromFile = nameof(IDocuSealClient.CreateTemplateAsync) + "(FileInfo)";
 
 	public static TheoryData<string> All => [
 		.. WithPayload,
 		.. Lists
+	];
+
+	public static TheoryData<string> AllIdOnly => [
+		.. IdOnly
+	];
+
+	public static TheoryData<string> AllWithRequest => [
+		.. WithPayload.Concat(Lists).Except(IdOnly)
 	];
 
 	public static TheoryData<string> AllWithPayload => [
@@ -174,6 +194,49 @@ internal static class ClientOperations {
 				Id = TemplateId
 			}, cancellationToken), r => r.Template),
 			_ => throw new ArgumentOutOfRangeException(nameof(operation), operation, "Unknown client operation.")
+		};
+
+	/// <summary>
+	/// Calls one of the <see cref="AllWithRequest" /> operations with a null request,
+	/// or a null file for <see cref="CreateTemplateFromFile" />.
+	/// </summary>
+	public static Task<OperationResult> InvokeWithNullAsync(
+		IDocuSealClient docuSeal,
+		string operation) => operation switch {
+			nameof(IDocuSealClient.CloneTemplateAsync) => ShapeAsync(docuSeal.CloneTemplateAsync(null!), r => r.Template),
+			nameof(IDocuSealClient.CreateSubmissionAsync) => ShapeAsync(docuSeal.CreateSubmissionAsync(null!), r => r.SubmissionId),
+			nameof(IDocuSealClient.CreateSubmissionFromDocxAsync) => ShapeAsync(docuSeal.CreateSubmissionFromDocxAsync(null!), r => r.Submission),
+			nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync) => ShapeAsync(docuSeal.CreateSubmissionFromEmailsAsync(null!), r => r.Submitters.Count > 0 ? r.Submitters : null),
+			nameof(IDocuSealClient.CreateSubmissionFromHtmlAsync) => ShapeAsync(docuSeal.CreateSubmissionFromHtmlAsync(null!), r => r.Submission),
+			nameof(IDocuSealClient.CreateSubmissionFromPdfAsync) => ShapeAsync(docuSeal.CreateSubmissionFromPdfAsync(null!), r => r.Submission),
+			nameof(IDocuSealClient.CreateTemplateAsync) => ShapeAsync(docuSeal.CreateTemplateAsync((CreateTemplate.Request)null!), r => r.Template),
+			CreateTemplateFromFile => ShapeAsync(docuSeal.CreateTemplateAsync((FileInfo)null!), r => r.Template),
+			nameof(IDocuSealClient.CreateTemplateFromHtmlAsync) => ShapeAsync(docuSeal.CreateTemplateFromHtmlAsync(null!), r => r.Template),
+			nameof(IDocuSealClient.GetSubmissionDocumentsAsync) => ShapeAsync(docuSeal.GetSubmissionDocumentsAsync((GetSubmissionDocuments.Request)null!), r => r.Id),
+			nameof(IDocuSealClient.ListSubmissionsAsync) => ShapeAsync(docuSeal.ListSubmissionsAsync(null!), r => new ListPayload(r.Pagination, [.. r.Submissions])),
+			nameof(IDocuSealClient.ListSubmittersAsync) => ShapeAsync(docuSeal.ListSubmittersAsync(null!), r => new ListPayload(r.Pagination, [.. r.Submitters])),
+			nameof(IDocuSealClient.ListTemplatesAsync) => ShapeAsync(docuSeal.ListTemplatesAsync(null!), r => new ListPayload(r.Pagination, [.. r.Templates])),
+			nameof(IDocuSealClient.MergeTemplatesAsync) => ShapeAsync(docuSeal.MergeTemplatesAsync(null!), r => r.Template),
+			nameof(IDocuSealClient.UpdateSubmissionAsync) => ShapeAsync(docuSeal.UpdateSubmissionAsync(null!), r => r.Submission),
+			nameof(IDocuSealClient.UpdateSubmitterAsync) => ShapeAsync(docuSeal.UpdateSubmitterAsync(null!), r => r.Submitter),
+			nameof(IDocuSealClient.UpdateTemplateAsync) => ShapeAsync(docuSeal.UpdateTemplateAsync(null!), r => r.Id),
+			nameof(IDocuSealClient.UpdateTemplateDocumentsAsync) => ShapeAsync(docuSeal.UpdateTemplateDocumentsAsync(null!), r => r.Template),
+			_ => throw new ArgumentOutOfRangeException(nameof(operation), operation, "Not an operation that takes a request.")
+		};
+
+	/// <summary>
+	/// Calls one of the <see cref="AllIdOnly" /> operations with the default (empty) id,
+	/// the nearest those overloads come to a null argument.
+	/// </summary>
+	public static Task<OperationResult> InvokeWithDefaultIdAsync(
+		IDocuSealClient docuSeal,
+		string operation) => operation switch {
+			nameof(IDocuSealClient.ArchiveSubmissionAsync) => ShapeAsync(docuSeal.ArchiveSubmissionAsync(default), r => r.Id),
+			nameof(IDocuSealClient.ArchiveTemplateAsync) => ShapeAsync(docuSeal.ArchiveTemplateAsync(default), r => r.Id),
+			nameof(IDocuSealClient.GetSubmissionAsync) => ShapeAsync(docuSeal.GetSubmissionAsync(default), r => r.Submission),
+			nameof(IDocuSealClient.GetSubmitterAsync) => ShapeAsync(docuSeal.GetSubmitterAsync(default), r => r.Submitter),
+			nameof(IDocuSealClient.GetTemplateAsync) => ShapeAsync(docuSeal.GetTemplateAsync(default), r => r.Template),
+			_ => throw new ArgumentOutOfRangeException(nameof(operation), operation, "Not an id-only operation.")
 		};
 
 	private static async Task<OperationResult> ShapeAsync<TResponse>(

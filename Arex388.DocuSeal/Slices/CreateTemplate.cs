@@ -122,9 +122,9 @@ public static class CreateTemplate {
 		public bool? IsRequired { get; init; }
 
 		/// <summary>
-		/// Name of the field.
+		/// Name of the field. Optional; omitted from the request body when unset.
 		/// </summary>
-		public required string Name { get; init; }
+		public string? Name { get; init; }
 
 		/// <summary>
 		/// The option values for a <see cref="FieldType.Select" /> field.
@@ -240,7 +240,6 @@ file sealed class RequestDocumentFieldValidator :
 		IValidator<RequestFieldPreferences> requestFieldPreferencesValidator,
 		IValidator<RequestFieldValidation> requestFieldValidationValidator) {
 		RuleFor(r => r.Areas!).ForEach(r => r.SetValidator(requestDocumentFieldAreaValidator)).When(r => r.Areas is not null);
-		RuleFor(r => r.Name).NotEmpty();
 		RuleFor(r => r.Preferences).SetValidator(requestFieldPreferencesValidator!);
 		RuleFor(r => r.Type).Must(t => t != FieldType.Unknown).WithMessage("'{PropertyName}' must not be empty.");
 		RuleFor(r => r.Validation).SetValidator(requestFieldValidationValidator!);

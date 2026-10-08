@@ -463,15 +463,23 @@ public sealed class SubmissionRequestTests {
 	}
 
 	[Fact]
-	public Task CreateSubmission_EmptyMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
-		Email = "john.doe@example.com"
-	}, new CreateSubmission.RequestMessage())), "'Body' or 'Subject' must be set.");
+	public async Task CreateSubmission_EmptyMessage_PassesValidation_AndSendsEmptyObject() {
+		var request = await CaptureCreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
+			Email = "john.doe@example.com"
+		}, new CreateSubmission.RequestMessage()));
+
+		ShouldBeJson(request.Body, """{"message":{},"submitters":[{"email":"john.doe@example.com"}],"template_id":1001}""");
+	}
 
 	[Fact]
-	public Task CreateSubmission_EmptySubmitterMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
-		Email = "john.doe@example.com",
-		Message = new CreateSubmission.RequestMessage()
-	})), "'Body' or 'Subject' must be set.");
+	public async Task CreateSubmission_EmptySubmitterMessage_PassesValidation_AndSendsEmptyObject() {
+		var request = await CaptureCreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
+			Email = "john.doe@example.com",
+			Message = new CreateSubmission.RequestMessage()
+		}));
+
+		ShouldBeJson(request.Body, """{"submitters":[{"email":"john.doe@example.com","message":{}}],"template_id":1001}""");
+	}
 
 	[Fact]
 	public Task CreateSubmission_NegativeOrderGroup_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionAsync(CreateSubmissionRequest(new CreateSubmission.RequestSubmitter {
@@ -617,8 +625,11 @@ public sealed class SubmissionRequestTests {
 	}
 
 	[Fact]
-	public Task UpdateSubmitter_EmptyMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.UpdateSubmitterAsync(UpdateSubmitterRequest(message: new UpdateSubmitter.RequestMessage())),
-		"'Body' or 'Subject' must be set.");
+	public async Task UpdateSubmitter_EmptyMessage_PassesValidation_AndSendsEmptyObject() {
+		var request = await CaptureAsync(c => c.UpdateSubmitterAsync(UpdateSubmitterRequest(message: new UpdateSubmitter.RequestMessage())));
+
+		ShouldBeJson(request.Body, """{"message":{}}""");
+	}
 
 	[Fact]
 	public Task UpdateSubmitter_UnknownFieldPreferenceEnum_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.UpdateSubmitterAsync(UpdateSubmitterRequest(new UpdateSubmitter.RequestField {
@@ -860,7 +871,11 @@ public sealed class SubmissionRequestTests {
 	public Task CreateSubmissionFromEmails_EmailWithAComma_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(null, "a@x.com,b@x.com")), "'Emails' must not contain a comma within an address.");
 
 	[Fact]
-	public Task CreateSubmissionFromEmails_EmptyMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(new CreateSubmissionFromEmails.RequestMessage())), "'Body' or 'Subject' must be set.");
+	public async Task CreateSubmissionFromEmails_EmptyMessage_PassesValidation_AndSendsEmptyObject() {
+		var request = await CaptureAsync(c => c.CreateSubmissionFromEmailsAsync(FromEmailsRequest(new CreateSubmissionFromEmails.RequestMessage())), "[]");
+
+		ShouldBeJson(request.Body, """{"template_id":1,"emails":"a@x.com,b@x.com","message":{}}""");
+	}
 
 	//	============================================================================
 	//	CreateSubmissionFromPdf, CreateSubmissionFromDocx, and CreateSubmissionFromHtml
@@ -1438,14 +1453,39 @@ public sealed class SubmissionRequestTests {
 		ShouldBeJson(JsonNode.Parse(request.Body!)!["submitters"]!.ToJsonString(), """[{"name":"John Doe","role":"First Party"}]""");
 	}
 
-	[Fact]
-	public Task CreateSubmissionFromDocx_EmptyMessage_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
-		Documents = FromDocxRequest().Documents,
-		Message = new CreateSubmission.RequestMessage(),
-		Submitters = [
-			OneoffSubmitter()
-		]
-	}), "'Body' or 'Subject' must be set.");
+	[Theory]
+	[InlineData(nameof(IDocuSealClient.CreateSubmissionFromDocxAsync))]
+	[InlineData(nameof(IDocuSealClient.CreateSubmissionFromHtmlAsync))]
+	[InlineData(nameof(IDocuSealClient.CreateSubmissionFromPdfAsync))]
+	public async Task CreateSubmissionOneoff_EmptyMessage_PassesValidation_AndSendsEmptyObject(
+		string operation) {
+		var request = await CaptureAsync(c => operation switch {
+			nameof(IDocuSealClient.CreateSubmissionFromDocxAsync) => c.CreateSubmissionFromDocxAsync(new CreateSubmissionFromDocx.Request {
+				Documents = FromDocxRequest().Documents,
+				Message = new CreateSubmission.RequestMessage(),
+				Submitters = [
+					OneoffSubmitter()
+				]
+			}),
+			nameof(IDocuSealClient.CreateSubmissionFromHtmlAsync) => c.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {
+				Documents = FromHtmlRequest().Documents,
+				Message = new CreateSubmission.RequestMessage(),
+				Submitters = [
+					OneoffSubmitter()
+				]
+			}),
+			nameof(IDocuSealClient.CreateSubmissionFromPdfAsync) => c.CreateSubmissionFromPdfAsync(new CreateSubmissionFromPdf.Request {
+				Documents = FromPdfRequest().Documents,
+				Message = new CreateSubmission.RequestMessage(),
+				Submitters = [
+					OneoffSubmitter()
+				]
+			}),
+			_ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null)
+		});
+
+		ShouldBeJson(JsonNode.Parse(request.Body!)!["message"]!.ToJsonString(), "{}");
+	}
 
 	[Fact]
 	public Task CreateSubmissionFromHtml_UnknownOrder_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.CreateSubmissionFromHtmlAsync(new CreateSubmissionFromHtml.Request {

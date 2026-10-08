@@ -25,7 +25,7 @@ public static class CreateSubmissionFromEmails {
 		internal string Endpoint { get; } = "submissions/emails";
 
 		/// <summary>
-		/// The message for the submissions.
+		/// The message for the submissions. Unset is omitted from the request body; a message with neither member set is sent as <c>"message": {}</c>; the spec requires neither member.
 		/// </summary>
 		public RequestMessage? Message { get; init; }
 
@@ -43,7 +43,7 @@ public static class CreateSubmissionFromEmails {
 	}
 
 	/// <summary>
-	/// Create submissions from emails request message. At least one of <see cref="Body" /> or <see cref="Subject" /> must be set.
+	/// Create submissions from emails request message. Both members are optional; an unset member is omitted, so a message with neither set is sent as <c>{}</c>.
 	/// </summary>
 	public sealed class RequestMessage {
 		/// <summary>
@@ -75,18 +75,9 @@ public static class CreateSubmissionFromEmails {
 
 file sealed class RequestValidator :
 	AbstractValidator<Request> {
-	public RequestValidator(
-		IValidator<RequestMessage> requestMessageValidator) {
+	public RequestValidator() {
 		RuleFor(r => r.Emails).NotEmpty();
 		RuleForEach(r => r.Emails).NotEmpty().EmailAddress().Must(e => e is null || e.IndexOf(',') < 0).WithMessage("'Emails' must not contain a comma within an address.");
-		RuleFor(r => r.Message).SetValidator(requestMessageValidator!);
 		RuleFor(r => r.TemplateId).NotEmpty();
-	}
-}
-
-file sealed class RequestMessageValidator :
-	AbstractValidator<RequestMessage> {
-	public RequestMessageValidator() {
-		RuleFor(r => r.Subject).NotEmpty().When(r => !r.Body.HasValue()).WithMessage("'Body' or 'Subject' must be set.");
 	}
 }

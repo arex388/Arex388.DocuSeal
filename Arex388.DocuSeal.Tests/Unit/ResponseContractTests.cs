@@ -1,5 +1,7 @@
 using FluentAssertions;
+using FluentValidation;
 using System.Net;
+using System.Reflection;
 
 namespace Arex388.DocuSeal.Tests.Unit;
 
@@ -108,6 +110,104 @@ public sealed class ResponseContractTests {
 		response.Errors.Should().ContainSingle().Which.Should().Be("'Id' must not be empty.");
 		response.Template.Should().BeNull();
 		handler.Requests.Should().BeEmpty();
+	}
+
+	//	============================================================================
+	//	Null arguments and exceptions before the request is sent
+	//	============================================================================
+
+	[Theory]
+	[MemberData(nameof(ClientOperations.AllWithRequest), MemberType = typeof(ClientOperations))]
+	public async Task NullRequest_ReturnsInvalid_WithoutHttpCall(
+		string operation) {
+		var docuSeal = TestClients.CreateWithJson("{}", out var handler);
+
+		var result = await ClientOperations.InvokeWithNullAsync(docuSeal, operation);
+
+		result.Success.Should().BeFalse();
+		result.Errors.Should().ContainSingle().Which.Should().Be(operation == ClientOperations.CreateTemplateFromFile
+			? "'File' must not be null."
+			: "'Request' must not be null.");
+		handler.Requests.Should().BeEmpty("a null request must not reach the API");
+		ShouldHaveNoPayload(result);
+	}
+
+	[Theory]
+	[MemberData(nameof(ClientOperations.AllIdOnly), MemberType = typeof(ClientOperations))]
+	public async Task DefaultId_ReturnsInvalid_WithoutHttpCall(
+		string operation) {
+		var docuSeal = TestClients.CreateWithJson("{}", out var handler);
+
+		var result = await ClientOperations.InvokeWithDefaultIdAsync(docuSeal, operation);
+
+		result.Success.Should().BeFalse();
+		result.Errors.Should().ContainSingle().Which.Should().Be("'Id' must not be empty.");
+		handler.Requests.Should().BeEmpty("an empty id must not reach the API");
+		ShouldHaveNoPayload(result);
+	}
+
+	[Fact]
+	public async Task NullRequest_WithPreCancelledToken_ReturnsCancelled() {
+		var docuSeal = TestClients.CreateWithJson("{}", out var handler);
+
+		using var cts = new CancellationTokenSource();
+
+		await cts.CancelAsync();
+
+		var fromRequest = await docuSeal.CreateTemplateAsync((CreateTemplate.Request)null!, cts.Token);
+		var fromFile = await docuSeal.CreateTemplateAsync((FileInfo)null!, cts.Token);
+
+		fromRequest.Errors.Should().Equal(_cancelled);
+		fromFile.Errors.Should().Equal(_cancelled);
+		handler.Requests.Should().BeEmpty();
+	}
+
+	[Theory]
+	[MemberData(nameof(ClientOperations.All), MemberType = typeof(ClientOperations))]
+	public async Task ThrowingValidator_ReturnsFailed_WithoutHttpCall(
+		string operation) {
+		var handler = new CapturingHandler("{}");
+		var docuSeal = TestClients.Create(handler, TestClients.UseThrowingValidators);
+
+		var result = await ClientOperations.InvokeAsync(docuSeal, operation);
+
+		result.Success.Should().BeFalse();
+		result.Errors.Should().ContainSingle().Which.Should().Be(_failed);
+		handler.Requests.Should().BeEmpty("an exception while preparing the request must not reach the API");
+		ShouldHaveNoPayload(result);
+	}
+
+	/// <summary>
+	/// On .NET Framework a search string over 32,766 characters makes
+	/// <c>Uri.EscapeDataString</c> throw while the endpoint is built. The test
+	/// runtime has no such limit, so no public request can make an endpoint
+	/// getter throw here; the guard every operation goes through is driven
+	/// directly instead, with a send step that throws the way that getter does.
+	/// </summary>
+	[Theory]
+	[InlineData(true)]
+	[InlineData(false)]
+	public async Task Guard_ExceptionWhileBuildingTheRequest_ReturnsFailed(
+		bool throwsSynchronously) {
+		var guard = typeof(IDocuSealClient).Assembly
+			.GetType("Arex388.DocuSeal.DocuSealClient", throwOnError: true)!
+			.GetMethod("GuardAsync", BindingFlags.NonPublic | BindingFlags.Static)!
+			.MakeGenericMethod(typeof(ListSubmissions.Request), typeof(ListSubmissions.Response));
+		Func<ListSubmissions.Request, CancellationToken, Task<ListSubmissions.Response>> send = throwsSynchronously
+			? (_, _) => throw new UriFormatException("Simulated endpoint failure.")
+			: (_, _) => Task.FromException<ListSubmissions.Response>(new UriFormatException("Simulated endpoint failure."));
+
+		var response = await (Task<ListSubmissions.Response>)guard.Invoke(null, [
+			new ListSubmissions.Request {
+				Search = "search"
+			},
+			new InlineValidator<ListSubmissions.Request>(),
+			send,
+			CancellationToken.None
+		])!;
+
+		response.Success.Should().BeFalse();
+		response.Errors.Should().Equal(_failed);
 	}
 
 	private static CreateTemplate.Request CreateTemplateRequest(
