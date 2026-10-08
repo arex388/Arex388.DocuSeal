@@ -1,5 +1,4 @@
 using FluentAssertions;
-using System.Reflection;
 using System.Text.Json;
 
 namespace Arex388.DocuSeal.Tests.Unit;
@@ -10,11 +9,7 @@ public sealed class ConverterTests {
 	/// and only take effect through this registration, so the round-trips run
 	/// against it rather than against hand-built options.
 	/// </summary>
-	private static readonly JsonSerializerOptions _options = (JsonSerializerOptions)typeof(IDocuSealClient).Assembly
-		.GetType("Arex388.DocuSeal.DocuSealClient", throwOnError: true)!
-		.GetFields(BindingFlags.NonPublic | BindingFlags.Static)
-		.Single(f => f.FieldType == typeof(JsonSerializerOptions))
-		.GetValue(null)!;
+	private static readonly JsonSerializerOptions _options = TestClients.JsonOptions;
 
 	private static T Read<T>(
 		string token) => JsonSerializer.Deserialize<T>($"\"{token}\"", _options)!;
@@ -293,8 +288,8 @@ public sealed class ConverterTests {
 		submission.Status.Should().Be(SubmissionStatus.Completed);
 		submission.SubmittersOrder.Should().Be(SubmitterOrder.Random);
 		submission.CompletedAtUtc.Should().Be(new DateTime(2024, 8, 5, 16, 0, 0, DateTimeKind.Utc));
-		submission.CreatedBy.LastName.Should().Be("Author");
-		submission.Template.Id.Should().Be(ClientOperations.TemplateId);
+		submission.CreatedBy!.LastName.Should().Be("Author");
+		submission.Template!.Id.Should().Be(ClientOperations.TemplateId);
 		submission.Submitters.Should().HaveCount(2);
 		submission.Submitters[0].Id.Should().Be(ClientOperations.SubmitterId);
 		submission.Submitters[0].SubmissionId.Should().Be(ClientOperations.SubmissionId);
@@ -326,7 +321,7 @@ public sealed class ConverterTests {
 		response.Submissions[1].Status.Should().Be(SubmissionStatus.Pending);
 		response.Submissions[1].SubmittersOrder.Should().Be(SubmitterOrder.Preserved);
 		response.Submissions[1].Submitters[0].Status.Should().Be(SubmitterStatus.Awaiting);
-		response.Submissions[1].Template.Name.Should().Be("Archived Template");
+		response.Submissions[1].Template!.Name.Should().Be("Archived Template");
 	}
 
 	[Fact]

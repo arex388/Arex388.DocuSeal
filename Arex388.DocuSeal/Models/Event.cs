@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Arex388.DocuSeal;
 
@@ -7,15 +8,20 @@ namespace Arex388.DocuSeal;
 /// </summary>
 public sealed class Event {
 	/// <summary>
+	/// The event's additional details. The shape depends on the event's type.
+	/// </summary>
+	public JsonObject? Data { get; init; }
+
+	/// <summary>
 	/// The event's id.
 	/// </summary>
 	public EventId Id { get; init; }
 
 	/// <summary>
-	/// The event's occurance timestamp.
+	/// The event's occurrence timestamp.
 	/// </summary>
 	[JsonPropertyName("event_timestamp")]
-	public DateTime OccuredAtUtc { get; init; }
+	public DateTime OccurredAtUtc { get; init; }
 
 	/// <summary>
 	/// The event's submitter id.

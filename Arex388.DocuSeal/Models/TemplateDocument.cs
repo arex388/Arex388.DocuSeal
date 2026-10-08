@@ -3,9 +3,9 @@
 namespace Arex388.DocuSeal;
 
 /// <summary>
-/// A document.
+/// A document attached to a template.
 /// </summary>
-public sealed class Document {
+public sealed class TemplateDocument {
 	/// <summary>
 	/// The document's attachment id.
 	/// </summary>

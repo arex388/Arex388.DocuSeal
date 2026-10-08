@@ -1,7 +1,9 @@
 using Arex388.DocuSeal.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Reflection;
 using System.Text;
+using System.Text.Json;
 
 namespace Arex388.DocuSeal.Tests.Unit;
 
@@ -13,6 +15,18 @@ namespace Arex388.DocuSeal.Tests.Unit;
 internal static class TestClients {
 	public const string AuthorizationToken = "unit-test-token";
 	public static readonly Uri BaseAddress = new("https://localhost:9/");
+
+	/// <summary>
+	/// The serializer options the client actually uses, read by reflection from
+	/// <c>DocuSealClient</c>'s static field. The converters are internal and only
+	/// take effect through this registration, so tests that bind or write JSON
+	/// run against it rather than against hand-built options.
+	/// </summary>
+	public static readonly JsonSerializerOptions JsonOptions = (JsonSerializerOptions)typeof(IDocuSealClient).Assembly
+		.GetType("Arex388.DocuSeal.DocuSealClient", throwOnError: true)!
+		.GetFields(BindingFlags.NonPublic | BindingFlags.Static)
+		.Single(f => f.FieldType == typeof(JsonSerializerOptions))
+		.GetValue(null)!;
 
 	public static IDocuSealClient Create(
 		HttpMessageHandler handler) {

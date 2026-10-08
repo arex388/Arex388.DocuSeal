@@ -29,6 +29,11 @@ public sealed class Field {
 	public string? Name { get; init; }
 
 	/// <summary>
+	/// The field's display preferences.
+	/// </summary>
+	public FieldPreferences? Preferences { get; init; }
+
+	/// <summary>
 	/// The field's submitter id.
 	/// </summary>
 	[JsonPropertyName("submitter_uuid")]

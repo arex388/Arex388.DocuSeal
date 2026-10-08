@@ -7,7 +7,7 @@ namespace Arex388.DocuSeal;
 /// </summary>
 public sealed class User {
 	/// <summary>
-	/// The user's email/
+	/// The user's email.
 	/// </summary>
 	public string Email { get; init; } = null!;
 
@@ -15,7 +15,7 @@ public sealed class User {
 	/// The user's first name.
 	/// </summary>
 	[JsonPropertyName("first_name")]
-	public string FirstName { get; init; } = null!;
+	public string? FirstName { get; init; }
 
 	/// <summary>
 	/// The user's id.
@@ -26,5 +26,5 @@ public sealed class User {
 	/// The user's last name.
 	/// </summary>
 	[JsonPropertyName("last_name")]
-	public string LastName { get; init; } = null!;
+	public string? LastName { get; init; }
 }

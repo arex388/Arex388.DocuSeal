@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Arex388.DocuSeal;
 
@@ -16,7 +17,13 @@ public sealed class Submission {
 	/// The submission's audit log URL.
 	/// </summary>
 	[JsonPropertyName("audit_log_url")]
-	public Uri AuditUrl { get; init; } = null!;
+	public Uri? AuditUrl { get; init; }
+
+	/// <summary>
+	/// The submission's combined document URL. The document combines the signed documents and the audit log.
+	/// </summary>
+	[JsonPropertyName("combined_document_url")]
+	public Uri? CombinedDocumentUrl { get; init; }
 
 	/// <summary>
 	/// The submission's completed timestamp.
@@ -34,7 +41,12 @@ public sealed class Submission {
 	/// The submission's creation user.
 	/// </summary>
 	[JsonPropertyName("created_by_user")]
-	public User CreatedBy { get; init; } = null!;
+	public User? CreatedBy { get; init; }
+
+	/// <summary>
+	/// The submission's completed or signed documents.
+	/// </summary>
+	public IList<SubmissionDocument> Documents { get; init; } = [];
 
 	/// <summary>
 	/// The submission's email.
@@ -49,6 +61,12 @@ public sealed class Submission {
 	/// </summary>
 	[JsonPropertyName("submission_events")]
 	public IList<Event> Events { get; init; } = [];
+
+	/// <summary>
+	/// The submission's expiration timestamp.
+	/// </summary>
+	[JsonPropertyName("expire_at")]
+	public DateTime? ExpireAtUtc { get; init; }
 
 	/// <summary>
 	/// The submission's id.
@@ -74,6 +92,16 @@ public sealed class Submission {
 	public DateTime? SentAtUtc { get; init; }
 
 	/// <summary>
+	/// The submission's slug.
+	/// </summary>
+	public string Slug { get; init; } = null!;
+
+	/// <summary>
+	/// The submission's source.
+	/// </summary>
+	public SubmissionSource Source { get; init; }
+
+	/// <summary>
 	/// The submission's status.
 	/// </summary>
 	//[JsonConverter(typeof(SubmissionStatusJsonConverter))]
@@ -93,11 +121,16 @@ public sealed class Submission {
 	/// <summary>
 	/// The submission's template.
 	/// </summary>
-	public Template Template { get; init; } = null!;
+	public TemplateSummary? Template { get; init; }
 
 	/// <summary>
 	/// The submission's updated timestamp.
 	/// </summary>
 	[JsonPropertyName("updated_at")]
 	public DateTime UpdatedAtUtc { get; init; }
+
+	/// <summary>
+	/// The submission's dynamic content variables. The object is free-form.
+	/// </summary>
+	public JsonObject? Variables { get; init; }
 }

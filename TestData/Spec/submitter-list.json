@@ -1,0 +1,56 @@
+{
+  "data": [
+    {
+      "id": 7,
+      "submission_id": 3,
+      "uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0",
+      "email": "submitter@example.com",
+      "slug": "dsEeWrhRD8yDXT",
+      "sent_at": "2023-12-14T15:45:49.011Z",
+      "opened_at": "2023-12-14T15:48:23.011Z",
+      "completed_at": "2023-12-14T15:49:21.701Z",
+      "declined_at": null,
+      "created_at": "2023-12-14T15:48:17.173Z",
+      "updated_at": "2023-12-14T15:50:21.799Z",
+      "name": "John Doe",
+      "phone": "+1234567890",
+      "status": "completed",
+      "external_id": null,
+      "preferences": {},
+      "metadata": {},
+      "template": {
+        "id": 2,
+        "name": "Example Template",
+        "created_at": "2023-12-14T15:50:21.799Z",
+        "updated_at": "2023-12-14T15:50:21.799Z"
+      },
+      "submission_events": [
+        {
+          "id": 12,
+          "submitter_id": 7,
+          "event_type": "view_form",
+          "event_timestamp": "2023-12-14T15:48:17.351Z",
+          "data": {}
+        }
+      ],
+      "values": [
+        {
+          "field": "Full Name",
+          "value": "John Doe"
+        }
+      ],
+      "documents": [
+        {
+          "name": "sample-document",
+          "url": "https://docuseal.com/file/eyJfcmFpbHMiOnsiIiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--f9758362acced0f3c86cdffad02800e/sample-document.pdf"
+        }
+      ],
+      "role": "First Party"
+    }
+  ],
+  "pagination": {
+    "count": 1,
+    "next": 1,
+    "prev": 1
+  }
+}

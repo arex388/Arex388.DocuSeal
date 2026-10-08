@@ -1,0 +1,62 @@
+{
+  "id": 1,
+  "slug": "iRgjDX7WDK6BRo",
+  "name": "Example Template",
+  "preferences": {},
+  "schema": [
+    {
+      "attachment_uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+      "name": "example-document"
+    }
+  ],
+  "fields": [
+    {
+      "uuid": "594bdf04-d941-4ca6-aa73-93e61d625c02",
+      "submitter_uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0",
+      "name": "Full Name",
+      "type": "text",
+      "required": true,
+      "preferences": {},
+      "areas": [
+        {
+          "x": 0.2638888888888889,
+          "y": 0.168958742632613,
+          "w": 0.325,
+          "h": 0.04616895874263263,
+          "attachment_uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+          "page": 0
+        }
+      ]
+    }
+  ],
+  "submitters": [
+    {
+      "name": "First Party",
+      "uuid": "0954d146-db8c-4772-aafe-2effc7c0e0c0"
+    }
+  ],
+  "author_id": 1,
+  "archived_at": null,
+  "created_at": "2023-12-14T15:21:57.375Z",
+  "updated_at": "2023-12-14T15:22:55.094Z",
+  "source": "native",
+  "folder_id": 1,
+  "folder_name": "Default",
+  "external_id": "c248ffba-ef81-48b7-8e17-e3cecda1c1c5",
+  "shared_link": true,
+  "author": {
+    "id": 1,
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com"
+  },
+  "documents": [
+    {
+      "id": 5,
+      "uuid": "d94e615f-76e3-46d5-8f98-36bdacb8664a",
+      "url": "https://docuseal.com/file/hash/sample-document.pdf",
+      "preview_image_url": "https://docuseal.com/file/hash/0.jpg",
+      "filename": "example-document.pdf"
+    }
+  ]
+}

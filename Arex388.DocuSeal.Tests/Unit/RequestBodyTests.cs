@@ -1,5 +1,4 @@
 using FluentAssertions;
-using System.Reflection;
 using System.Text.Json;
 
 namespace Arex388.DocuSeal.Tests.Unit;
@@ -9,11 +8,7 @@ namespace Arex388.DocuSeal.Tests.Unit;
 /// API's own defaults apply (#9).
 /// </summary>
 public sealed class RequestBodyTests {
-	private static readonly JsonSerializerOptions _options = (JsonSerializerOptions)typeof(IDocuSealClient).Assembly
-		.GetType("Arex388.DocuSeal.DocuSealClient", throwOnError: true)!
-		.GetFields(BindingFlags.NonPublic | BindingFlags.Static)
-		.Single(f => f.FieldType == typeof(JsonSerializerOptions))
-		.GetValue(null)!;
+	private static readonly JsonSerializerOptions _options = TestClients.JsonOptions;
 
 	private static async Task<string> CaptureBodyAsync(
 		Func<IDocuSealClient, Task> act,
