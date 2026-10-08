@@ -66,6 +66,9 @@ public static class ListTemplates {
 	/// </summary>
 	public sealed class Response :
 		ResponseBase<Response> {
+		[JsonInclude]
+		internal string? Error { get; init; }
+
 		/// <summary>
 		/// The response's pagination details.
 		/// </summary>

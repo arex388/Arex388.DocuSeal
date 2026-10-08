@@ -38,6 +38,27 @@ public sealed class DependencyInjectionTests {
 	}
 
 	[Fact]
+	public async Task AddDocuSealWithOptions_Twice_SendsOnlyTheSecondToken() {
+		var handler = new CapturingHandler("{}");
+		var services = new ServiceCollection();
+
+		services.AddDocuSeal(new DocuSealClientOptions {
+			AuthorizationToken = "first-token"
+		}).AddDocuSeal(new DocuSealClientOptions {
+			AuthorizationToken = "second-token"
+		}).AddHttpClient(nameof(IDocuSealClient), hc => hc.BaseAddress = TestClients.BaseAddress)
+				.ConfigurePrimaryHttpMessageHandler(() => handler);
+
+		var docuSeal = services.BuildServiceProvider().GetRequiredService<IDocuSealClient>();
+
+		await docuSeal.ListTemplatesAsync();
+
+		//	CapturingHandler reads the header with Single(), so a duplicated
+		//	X-Auth-Token throws inside the handler and no request is captured.
+		handler.Requests.Should().ContainSingle().Which.AuthorizationToken.Should().Be("second-token");
+	}
+
+	[Fact]
 	public void RequestTypes_AreDiscovered() => RequestTypes.Should().HaveCount(15);
 
 	[Theory]

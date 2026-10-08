@@ -14,6 +14,7 @@ internal sealed class DocuSealClient(
 		Converters = {
 			new EventTypeJsonConverter(),
 			new FieldTypeJsonConverter(),
+			new SubmissionJsonConverter(),
 			new SubmitterOrderJsonConverter(),
 			new SubmitterStatusJsonConverter()
 		},
@@ -61,21 +62,7 @@ internal sealed class DocuSealClient(
 			return ArchiveSubmission.Response.Invalid(validationResult);
 		}
 
-		try {
-			var submission = await _httpClient.DeleteFromJsonAsync<Submission>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (submission is null) {
-				return ArchiveSubmission.Response.Failed;
-			}
-
-			return new ArchiveSubmission.Response {
-				Errors = submission.Error.HasValue()
-					? [submission.Error]
-					: []
-			};
-		} catch {
-			return ArchiveSubmission.Response.Failed;
-		}
+		return await SendAsync<Submission, ArchiveSubmission.Response>(HttpMethod.Delete, request.Endpoint, null, s => s.Error, _ => new ArchiveSubmission.Response(), cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task<ArchiveTemplate.Response> ArchiveTemplateAsync(
@@ -98,21 +85,7 @@ internal sealed class DocuSealClient(
 			return ArchiveTemplate.Response.Invalid(validationResult);
 		}
 
-		try {
-			var template = await _httpClient.DeleteFromJsonAsync<Template>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (template is null) {
-				return ArchiveTemplate.Response.Failed;
-			}
-
-			return new ArchiveTemplate.Response {
-				Errors = template.Error.HasValue()
-					? [template.Error]
-					: []
-			};
-		} catch {
-			return ArchiveTemplate.Response.Failed;
-		}
+		return await SendAsync<Template, ArchiveTemplate.Response>(HttpMethod.Delete, request.Endpoint, null, t => t.Error, _ => new ArchiveTemplate.Response(), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<CloneTemplate.Response> CloneTemplateAsync(
@@ -129,25 +102,9 @@ internal sealed class DocuSealClient(
 			return CloneTemplate.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.PostAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (template is null) {
-				return CloneTemplate.Response.Failed;
-			}
-
-			return new CloneTemplate.Response {
-				Errors = template.Error.HasValue()
-					? [template.Error]
-					: [],
-				Template = template.Error.HasValue()
-					? null
-					: template
-			};
-		} catch {
-			return CloneTemplate.Response.Failed;
-		}
+		return await SendAsync<Template, CloneTemplate.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new CloneTemplate.Response {
+			Template = t
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<CreateSubmission.Response> CreateSubmissionAsync(
@@ -164,34 +121,9 @@ internal sealed class DocuSealClient(
 			return CreateSubmission.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.PostAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-			var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-			Submission? submission;
-
-			try {
-				var submissions = JsonSerializer.Deserialize<IList<Submission>>(responseContent, _jsonSerializerOptions);
-
-				submission = submissions![0];
-			} catch {
-				submission = JsonSerializer.Deserialize<Submission>(responseContent, _jsonSerializerOptions);
-			}
-
-			if (submission is null) {
-				return CreateSubmission.Response.Failed;
-			}
-
-			return new CreateSubmission.Response {
-				Errors = submission.Error.HasValue()
-					? [submission.Error]
-					: [],
-				Submission = submission.Error.HasValue()
-					? null
-					: submission
-			};
-		} catch {
-			return CreateSubmission.Response.Failed;
-		}
+		return await SendAsync<Submission, CreateSubmission.Response>(HttpMethod.Post, request.Endpoint, request, DeserializeCreatedSubmission, s => s.Error, s => new CreateSubmission.Response {
+			Submission = s
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	//public async Task<CreateSubmissionSimple.Response> CreateSubmissionSimpleAsync(
@@ -273,25 +205,9 @@ internal sealed class DocuSealClient(
 			return CreateTemplate.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.PostAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (template is null) {
-				return CreateTemplate.Response.Failed;
-			}
-
-			return new CreateTemplate.Response {
-				Errors = template.Error.HasValue()
-					? [template.Error]
-					: [],
-				Template = template.Error.HasValue()
-					? null
-					: template
-			};
-		} catch {
-			return CreateTemplate.Response.Failed;
-		}
+		return await SendAsync<Template, CreateTemplate.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new CreateTemplate.Response {
+			Template = t
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task<GetSubmission.Response> GetSubmissionAsync(
@@ -314,25 +230,9 @@ internal sealed class DocuSealClient(
 			return GetSubmission.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.GetAsync(request.Endpoint, cancellationToken).ConfigureAwait(false);
-			var submission = await response.Content.ReadFromJsonAsync<Submission>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (submission is null) {
-				return GetSubmission.Response.Failed;
-			}
-
-			return new GetSubmission.Response {
-				Errors = submission.Error.HasValue()
-					? [submission.Error]
-					: [],
-				Submission = submission.Error.HasValue()
-					? null
-					: submission
-			};
-		} catch {
-			return GetSubmission.Response.Failed;
-		}
+		return await SendAsync<Submission, GetSubmission.Response>(HttpMethod.Get, request.Endpoint, null, s => s.Error, s => new GetSubmission.Response {
+			Submission = s
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task<GetSubmitter.Response> GetSubmitterAsync(
@@ -355,25 +255,9 @@ internal sealed class DocuSealClient(
 			return GetSubmitter.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.GetAsync(request.Endpoint, cancellationToken).ConfigureAwait(false);
-			var submitter = await response.Content.ReadFromJsonAsync<Submitter>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (submitter is null) {
-				return GetSubmitter.Response.Failed;
-			}
-
-			return new GetSubmitter.Response {
-				Errors = submitter.Error.HasValue()
-					? [submitter.Error]
-					: [],
-				Submitter = submitter.Error.HasValue()
-					? null
-					: submitter
-			};
-		} catch {
-			return GetSubmitter.Response.Failed;
-		}
+		return await SendAsync<Submitter, GetSubmitter.Response>(HttpMethod.Get, request.Endpoint, null, s => s.Error, s => new GetSubmitter.Response {
+			Submitter = s
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task<GetTemplate.Response> GetTemplateAsync(
@@ -396,24 +280,9 @@ internal sealed class DocuSealClient(
 			return GetTemplate.Response.Invalid(validationResult);
 		}
 
-		try {
-			var template = await _httpClient.GetFromJsonAsync<Template>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (template is null) {
-				return GetTemplate.Response.Failed;
-			}
-
-			return new GetTemplate.Response {
-				Errors = template.Error.HasValue()
-					? [template.Error]
-					: [],
-				Template = template.Error.HasValue()
-					? null
-					: template
-			};
-		} catch {
-			return GetTemplate.Response.Failed;
-		}
+		return await SendAsync<Template, GetTemplate.Response>(HttpMethod.Get, request.Endpoint, null, t => t.Error, t => new GetTemplate.Response {
+			Template = t
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task<ListSubmissions.Response> ListSubmissionsAsync(
@@ -433,14 +302,7 @@ internal sealed class DocuSealClient(
 			return ListSubmissions.Response.Invalid(validationResult);
 		}
 
-		try {
-			var submissions = await _httpClient.GetFromJsonAsync<ListSubmissions.Response>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			return submissions
-				   ?? ListSubmissions.Response.Failed;
-		} catch {
-			return ListSubmissions.Response.Failed;
-		}
+		return await SendAsync<ListSubmissions.Response, ListSubmissions.Response>(HttpMethod.Get, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task<ListSubmitters.Response> ListSubmittersAsync(
@@ -460,14 +322,7 @@ internal sealed class DocuSealClient(
 			return ListSubmitters.Response.Invalid(validationResult);
 		}
 
-		try {
-			var submitters = await _httpClient.GetFromJsonAsync<ListSubmitters.Response>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			return submitters
-				   ?? ListSubmitters.Response.Failed;
-		} catch {
-			return ListSubmitters.Response.Failed;
-		}
+		return await SendAsync<ListSubmitters.Response, ListSubmitters.Response>(HttpMethod.Get, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
 	}
 
 	public Task<ListTemplates.Response> ListTemplatesAsync(
@@ -487,14 +342,7 @@ internal sealed class DocuSealClient(
 			return ListTemplates.Response.Invalid(validationResult);
 		}
 
-		try {
-			var templates = await _httpClient.GetFromJsonAsync<ListTemplates.Response>(request.Endpoint, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			return templates
-				   ?? ListTemplates.Response.Failed;
-		} catch {
-			return ListTemplates.Response.Failed;
-		}
+		return await SendAsync<ListTemplates.Response, ListTemplates.Response>(HttpMethod.Get, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<MergeTemplates.Response> MergeTemplatesAsync(
@@ -511,25 +359,9 @@ internal sealed class DocuSealClient(
 			return MergeTemplates.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.PostAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (template is null) {
-				return MergeTemplates.Response.Failed;
-			}
-
-			return new MergeTemplates.Response {
-				Errors = template.Error.HasValue()
-					? [template.Error]
-					: [],
-				Template = template.Error.HasValue()
-					? null
-					: template
-			};
-		} catch {
-			return MergeTemplates.Response.Failed;
-		}
+		return await SendAsync<Template, MergeTemplates.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new MergeTemplates.Response {
+			Template = t
+		}, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<UpdateSubmitter.Response> UpdateSubmitterAsync(
@@ -546,22 +378,7 @@ internal sealed class DocuSealClient(
 			return UpdateSubmitter.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.PutAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-			var submitter = await response.Content.ReadFromJsonAsync<Submitter>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (submitter is null) {
-				return UpdateSubmitter.Response.Failed;
-			}
-
-			return new UpdateSubmitter.Response {
-				Errors = submitter.Error.HasValue()
-					? [submitter.Error]
-					: []
-			};
-		} catch {
-			return UpdateSubmitter.Response.Failed;
-		}
+		return await SendAsync<Submitter, UpdateSubmitter.Response>(HttpMethod.Put, request.Endpoint, request, s => s.Error, _ => new UpdateSubmitter.Response(), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<UpdateTemplate.Response> UpdateTemplateAsync(
@@ -578,22 +395,7 @@ internal sealed class DocuSealClient(
 			return UpdateTemplate.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.PutAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-
-			if (template is null) {
-				return UpdateTemplate.Response.Failed;
-			}
-
-			return new UpdateTemplate.Response {
-				Errors = template.Error.HasValue()
-					? [template.Error]
-					: []
-			};
-		} catch {
-			return UpdateTemplate.Response.Failed;
-		}
+		return await SendAsync<Template, UpdateTemplate.Response>(HttpMethod.Put, request.Endpoint, request, t => t.Error, _ => new UpdateTemplate.Response(), cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<UpdateTemplateDocuments.Response> UpdateTemplateDocumentsAsync(
@@ -610,21 +412,85 @@ internal sealed class DocuSealClient(
 			return UpdateTemplateDocuments.Response.Invalid(validationResult);
 		}
 
-		try {
-			var response = await _httpClient.PutAsJsonAsync(request.Endpoint, request, _jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-			var template = await response.Content.ReadFromJsonAsync<Template>(_jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+		return await SendAsync<Template, UpdateTemplateDocuments.Response>(HttpMethod.Put, request.Endpoint, request, t => t.Error, _ => new UpdateTemplateDocuments.Response(), cancellationToken).ConfigureAwait(false);
+	}
 
-			if (template is null) {
-				return UpdateTemplateDocuments.Response.Failed;
+	//	============================================================================
+	//	Utilities
+	//	============================================================================
+
+	/// <summary>
+	/// The create-submission endpoint returns an array of submitter-shaped objects
+	/// (or, on some paths, a single one); the first carries the submission.
+	/// </summary>
+	private static Submission? DeserializeCreatedSubmission(
+		string content) {
+		try {
+			var submissions = JsonSerializer.Deserialize<IList<Submission>>(content, _jsonSerializerOptions);
+
+			return submissions![0];
+		} catch {
+			return JsonSerializer.Deserialize<Submission>(content, _jsonSerializerOptions);
+		}
+	}
+
+	private Task<TResponse> SendAsync<TPayload, TResponse>(
+		HttpMethod method,
+		string endpoint,
+		object? body,
+		Func<TPayload, string?> error,
+		Func<TPayload, TResponse> success,
+		CancellationToken cancellationToken)
+		where TPayload : class
+		where TResponse : ResponseBase<TResponse>, new() => SendAsync(method, endpoint, body, static content => JsonSerializer.Deserialize<TPayload>(content, _jsonSerializerOptions), error, success, cancellationToken);
+
+	/// <summary>
+	/// Sends one request and maps the body onto the no-throw response contract.
+	/// The body is read regardless of status: an <c>error</c> member becomes
+	/// <c>Errors = [error]</c> whether it arrives with a 2xx or a 4xx; a 2xx
+	/// payload goes through <paramref name="success"/>; anything else (a non-2xx
+	/// without an error member, an empty or malformed body, a transport
+	/// exception) is <c>Failed</c>.
+	/// </summary>
+	private async Task<TResponse> SendAsync<TPayload, TResponse>(
+		HttpMethod method,
+		string endpoint,
+		object? body,
+		Func<string, TPayload?> deserialize,
+		Func<TPayload, string?> error,
+		Func<TPayload, TResponse> success,
+		CancellationToken cancellationToken)
+		where TPayload : class
+		where TResponse : ResponseBase<TResponse>, new() {
+		try {
+			using var request = new HttpRequestMessage(method, endpoint);
+
+			if (body is not null) {
+				request.Content = JsonContent.Create(body, body.GetType(), options: _jsonSerializerOptions);
 			}
 
-			return new UpdateTemplateDocuments.Response {
-				Errors = template.Error.HasValue()
-					? [template.Error]
-					: []
-			};
+			using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+			var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+			var payload = deserialize(content);
+
+			if (payload is null) {
+				return ResponseBase<TResponse>.Failed;
+			}
+
+			var message = error(payload);
+
+			if (message.HasValue()) {
+				return new TResponse {
+					Errors = [message]
+				};
+			}
+
+			return response.IsSuccessStatusCode
+				? success(payload)
+				: ResponseBase<TResponse>.Failed;
 		} catch {
-			return UpdateTemplateDocuments.Response.Failed;
+			return ResponseBase<TResponse>.Failed;
 		}
 	}
 }

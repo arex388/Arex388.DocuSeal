@@ -22,12 +22,15 @@ public abstract class ResponseBase<TResponse>
 	//	Responses
 	//	============================================================================
 
-	internal static readonly TResponse Cancelled = new() {
+	//	Cancelled and Failed return a new instance per access: Errors is a mutable
+	//	list, so a shared instance would let one caller's edit leak into every
+	//	later response of that kind.
+	internal static TResponse Cancelled => new() {
 		Errors = [
 			"The request was cancelled."
 		]
 	};
-	internal static readonly TResponse Failed = new() {
+	internal static TResponse Failed => new() {
 		Errors = [
 			"The request has failed."
 		]

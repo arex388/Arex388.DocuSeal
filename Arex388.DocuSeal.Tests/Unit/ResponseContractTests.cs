@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Net;
 
 namespace Arex388.DocuSeal.Tests.Unit;
 
@@ -10,6 +11,52 @@ namespace Arex388.DocuSeal.Tests.Unit;
 public sealed class ResponseContractTests {
 	private const string _cancelled = "The request was cancelled.";
 	private const string _failed = "The request has failed.";
+
+	private static readonly string[] _allOperations = [
+		.. ClientOperations.WithPayload,
+		.. ClientOperations.WithoutPayload,
+		.. ClientOperations.Lists
+	];
+
+	/// <summary>
+	/// An error body with a 4xx status for every operation, plus the lists with a
+	/// 200 status (the lists had no error member before, so an error body read as
+	/// an empty success).
+	/// </summary>
+	public static TheoryData<string, HttpStatusCode> ErrorBodyRows {
+		get {
+			var rows = new TheoryData<string, HttpStatusCode>();
+
+			foreach (var operation in _allOperations) {
+				rows.Add(operation, HttpStatusCode.NotFound);
+				rows.Add(operation, HttpStatusCode.UnprocessableEntity);
+			}
+
+			foreach (var operation in ClientOperations.Lists) {
+				rows.Add(operation, HttpStatusCode.OK);
+			}
+
+			return rows;
+		}
+	}
+
+	/// <summary>
+	/// A non-2xx status whose body has no usable error member: empty, not JSON,
+	/// or a JSON object without <c>error</c>.
+	/// </summary>
+	public static TheoryData<string, HttpStatusCode, string> UnusableErrorBodyRows {
+		get {
+			var rows = new TheoryData<string, HttpStatusCode, string>();
+
+			foreach (var operation in _allOperations) {
+				rows.Add(operation, HttpStatusCode.NotFound, "");
+				rows.Add(operation, HttpStatusCode.BadGateway, "<html><body>Bad Gateway</body></html>");
+				rows.Add(operation, HttpStatusCode.InternalServerError, "{}");
+			}
+
+			return rows;
+		}
+	}
 
 	[Theory]
 	[MemberData(nameof(ClientOperations.All), MemberType = typeof(ClientOperations))]
@@ -76,7 +123,7 @@ public sealed class ResponseContractTests {
 		handler.Calls.Should().Be(1, "the request must reach the transport before it fails");
 		result.Success.Should().BeFalse();
 		result.Errors.Should().ContainSingle().Which.Should().Be(_failed);
-		result.Payload.Should().BeNull();
+		ShouldHaveNoPayload(result);
 	}
 
 	[Theory]
@@ -101,7 +148,7 @@ public sealed class ResponseContractTests {
 
 		result.Success.Should().BeFalse();
 		result.Errors.Should().Equal("Not Found");
-		result.Payload.Should().BeNull("an error body must not surface a half-populated payload");
+		ShouldHaveNoPayload(result, "an error body must not surface a half-populated payload");
 	}
 
 	[Theory]
@@ -117,6 +164,37 @@ public sealed class ResponseContractTests {
 	}
 
 	[Theory]
+	[MemberData(nameof(ErrorBodyRows))]
+	public async Task ErrorBody_WithAnyStatus_ReturnsError_AndNullsPayload(
+		string operation,
+		HttpStatusCode statusCode) {
+		var docuSeal = TestClients.CreateWithJson("""{ "error": "Not Found" }""", out var handler, statusCode);
+
+		var result = await ClientOperations.InvokeAsync(docuSeal, operation);
+
+		handler.Requests.Should().ContainSingle();
+		result.Success.Should().BeFalse();
+		result.Errors.Should().Equal("Not Found");
+		ShouldHaveNoPayload(result, "an error body must not surface a half-populated payload");
+	}
+
+	[Theory]
+	[MemberData(nameof(UnusableErrorBodyRows))]
+	public async Task NonSuccessStatus_WithoutErrorMember_ReturnsFailed(
+		string operation,
+		HttpStatusCode statusCode,
+		string body) {
+		var docuSeal = TestClients.CreateWithJson(body, out var handler, statusCode);
+
+		var result = await ClientOperations.InvokeAsync(docuSeal, operation);
+
+		handler.Requests.Should().ContainSingle();
+		result.Success.Should().BeFalse();
+		result.Errors.Should().ContainSingle().Which.Should().Be(_failed);
+		ShouldHaveNoPayload(result);
+	}
+
+	[Theory]
 	[MemberData(nameof(ClientOperations.All), MemberType = typeof(ClientOperations))]
 	public async Task Fixtures_ReturnSuccess(
 		string operation) {
@@ -126,6 +204,11 @@ public sealed class ResponseContractTests {
 
 		result.Errors.Should().BeEmpty();
 		result.Success.Should().BeTrue();
+
+		if (result.Payload is ListPayload list) {
+			list.Items.Should().NotBeEmpty();
+			list.Pagination.Count.Should().Be(list.Items.Count);
+		}
 	}
 
 	//	============================================================================
@@ -183,6 +266,62 @@ public sealed class ResponseContractTests {
 
 		response.Success.Should().BeFalse();
 		response.Errors.Should().ContainSingle().Which.Should().Be(_failed);
+	}
+
+	//	============================================================================
+	//	Canned responses are not shared
+	//	============================================================================
+
+	[Fact]
+	public async Task Failed_IsAFreshInstance_SoAMutationDoesNotLeak() {
+		var docuSeal = TestClients.Create(new ThrowingHandler());
+
+		var first = await docuSeal.GetTemplateAsync(ClientOperations.TemplateId);
+
+		first.Errors.Should().Equal(_failed);
+		first.Errors.Clear();
+		first.Errors.Add("Mutated by a consumer.");
+
+		var second = await docuSeal.GetTemplateAsync(ClientOperations.TemplateId);
+
+		second.Should().NotBeSameAs(first);
+		second.Errors.Should().Equal(_failed);
+	}
+
+	[Fact]
+	public async Task Cancelled_IsAFreshInstance_SoAMutationDoesNotLeak() {
+		var docuSeal = TestClients.CreateWithJson("{}", out _);
+
+		using var cts = new CancellationTokenSource();
+
+		await cts.CancelAsync();
+
+		var first = await docuSeal.GetTemplateAsync(ClientOperations.TemplateId, cts.Token);
+
+		first.Errors.Should().Equal(_cancelled);
+		first.Errors.Clear();
+
+		var second = await docuSeal.GetTemplateAsync(ClientOperations.TemplateId, cts.Token);
+
+		second.Should().NotBeSameAs(first);
+		second.Errors.Should().Equal(_cancelled);
+	}
+
+	/// <summary>
+	/// A payload operation's payload is null; a list's is empty with the default
+	/// pagination; an operation without a payload has nothing to check.
+	/// </summary>
+	private static void ShouldHaveNoPayload(
+		OperationResult result,
+		string because = "") {
+		if (result.Payload is ListPayload list) {
+			list.Items.Should().BeEmpty(because);
+			list.Pagination.Count.Should().Be(0, because);
+
+			return;
+		}
+
+		result.Payload.Should().BeNull(because);
 	}
 
 	private static OperationResult Shape<TResponse>(

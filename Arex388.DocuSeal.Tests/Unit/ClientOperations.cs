@@ -96,9 +96,9 @@ internal static class ClientOperations {
 			nameof(IDocuSealClient.GetSubmissionAsync) => ShapeAsync(docuSeal.GetSubmissionAsync(SubmissionId, cancellationToken), r => r.Submission),
 			nameof(IDocuSealClient.GetSubmitterAsync) => ShapeAsync(docuSeal.GetSubmitterAsync(SubmitterId, cancellationToken), r => r.Submitter),
 			nameof(IDocuSealClient.GetTemplateAsync) => ShapeAsync(docuSeal.GetTemplateAsync(TemplateId, cancellationToken), r => r.Template),
-			nameof(IDocuSealClient.ListSubmissionsAsync) => ShapeAsync(docuSeal.ListSubmissionsAsync(cancellationToken)),
-			nameof(IDocuSealClient.ListSubmittersAsync) => ShapeAsync(docuSeal.ListSubmittersAsync(cancellationToken)),
-			nameof(IDocuSealClient.ListTemplatesAsync) => ShapeAsync(docuSeal.ListTemplatesAsync(cancellationToken)),
+			nameof(IDocuSealClient.ListSubmissionsAsync) => ShapeAsync(docuSeal.ListSubmissionsAsync(cancellationToken), r => new ListPayload(r.Pagination, [.. r.Submissions])),
+			nameof(IDocuSealClient.ListSubmittersAsync) => ShapeAsync(docuSeal.ListSubmittersAsync(cancellationToken), r => new ListPayload(r.Pagination, [.. r.Submitters])),
+			nameof(IDocuSealClient.ListTemplatesAsync) => ShapeAsync(docuSeal.ListTemplatesAsync(cancellationToken), r => new ListPayload(r.Pagination, [.. r.Templates])),
 			nameof(IDocuSealClient.MergeTemplatesAsync) => ShapeAsync(docuSeal.MergeTemplatesAsync(new MergeTemplates.Request {
 				Ids = [
 					TemplateId,
@@ -142,3 +142,12 @@ internal sealed record OperationResult(
 	bool Success,
 	IList<string> Errors,
 	object? Payload);
+
+/// <summary>
+/// A list operation's payload: its pagination and its data items. A list
+/// response is never null, so "no payload" for a list means no items and the
+/// default pagination.
+/// </summary>
+internal sealed record ListPayload(
+	ResponsePagination Pagination,
+	IList<object> Items);

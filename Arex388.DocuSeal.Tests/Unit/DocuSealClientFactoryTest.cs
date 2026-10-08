@@ -106,4 +106,41 @@ public sealed class DocuSealClientFactoryTest {
 		request.Uri.AbsoluteUri.Should().StartWith($"{TestClients.BaseAddress}templates");
 		request.AuthorizationToken.Should().Be(authorizationToken);
 	}
+
+	[Fact]
+	public async Task CreatedClient_AfterSingleAccountRegistration_SendsOnlyTheFactoryToken() {
+		//	========================================================================
+		//	Arrange
+		//	========================================================================
+
+		const string authorizationToken = "factory-header-token";
+		var handler = new CapturingHandler("{}");
+		var services = new ServiceCollection();
+
+		//	The single-account registration configures the shared named client
+		//	with its own token; the factory must replace it, not append to it.
+		services.AddDocuSeal(new DocuSealClientOptions {
+			AuthorizationToken = "single-account-token"
+		}).AddDocuSeal()
+				.AddHttpClient(nameof(IDocuSealClient), hc => hc.BaseAddress = TestClients.BaseAddress)
+				.ConfigurePrimaryHttpMessageHandler(() => handler);
+
+		var docuSealFactory = services.BuildServiceProvider().GetRequiredService<IDocuSealClientFactory>();
+
+		//	========================================================================
+		//	Act
+		//	========================================================================
+
+		var docuSeal = docuSealFactory.CreateClient(new DocuSealClientOptions {
+			AuthorizationToken = authorizationToken
+		});
+
+		await docuSeal.ListTemplatesAsync();
+
+		//	========================================================================
+		//	Assert
+		//	========================================================================
+
+		handler.Requests.Should().ContainSingle().Which.AuthorizationToken.Should().Be(authorizationToken);
+	}
 }

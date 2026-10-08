@@ -211,6 +211,7 @@ public sealed class ConverterTests {
 
 		var submission = response.Submission!;
 
+		submission.Id.Should().Be(ClientOperations.SubmissionId, "the GET body carries the submission's id as `id`");
 		submission.Status.Should().Be(SubmitterStatus.Completed);
 		submission.SubmittersOrder.Should().Be(SubmitterOrder.Random);
 		submission.CompletedAtUtc.Should().Be(new DateTime(2024, 8, 5, 16, 0, 0, DateTimeKind.Utc));
@@ -242,10 +243,62 @@ public sealed class ConverterTests {
 		response.Success.Should().BeTrue();
 		response.Pagination.Count.Should().Be(2);
 		response.Submissions.Should().HaveCount(2);
+		response.Submissions.Select(s => s.Id).Should().Equal(ClientOperations.SubmissionId, new SubmissionId(2002));
 		response.Submissions[1].Status.Should().Be(SubmitterStatus.Pending);
 		response.Submissions[1].SubmittersOrder.Should().Be(SubmitterOrder.Preserved);
 		response.Submissions[1].Submitters[0].Status.Should().Be(SubmitterStatus.Unknown, "awaiting has no SubmitterStatus member");
 		response.Submissions[1].Template.Name.Should().Be("Archived Template");
+	}
+
+	[Fact]
+	public async Task CreateSubmission_ParsesCreatedFixture_IdIsTheSubmissionId() {
+		var docuSeal = TestClients.CreateWithFixtures();
+
+		var response = await docuSeal.CreateSubmissionAsync(new CreateSubmission.Request {
+			Submitters = [
+				new CreateSubmission.RequestSubmitter {
+					Email = "signer1@example.com"
+				}
+			],
+			TemplateId = ClientOperations.TemplateId
+		});
+
+		response.Success.Should().BeTrue();
+
+		//	The created fixture's first object has `id` 3001 (the submitter) and
+		//	`submission_id` 2001 (the submission); Id must be the latter.
+		response.Submission!.Id.Should().Be(ClientOperations.SubmissionId);
+		response.Submission.Id.Should().NotBe(new SubmissionId(ClientOperations.SubmitterId.Value));
+	}
+
+	[Theory]
+	[InlineData("""{ "id": 2001 }""", 2001)]
+	[InlineData("""{ "id": 3001, "submission_id": 2001 }""", 2001)]
+	[InlineData("""{ "submission_id": 2001, "id": 3001 }""", 2001)]
+	[InlineData("""{ "submission_id": 2001 }""", 2001)]
+	[InlineData("""{ "id": 2001, "submission_id": null }""", 2001)]
+	public void Submission_Id_PrefersSubmissionId_OverId(
+		string json,
+		int expected) => JsonSerializer.Deserialize<Submission>(json, _options)!.Id.Should().Be(new SubmissionId(expected));
+
+	[Theory]
+	[InlineData("[]")]
+	[InlineData("2001")]
+	public void Submission_NonObject_Throws(
+		string json) {
+		var read = () => JsonSerializer.Deserialize<Submission>(json, _options);
+
+		read.Should().Throw<JsonException>();
+	}
+
+	[Fact]
+	public void Submission_Write_EmitsId() {
+		var json = JsonSerializer.Serialize(JsonSerializer.Deserialize<Submission>("""{ "id": 2001 }""", _options), _options);
+
+		using var document = JsonDocument.Parse(json);
+
+		document.RootElement.GetProperty("id").GetInt32().Should().Be(2001);
+		document.RootElement.TryGetProperty("submission_id", out _).Should().BeFalse();
 	}
 
 	[Fact]

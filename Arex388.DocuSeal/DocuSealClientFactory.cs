@@ -39,7 +39,7 @@ internal sealed class DocuSealClientFactory(
 					var httpClientFactory = _services.GetRequiredService<IHttpClientFactory>();
 					var httpClient = httpClientFactory.CreateClient(nameof(IDocuSealClient));
 
-					httpClient.DefaultRequestHeaders.Add("X-Auth-Token", options.AuthorizationToken);
+					httpClient.SetAuthorizationToken(options.AuthorizationToken);
 
 					return new DocuSealClient(_services, httpClient);
 				}, LazyThreadSafetyMode.ExecutionAndPublication);

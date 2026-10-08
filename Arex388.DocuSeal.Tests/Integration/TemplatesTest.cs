@@ -113,7 +113,8 @@ public sealed class TemplatesTest {
 		//	Act
 		//	========================================================================
 
-		var gotten = await _docuSeal.GetTemplateAsync(new TemplateId(0));
+		//	An id no account has, so the request reaches the API and gets a 404.
+		var gotten = await _docuSeal.GetTemplateAsync(new TemplateId(int.MaxValue));
 
 		_console.WriteLineWithHeader(nameof(gotten), gotten);
 
@@ -121,7 +122,10 @@ public sealed class TemplatesTest {
 		//	Assert
 		//	========================================================================
 
-		gotten.Errors.Count.Should().Be(1);
+		//	DocuSeal answers a missing template with 404 and `{"status":404}`, which
+		//	has no `error` member, so the response stays Failed rather than inventing
+		//	a message from the status code.
+		gotten.Errors.Should().Equal("The request has failed.");
 		gotten.Success.Should().BeFalse();
 		gotten.Template.Should().BeNull();
 	}

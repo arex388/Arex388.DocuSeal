@@ -48,7 +48,7 @@ public static class ServiceCollectionExtensions {
 			hc.BaseAddress = HttpClientHelper.BaseAddress;
 
 			if (options is not null) {
-				hc.DefaultRequestHeaders.Add("X-Auth-Token", options.AuthorizationToken);
+				hc.SetAuthorizationToken(options.AuthorizationToken);
 			}
 		});
 }

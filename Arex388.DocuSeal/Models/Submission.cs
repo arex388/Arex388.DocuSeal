@@ -53,7 +53,7 @@ public sealed class Submission {
 	/// <summary>
 	/// The submission's id.
 	/// </summary>
-	[JsonPropertyName("submission_id")]
+	[JsonPropertyName("id")]
 	public SubmissionId Id { get; init; }
 
 	/// <summary>
