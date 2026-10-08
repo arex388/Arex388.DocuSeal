@@ -39,6 +39,7 @@ internal sealed class DocuSealClient(
 	//private readonly IValidator<CreateSubmissionSimple.Request> _createSubmissionSimpleRequestValidator = services.GetRequiredService<IValidator<CreateSubmissionSimple.Request>>();
 	private readonly IValidator<CreateTemplate.Request> _createTemplateRequestValidator = services.GetRequiredService<IValidator<CreateTemplate.Request>>();
 	private readonly IValidator<CreateTemplateFromHtml.Request> _createTemplateFromHtmlRequestValidator = services.GetRequiredService<IValidator<CreateTemplateFromHtml.Request>>();
+	private readonly IValidator<GetSubmissionDocuments.Request> _getSubmissionDocumentsRequestValidator = services.GetRequiredService<IValidator<GetSubmissionDocuments.Request>>();
 	private readonly IValidator<GetSubmission.Request> _getSubmissionRequestValidator = services.GetRequiredService<IValidator<GetSubmission.Request>>();
 	private readonly IValidator<GetSubmitter.Request> _getSubmitterRequestValidator = services.GetRequiredService<IValidator<GetSubmitter.Request>>();
 	private readonly IValidator<GetTemplate.Request> _getTemplateRequestValidator = services.GetRequiredService<IValidator<GetTemplate.Request>>();
@@ -48,6 +49,7 @@ internal sealed class DocuSealClient(
 	private readonly IValidator<ListSubmitters.Request> _listSubmittersRequestValidator = services.GetRequiredService<IValidator<ListSubmitters.Request>>();
 	private readonly IValidator<ListTemplates.Request> _listTemplatesRequestValidator = services.GetRequiredService<IValidator<ListTemplates.Request>>();
 	private readonly IValidator<MergeTemplates.Request> _mergeTemplateRequestValidator = services.GetRequiredService<IValidator<MergeTemplates.Request>>();
+	private readonly IValidator<UpdateSubmission.Request> _updateSubmissionRequestValidator = services.GetRequiredService<IValidator<UpdateSubmission.Request>>();
 	private readonly IValidator<UpdateSubmitter.Request> _updateSubmitterRequestValidator = services.GetRequiredService<IValidator<UpdateSubmitter.Request>>();
 	private readonly IValidator<UpdateTemplate.Request> _updateTemplateRequestValidator = services.GetRequiredService<IValidator<UpdateTemplate.Request>>();
 	private readonly IValidator<UpdateTemplateDocuments.Request> _updateTemplateDocumentsRequestValidator = services.GetRequiredService<IValidator<UpdateTemplateDocuments.Request>>();
@@ -285,6 +287,29 @@ internal sealed class DocuSealClient(
 		}, cancellationToken).ConfigureAwait(false);
 	}
 
+	public Task<GetSubmissionDocuments.Response> GetSubmissionDocumentsAsync(
+		SubmissionId id,
+		CancellationToken cancellationToken = default) => GetSubmissionDocumentsAsync(new GetSubmissionDocuments.Request {
+			Id = id
+		}, cancellationToken);
+
+	public async Task<GetSubmissionDocuments.Response> GetSubmissionDocumentsAsync(
+		GetSubmissionDocuments.Request request,
+		CancellationToken cancellationToken = default) {
+		if (cancellationToken.IsSupportedAndCancelled()) {
+			return GetSubmissionDocuments.Response.Cancelled;
+		}
+
+		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
+		var validationResult = _getSubmissionDocumentsRequestValidator.Validate(request);
+
+		if (!validationResult.IsValid) {
+			return GetSubmissionDocuments.Response.Invalid(validationResult);
+		}
+
+		return await SendAsync<GetSubmissionDocuments.Response, GetSubmissionDocuments.Response>(HttpMethod.Get, request.Endpoint, null, r => r.Error, r => r, cancellationToken).ConfigureAwait(false);
+	}
+
 	public Task<GetSubmitter.Response> GetSubmitterAsync(
 		SubmitterId id,
 		CancellationToken cancellationToken = default) => GetSubmitterAsync(new GetSubmitter.Request {
@@ -411,6 +436,25 @@ internal sealed class DocuSealClient(
 
 		return await SendAsync<Template, MergeTemplates.Response>(HttpMethod.Post, request.Endpoint, request, t => t.Error, t => new MergeTemplates.Response {
 			Template = t
+		}, cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task<UpdateSubmission.Response> UpdateSubmissionAsync(
+		UpdateSubmission.Request request,
+		CancellationToken cancellationToken = default) {
+		if (cancellationToken.IsSupportedAndCancelled()) {
+			return UpdateSubmission.Response.Cancelled;
+		}
+
+		// ReSharper disable once MethodHasAsyncOverloadWithCancellation
+		var validationResult = _updateSubmissionRequestValidator.Validate(request);
+
+		if (!validationResult.IsValid) {
+			return UpdateSubmission.Response.Invalid(validationResult);
+		}
+
+		return await SendAsync<Submission, UpdateSubmission.Response>(HttpMethod.Put, request.Endpoint, request.Body, s => s.Error, s => new UpdateSubmission.Response {
+			Submission = s
 		}, cancellationToken).ConfigureAwait(false);
 	}
 

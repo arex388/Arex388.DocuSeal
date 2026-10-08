@@ -366,4 +366,131 @@ public sealed class ResponsePayloadTests {
 		response.Id.Should().Be(ClientOperations.SubmissionId);
 		response.ArchivedAtUtc.Should().Be(Utc(2024, 8, 5, 17, 0, 0, 0));
 	}
+
+	//	============================================================================
+	//	UpdateSubmission
+	//	============================================================================
+
+	[Fact]
+	public async Task UpdateSubmission_BindsSpecExample() {
+		var docuSeal = TestClients.CreateWithJson(Spec("submission-update"), out var handler);
+
+		var response = await docuSeal.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			Id = new SubmissionId(1),
+			Name = "New Submission Name"
+		});
+
+		handler.Requests.Should().ContainSingle().Which.Method.Should().Be(HttpMethod.Put);
+		response.Success.Should().BeTrue();
+
+		var submission = response.Submission!;
+
+		submission.Id.Should().Be(new SubmissionId(1));
+		submission.Name.Should().BeNull();
+		submission.Source.Should().Be(SubmissionSource.Link);
+		submission.SubmittersOrder.Should().Be(SubmitterOrder.Random);
+		submission.Slug.Should().Be("VyL4szTwYoSvXq");
+		submission.Status.Should().Be(SubmissionStatus.Completed);
+		submission.AuditUrl.Should().Be(new Uri("https://docuseal.com/blobs/proxy/hash/example.pdf"));
+		submission.CombinedDocumentUrl.Should().BeNull();
+		submission.ExpireAtUtc.Should().BeNull();
+		submission.Variables.Should().NotBeNull();
+		submission.CompletedAtUtc.Should().Be(Utc(2023, 12, 14, 15, 49, 21, 701));
+		submission.CreatedAtUtc.Should().Be(Utc(2023, 12, 10, 15, 48, 17, 166));
+		submission.UpdatedAtUtc.Should().Be(Utc(2023, 12, 10, 15, 49, 21, 895));
+		submission.ArchivedAtUtc.Should().BeNull();
+		submission.CreatedBy!.Email.Should().Be("bob.smith@example.com");
+		submission.Template!.Id.Should().Be(new TemplateId(1));
+		submission.Events.Should().BeEmpty("the update result carries no submission_events");
+
+		var document = submission.Documents.Should().ContainSingle().Subject;
+
+		document.Name.Should().Be("example");
+		document.Url.Should().Be(new Uri("https://docuseal.com/file/hash/example.pdf"));
+
+		var submitter = submission.Submitters.Should().ContainSingle().Subject;
+
+		submitter.Id.Should().Be(new SubmitterId(1));
+		submitter.SubmissionId.Should().Be(new SubmissionId(1));
+		submitter.Status.Should().Be(SubmitterStatus.Completed);
+		submitter.Role.Should().Be("First Party");
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_ParsesUpdatedFixture() {
+		var docuSeal = TestClients.CreateWithFixtures();
+
+		var response = await docuSeal.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			Id = ClientOperations.SubmissionId,
+			Name = "Renamed Submission"
+		});
+
+		response.Success.Should().BeTrue();
+		response.Submission!.Id.Should().Be(ClientOperations.SubmissionId);
+		response.Submission.Name.Should().Be("Renamed Submission");
+		response.Submission.Documents.Should().ContainSingle();
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_ReturnsApiError() {
+		var docuSeal = TestClients.CreateWithJson("""{ "error": "Submission not found" }""", out _, System.Net.HttpStatusCode.NotFound);
+
+		var response = await docuSeal.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			Id = ClientOperations.SubmissionId,
+			IsArchived = false
+		});
+
+		response.Success.Should().BeFalse();
+		response.Errors.Should().Equal("Submission not found");
+		response.Submission.Should().BeNull();
+	}
+
+	//	============================================================================
+	//	GetSubmissionDocuments
+	//	============================================================================
+
+	[Fact]
+	public async Task GetSubmissionDocuments_BindsSpecExample() {
+		var docuSeal = TestClients.CreateWithJson(Spec("submission-documents"), out var handler);
+
+		var response = await docuSeal.GetSubmissionDocumentsAsync(new SubmissionId(1));
+
+		handler.Requests.Should().ContainSingle().Which.Method.Should().Be(HttpMethod.Get);
+		response.Success.Should().BeTrue();
+		response.Id.Should().Be(new SubmissionId(1));
+
+		var document = response.Documents.Should().ContainSingle().Subject;
+
+		document.Name.Should().Be("example");
+		document.Url.Should().Be(new Uri("https://docuseal.com/file/hash/example.pdf"));
+	}
+
+	[Fact]
+	public async Task GetSubmissionDocuments_ParsesDocumentsFixture_WithAndWithoutMerge() {
+		var docuSeal = TestClients.CreateWithFixtures();
+
+		var response = await docuSeal.GetSubmissionDocumentsAsync(ClientOperations.SubmissionId);
+		var merged = await docuSeal.GetSubmissionDocumentsAsync(new GetSubmissionDocuments.Request {
+			Id = ClientOperations.SubmissionId,
+			MustMerge = true
+		});
+
+		foreach (var result in new[] { response, merged }) {
+			result.Success.Should().BeTrue();
+			result.Id.Should().Be(ClientOperations.SubmissionId);
+			result.Documents.Should().ContainSingle().Which.Url.Should().Be(new Uri("https://docuseal.example.com/file/test-document-signed.pdf"));
+		}
+	}
+
+	[Fact]
+	public async Task GetSubmissionDocuments_ReturnsApiError() {
+		var docuSeal = TestClients.CreateWithJson("""{ "error": "Submission not found" }""", out _, System.Net.HttpStatusCode.NotFound);
+
+		var response = await docuSeal.GetSubmissionDocumentsAsync(ClientOperations.SubmissionId);
+
+		response.Success.Should().BeFalse();
+		response.Errors.Should().Equal("Submission not found");
+		response.Id.Should().BeNull();
+		response.Documents.Should().BeEmpty();
+	}
 }

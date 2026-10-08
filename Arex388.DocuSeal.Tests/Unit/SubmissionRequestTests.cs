@@ -625,4 +625,141 @@ public sealed class SubmissionRequestTests {
 			Max = new object()
 		}
 	})), "'Max' must be a number or a string.");
+
+	//	============================================================================
+	//	UpdateSubmission
+	//	============================================================================
+
+	[Fact]
+	public async Task UpdateSubmission_WithOnlyIsArchivedFalse_SendsOnlyArchivedFalse() {
+		var request = await CaptureAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			Id = ClientOperations.SubmissionId,
+			IsArchived = false
+		}));
+
+		request.Method.Should().Be(HttpMethod.Put);
+		request.Uri.Should().Be(new Uri(TestClients.BaseAddress, "submissions/2001"));
+		ShouldBeJson(request.Body, """{"archived":false}""");
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_WithNothingSet_SendsEmptyObject() {
+		var request = await CaptureAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			Id = ClientOperations.SubmissionId
+		}));
+
+		ShouldBeJson(request.Body, "{}");
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_WritesSpecBody() {
+		var request = await CaptureAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			ExpireAtUtc = new DateTime(2024, 9, 1, 12, 0, 0, DateTimeKind.Utc),
+			Id = ClientOperations.SubmissionId,
+			IsArchived = true,
+			Name = "New Submission Name"
+		}));
+
+		ShouldBeJson(request.Body, """{"name":"New Submission Name","expire_at":"2024-09-01 12:00:00 UTC","archived":true}""");
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_TakesUnspecifiedExpireAt_AsUtc() {
+		var request = await CaptureAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			ExpireAtUtc = new DateTime(2024, 9, 1, 12, 0, 0, DateTimeKind.Unspecified),
+			Id = ClientOperations.SubmissionId
+		}));
+
+		ShouldBeJson(request.Body, """{"expire_at":"2024-09-01 12:00:00 UTC"}""");
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_ConvertsLocalExpireAt_ToUtc() {
+		var instant = new DateTimeOffset(2024, 9, 1, 12, 0, 0, TimeSpan.FromHours(-5));
+
+		SkipWhenLocalIsUtc(instant);
+
+		var request = await CaptureAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			ExpireAtUtc = instant.LocalDateTime,
+			Id = ClientOperations.SubmissionId
+		}));
+
+		ShouldBeJson(request.Body, """{"expire_at":"2024-09-01 17:00:00 UTC"}""");
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_WithClearExpiration_SendsExpireAtNull() {
+		var request = await CaptureAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			ClearExpiration = true,
+			Id = ClientOperations.SubmissionId
+		}));
+
+		ShouldBeJson(request.Body, """{"expire_at":null}""");
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_WithClearExpiration_KeepsTheOtherMembers() {
+		var request = await CaptureAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			ClearExpiration = true,
+			Id = ClientOperations.SubmissionId,
+			IsArchived = false,
+			Name = "New Submission Name"
+		}));
+
+		ShouldBeJson(request.Body, """{"name":"New Submission Name","archived":false,"expire_at":null}""");
+	}
+
+	[Fact]
+	public async Task UpdateSubmission_WithoutClearExpiration_OmitsExpireAt() {
+		var request = await CaptureAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+			Id = ClientOperations.SubmissionId,
+			Name = "New Submission Name"
+		}));
+
+		ShouldBeJson(request.Body, """{"name":"New Submission Name"}""");
+	}
+
+	[Fact]
+	public Task UpdateSubmission_ExpireAtWithClearExpiration_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+		ClearExpiration = true,
+		ExpireAtUtc = new DateTime(2024, 9, 1, 12, 0, 0, DateTimeKind.Utc),
+		Id = ClientOperations.SubmissionId
+	}), "'ExpireAtUtc' and 'ClearExpiration' cannot both be set.");
+
+	[Fact]
+	public Task UpdateSubmission_EmptyId_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.UpdateSubmissionAsync(new UpdateSubmission.Request {
+		Id = new SubmissionId(0),
+		Name = "New Submission Name"
+	}), "'Id' must not be empty.");
+
+	//	============================================================================
+	//	GetSubmissionDocuments
+	//	============================================================================
+
+	[Fact]
+	public async Task GetSubmissionDocuments_WithMustMerge_RequestsMergeTrue() {
+		var request = await CaptureAsync(c => c.GetSubmissionDocumentsAsync(new GetSubmissionDocuments.Request {
+			Id = ClientOperations.SubmissionId,
+			MustMerge = true
+		}));
+
+		request.Method.Should().Be(HttpMethod.Get);
+		request.Uri.AbsoluteUri.Should().Be($"{TestClients.BaseAddress}submissions/2001/documents?merge=true");
+	}
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData(false)]
+	public async Task GetSubmissionDocuments_WithoutMustMerge_OmitsTheQuery(
+		bool? mustMerge) {
+		var request = await CaptureAsync(c => c.GetSubmissionDocumentsAsync(new GetSubmissionDocuments.Request {
+			Id = ClientOperations.SubmissionId,
+			MustMerge = mustMerge
+		}));
+
+		request.Uri.AbsoluteUri.Should().Be($"{TestClients.BaseAddress}submissions/2001/documents");
+	}
+
+	[Fact]
+	public Task GetSubmissionDocuments_EmptyId_ReturnsInvalid() => ShouldBeInvalidAsync(c => c.GetSubmissionDocumentsAsync(new SubmissionId(0)), "'Id' must not be empty.");
 }

@@ -89,6 +89,26 @@ public interface IDocuSealClient {
 		CancellationToken cancellationToken = default);
 
 	/// <summary>
+	/// Get the documents of a submission. If the submission has been completed, the final signed documents are returned; otherwise the partially filled documents.
+	/// </summary>
+	/// <param name="id">The submission's id.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns>A response indicating if the operation completed with the submission's documents.</returns>
+	Task<GetSubmissionDocuments.Response> GetSubmissionDocumentsAsync(
+		SubmissionId id,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Get the documents of a submission, optionally merged into a single PDF. If the submission has been completed, the final signed documents are returned; otherwise the partially filled documents.
+	/// </summary>
+	/// <param name="request">The get submission documents request.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns>A response indicating if the operation completed with the submission's documents.</returns>
+	Task<GetSubmissionDocuments.Response> GetSubmissionDocumentsAsync(
+		GetSubmissionDocuments.Request request,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
 	/// Get a submitter.
 	/// </summary>
 	/// <param name="id">The submitter's id.</param>
@@ -170,6 +190,16 @@ public interface IDocuSealClient {
 	/// <returns>A response indicating if the operation completed with the merged template.</returns>
 	Task<MergeTemplates.Response> MergeTemplatesAsync(
 		MergeTemplates.Request request,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
+	/// Update a submission: change its name or expiration, or archive or unarchive it. Set <see cref="UpdateSubmission.Request.IsArchived" /> to <see langword="false" /> to unarchive; set <see cref="UpdateSubmission.Request.ClearExpiration" /> to remove the expiration.
+	/// </summary>
+	/// <param name="request">The update submission request.</param>
+	/// <param name="cancellationToken">The cancellation token.</param>
+	/// <returns>A response indicating if the operation completed with the updated submission.</returns>
+	Task<UpdateSubmission.Response> UpdateSubmissionAsync(
+		UpdateSubmission.Request request,
 		CancellationToken cancellationToken = default);
 
 	/// <summary>

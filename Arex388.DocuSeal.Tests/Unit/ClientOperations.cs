@@ -24,9 +24,11 @@ internal static class ClientOperations {
 		CreateTemplateFromFile,
 		nameof(IDocuSealClient.CreateTemplateFromHtmlAsync),
 		nameof(IDocuSealClient.GetSubmissionAsync),
+		nameof(IDocuSealClient.GetSubmissionDocumentsAsync),
 		nameof(IDocuSealClient.GetSubmitterAsync),
 		nameof(IDocuSealClient.GetTemplateAsync),
 		nameof(IDocuSealClient.MergeTemplatesAsync),
+		nameof(IDocuSealClient.UpdateSubmissionAsync),
 		nameof(IDocuSealClient.UpdateSubmitterAsync),
 		nameof(IDocuSealClient.UpdateTemplateAsync),
 		nameof(IDocuSealClient.UpdateTemplateDocumentsAsync)
@@ -89,6 +91,7 @@ internal static class ClientOperations {
 			}, cancellationToken), r => r.Template),
 			CreateTemplateFromFile => ShapeAsync(docuSeal.CreateTemplateAsync(Utilities.DocuSealFile, cancellationToken), r => r.Template),
 			nameof(IDocuSealClient.GetSubmissionAsync) => ShapeAsync(docuSeal.GetSubmissionAsync(SubmissionId, cancellationToken), r => r.Submission),
+			nameof(IDocuSealClient.GetSubmissionDocumentsAsync) => ShapeAsync(docuSeal.GetSubmissionDocumentsAsync(SubmissionId, cancellationToken), r => r.Id),
 			nameof(IDocuSealClient.GetSubmitterAsync) => ShapeAsync(docuSeal.GetSubmitterAsync(SubmitterId, cancellationToken), r => r.Submitter),
 			nameof(IDocuSealClient.GetTemplateAsync) => ShapeAsync(docuSeal.GetTemplateAsync(TemplateId, cancellationToken), r => r.Template),
 			nameof(IDocuSealClient.ListSubmissionsAsync) => ShapeAsync(docuSeal.ListSubmissionsAsync(cancellationToken), r => new ListPayload(r.Pagination, [.. r.Submissions])),
@@ -100,6 +103,10 @@ internal static class ClientOperations {
 					new TemplateId(1002)
 				]
 			}, cancellationToken), r => r.Template),
+			nameof(IDocuSealClient.UpdateSubmissionAsync) => ShapeAsync(docuSeal.UpdateSubmissionAsync(new UpdateSubmission.Request {
+				Id = SubmissionId,
+				Name = "Renamed Submission"
+			}, cancellationToken), r => r.Submission),
 			nameof(IDocuSealClient.UpdateSubmitterAsync) => ShapeAsync(docuSeal.UpdateSubmitterAsync(new UpdateSubmitter.Request {
 				Id = SubmitterId,
 				Name = "Signer One"
