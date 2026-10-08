@@ -12,11 +12,20 @@ internal sealed class DocuSealClient(
 	IDocuSealClient {
 	private static readonly JsonSerializerOptions _jsonSerializerOptions = new() {
 		Converters = {
+			new CurrencyJsonConverter(),
 			new EventTypeJsonConverter(),
+			new FieldAlignJsonConverter(),
+			new FieldFontJsonConverter(),
+			new FieldFontTypeJsonConverter(),
 			new FieldTypeJsonConverter(),
+			new FieldVerticalAlignJsonConverter(),
+			new PageSizeJsonConverter(),
 			new SubmissionJsonConverter(),
+			new SubmissionSourceJsonConverter(),
+			new SubmissionStatusJsonConverter(),
 			new SubmitterOrderJsonConverter(),
-			new SubmitterStatusJsonConverter()
+			new SubmitterStatusJsonConverter(),
+			new TemplateSourceJsonConverter()
 		},
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 	};

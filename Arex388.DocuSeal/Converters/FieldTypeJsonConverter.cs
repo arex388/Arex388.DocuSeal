@@ -13,16 +13,22 @@ internal sealed class FieldTypeJsonConverter :
 			"checkbox" => FieldType.Checkbox,
 			"date" => FieldType.Date,
 			"file" => FieldType.File,
+			"heading" => FieldType.Heading,
 			"image" => FieldType.Image,
 			"initials" => FieldType.Initials,
+			"kba" => FieldType.Kba,
 			"multiple" => FieldType.Multiple,
+			"number" => FieldType.Number,
 			"payment" => FieldType.Payment,
 			"phone" => FieldType.Phone,
 			"radio" => FieldType.Radio,
 			"select" => FieldType.Select,
 			"signature" => FieldType.Signature,
 			"stamp" => FieldType.Stamp,
-			_ => FieldType.Text
+			"strikethrough" => FieldType.Strikethrough,
+			"text" => FieldType.Text,
+			"verification" => FieldType.Verification,
+			_ => FieldType.Unknown
 		};
 
 	public override void Write(
@@ -34,16 +40,22 @@ internal sealed class FieldTypeJsonConverter :
 			FieldType.Checkbox => "checkbox",
 			FieldType.Date => "date",
 			FieldType.File => "file",
+			FieldType.Heading => "heading",
 			FieldType.Image => "image",
 			FieldType.Initials => "initials",
+			FieldType.Kba => "kba",
 			FieldType.Multiple => "multiple",
+			FieldType.Number => "number",
 			FieldType.Payment => "payment",
 			FieldType.Phone => "phone",
 			FieldType.Radio => "radio",
 			FieldType.Select => "select",
 			FieldType.Signature => "signature",
 			FieldType.Stamp => "stamp",
-			_ => "text"
+			FieldType.Strikethrough => "strikethrough",
+			FieldType.Text => "text",
+			FieldType.Verification => "verification",
+			_ => null
 		};
 
 		writer.WriteStringValue(fieldType);

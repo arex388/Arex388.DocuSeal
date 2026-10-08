@@ -9,7 +9,9 @@ internal sealed class SubmitterStatusJsonConverter :
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
 		JsonSerializerOptions options) => reader.GetString() switch {
+			"awaiting" => SubmitterStatus.Awaiting,
 			"completed" => SubmitterStatus.Completed,
+			"declined" => SubmitterStatus.Declined,
 			"opened" => SubmitterStatus.Opened,
 			"pending" => SubmitterStatus.Pending,
 			"sent" => SubmitterStatus.Sent,
@@ -20,14 +22,16 @@ internal sealed class SubmitterStatusJsonConverter :
 		Utf8JsonWriter writer,
 		SubmitterStatus value,
 		JsonSerializerOptions options) {
-		var status = value switch {
+		var submitterStatus = value switch {
+			SubmitterStatus.Awaiting => "awaiting",
 			SubmitterStatus.Completed => "completed",
+			SubmitterStatus.Declined => "declined",
 			SubmitterStatus.Opened => "opened",
 			SubmitterStatus.Pending => "pending",
 			SubmitterStatus.Sent => "sent",
 			_ => null
 		};
 
-		writer.WriteStringValue(status);
+		writer.WriteStringValue(submitterStatus);
 	}
 }

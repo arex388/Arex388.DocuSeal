@@ -5,9 +5,19 @@
 /// </summary>
 public enum SubmitterStatus {
 	/// <summary>
+	/// An awaiting submitter's status.
+	/// </summary>
+	Awaiting,
+
+	/// <summary>
 	/// A completed submitter's status.
 	/// </summary>
 	Completed,
+
+	/// <summary>
+	/// A declined submitter's status.
+	/// </summary>
+	Declined,
 
 	/// <summary>
 	/// An opened submitter's status.
@@ -15,7 +25,7 @@ public enum SubmitterStatus {
 	Opened,
 
 	/// <summary>
-	/// A pending submitter's status.
+	/// A pending submitter's status. The OpenAPI spec does not list this status for submitters; it is kept for compatibility.
 	/// </summary>
 	Pending,
 

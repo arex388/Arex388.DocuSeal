@@ -5,6 +5,11 @@
 /// </summary>
 public enum FieldType {
 	/// <summary>
+	/// An unknown field type.
+	/// </summary>
+	Unknown,
+
+	/// <summary>
 	/// A list of cells.
 	/// </summary>
 	Cells,
@@ -25,6 +30,11 @@ public enum FieldType {
 	File,
 
 	/// <summary>
+	/// A heading.
+	/// </summary>
+	Heading,
+
+	/// <summary>
 	/// An image.
 	/// </summary>
 	Image,
@@ -35,9 +45,19 @@ public enum FieldType {
 	Initials,
 
 	/// <summary>
+	/// A knowledge-based authentication (KBA) field.
+	/// </summary>
+	Kba,
+
+	/// <summary>
 	/// Multiple.
 	/// </summary>
 	Multiple,
+
+	/// <summary>
+	/// A number.
+	/// </summary>
+	Number,
 
 	/// <summary>
 	/// A payment.
@@ -65,12 +85,22 @@ public enum FieldType {
 	Signature,
 
 	/// <summary>
-	/// A time stamp.
+	/// A stamp.
 	/// </summary>
 	Stamp,
 
 	/// <summary>
+	/// A strikethrough.
+	/// </summary>
+	Strikethrough,
+
+	/// <summary>
 	/// Text.
 	/// </summary>
-	Text
+	Text,
+
+	/// <summary>
+	/// A verification.
+	/// </summary>
+	Verification
 }

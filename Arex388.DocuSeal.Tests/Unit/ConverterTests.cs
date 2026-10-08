@@ -22,132 +22,210 @@ public sealed class ConverterTests {
 	private static string? Write<T>(
 		T value) => JsonSerializer.Deserialize<string?>(JsonSerializer.Serialize(value, _options));
 
+	/// <summary>
+	/// Reads and writes every token of an enum, asserts the table covers every
+	/// non-<c>Unknown</c> member, and asserts the fallback and the null write.
+	/// </summary>
+	private static void AssertConverter<T>(
+		params (string Token, T Member)[] cases)
+		where T : struct, Enum {
+		var unknown = Enum.Parse<T>("Unknown");
+
+		foreach (var (token, member) in cases) {
+			Read<T>(token).Should().Be(member, $"\"{token}\" must read to {typeof(T).Name}.{member}");
+			Write(member).Should().Be(token, $"{typeof(T).Name}.{member} must write \"{token}\"");
+		}
+
+		cases.Select(c => c.Member).Should().BeEquivalentTo(
+			Enum.GetValues<T>().Where(v => !v.Equals(unknown)),
+			$"every {typeof(T).Name} member except Unknown needs a token");
+		cases.Select(c => c.Token).Should().OnlyHaveUniqueItems();
+
+		Read<T>("not_a_real_token").Should().Be(unknown);
+		Read<T>("").Should().Be(unknown);
+		Write(unknown).Should().BeNull($"{typeof(T).Name}.Unknown must not write a token");
+	}
+
+	//	============================================================================
+	//	Currency
+	//	============================================================================
+
+	[Fact]
+	public void Currency_EveryToken_RoundTrips() => AssertConverter(
+		("AUD", Currency.Aud),
+		("CAD", Currency.Cad),
+		("CHF", Currency.Chf),
+		("EUR", Currency.Eur),
+		("GBP", Currency.Gbp),
+		("SEK", Currency.Sek),
+		("USD", Currency.Usd));
+
 	//	============================================================================
 	//	EventType
 	//	============================================================================
 
-	[Theory]
-	[InlineData("click_email", EventType.OpenedEmail)]
-	[InlineData("complete_form", EventType.CompletedForm)]
-	[InlineData("start_form", EventType.StartedForm)]
-	[InlineData("view_form", EventType.ViewedForm)]
-	public void EventType_KnownToken_RoundTrips(
-		string token,
-		EventType expected) {
-		Read<EventType>(token).Should().Be(expected);
-		Write(expected).Should().Be(token);
-	}
+	[Fact]
+	public void EventType_EveryToken_RoundTrips() => AssertConverter(
+		("api_complete_form", EventType.ApiCompletedForm),
+		("bounce_email", EventType.BouncedEmail),
+		("click_email", EventType.ClickedEmail),
+		("click_sms", EventType.ClickedSms),
+		("complete_form", EventType.CompletedForm),
+		("complete_verification", EventType.CompletedVerification),
+		("complaint_email", EventType.ComplaintEmail),
+		("decline_form", EventType.DeclinedForm),
+		("invite_party", EventType.InvitedParty),
+		("open_email", EventType.OpenedEmail),
+		("send_email", EventType.SentEmail),
+		("send_reminder_email", EventType.SentReminderEmail),
+		("send_sms", EventType.SentSms),
+		("send_2fa_sms", EventType.SentTwoFactorSms),
+		("start_form", EventType.StartedForm),
+		("start_verification", EventType.StartedVerification),
+		("phone_verified", EventType.VerifiedPhone),
+		("view_form", EventType.ViewedForm));
+
+	//	============================================================================
+	//	FieldAlign
+	//	============================================================================
 
 	[Fact]
-	public void EventType_SentEmail_RoundTrips() {
-		Read<EventType>("send_email").Should().Be(EventType.SentEmail);
-		Write(EventType.SentEmail).Should().Be("send_email");
-	}
+	public void FieldAlign_EveryToken_RoundTrips() => AssertConverter(
+		("center", FieldAlign.Center),
+		("left", FieldAlign.Left),
+		("right", FieldAlign.Right));
 
-	[Theory]
-	[InlineData("decline_form")]
-	[InlineData("")]
-	public void EventType_UnknownToken_FallsBackToUnknown(
-		string token) => Read<EventType>(token).Should().Be(EventType.Unknown);
+	//	============================================================================
+	//	FieldFont
+	//	============================================================================
+
+	[Fact]
+	public void FieldFont_EveryToken_RoundTrips() => AssertConverter(
+		("Courier", FieldFont.Courier),
+		("Helvetica", FieldFont.Helvetica),
+		("Times", FieldFont.Times));
+
+	//	============================================================================
+	//	FieldFontType
+	//	============================================================================
+
+	[Fact]
+	public void FieldFontType_EveryToken_RoundTrips() => AssertConverter(
+		("bold", FieldFontType.Bold),
+		("bold_italic", FieldFontType.BoldItalic),
+		("italic", FieldFontType.Italic));
 
 	//	============================================================================
 	//	FieldType
 	//	============================================================================
 
-	[Theory]
-	[InlineData("cells", FieldType.Cells)]
-	[InlineData("checkbox", FieldType.Checkbox)]
-	[InlineData("date", FieldType.Date)]
-	[InlineData("file", FieldType.File)]
-	[InlineData("image", FieldType.Image)]
-	[InlineData("initials", FieldType.Initials)]
-	[InlineData("multiple", FieldType.Multiple)]
-	[InlineData("payment", FieldType.Payment)]
-	[InlineData("phone", FieldType.Phone)]
-	[InlineData("radio", FieldType.Radio)]
-	[InlineData("select", FieldType.Select)]
-	[InlineData("signature", FieldType.Signature)]
-	[InlineData("stamp", FieldType.Stamp)]
-	[InlineData("text", FieldType.Text)]
-	public void FieldType_KnownToken_RoundTrips(
-		string token,
-		FieldType expected) {
-		Read<FieldType>(token).Should().Be(expected);
-		Write(expected).Should().Be(token);
-	}
+	[Fact]
+	public void FieldType_EveryToken_RoundTrips() => AssertConverter(
+		("cells", FieldType.Cells),
+		("checkbox", FieldType.Checkbox),
+		("date", FieldType.Date),
+		("file", FieldType.File),
+		("heading", FieldType.Heading),
+		("image", FieldType.Image),
+		("initials", FieldType.Initials),
+		("kba", FieldType.Kba),
+		("multiple", FieldType.Multiple),
+		("number", FieldType.Number),
+		("payment", FieldType.Payment),
+		("phone", FieldType.Phone),
+		("radio", FieldType.Radio),
+		("select", FieldType.Select),
+		("signature", FieldType.Signature),
+		("stamp", FieldType.Stamp),
+		("strikethrough", FieldType.Strikethrough),
+		("text", FieldType.Text),
+		("verification", FieldType.Verification));
 
-	[Theory]
-	[InlineData("heading")]
-	[InlineData("verification")]
-	[InlineData("")]
-	public void FieldType_UnknownToken_FallsBackToText(
-		string token) => Read<FieldType>(token).Should().Be(FieldType.Text);
+	//	============================================================================
+	//	FieldVerticalAlign
+	//	============================================================================
+
+	[Fact]
+	public void FieldVerticalAlign_EveryToken_RoundTrips() => AssertConverter(
+		("bottom", FieldVerticalAlign.Bottom),
+		("center", FieldVerticalAlign.Center),
+		("top", FieldVerticalAlign.Top));
+
+	//	============================================================================
+	//	PageSize
+	//	============================================================================
+
+	[Fact]
+	public void PageSize_EveryToken_RoundTrips() => AssertConverter(
+		("A0", PageSize.A0),
+		("A1", PageSize.A1),
+		("A2", PageSize.A2),
+		("A3", PageSize.A3),
+		("A4", PageSize.A4),
+		("A5", PageSize.A5),
+		("A6", PageSize.A6),
+		("Ledger", PageSize.Ledger),
+		("Legal", PageSize.Legal),
+		("Letter", PageSize.Letter),
+		("Tabloid", PageSize.Tabloid));
+
+	//	============================================================================
+	//	SubmissionSource
+	//	============================================================================
+
+	[Fact]
+	public void SubmissionSource_EveryToken_RoundTrips() => AssertConverter(
+		("api", SubmissionSource.Api),
+		("bulk", SubmissionSource.Bulk),
+		("embed", SubmissionSource.Embed),
+		("invite", SubmissionSource.Invite),
+		("link", SubmissionSource.Link),
+		("mcp", SubmissionSource.Mcp),
+		("self", SubmissionSource.Self));
+
+	//	============================================================================
+	//	SubmissionStatus
+	//	============================================================================
+
+	[Fact]
+	public void SubmissionStatus_EveryToken_RoundTrips() => AssertConverter(
+		("completed", SubmissionStatus.Completed),
+		("declined", SubmissionStatus.Declined),
+		("expired", SubmissionStatus.Expired),
+		("pending", SubmissionStatus.Pending));
 
 	//	============================================================================
 	//	SubmitterOrder
 	//	============================================================================
 
-	[Theory]
-	[InlineData("preserved", SubmitterOrder.Preserved)]
-	[InlineData("random", SubmitterOrder.Random)]
-	public void SubmitterOrder_KnownToken_RoundTrips(
-		string token,
-		SubmitterOrder expected) {
-		Read<SubmitterOrder>(token).Should().Be(expected);
-		Write(expected).Should().Be(token);
-	}
-
-	[Theory]
-	[InlineData("sequential")]
-	[InlineData("")]
-	public void SubmitterOrder_UnknownToken_FallsBackToUnknown(
-		string token) => Read<SubmitterOrder>(token).Should().Be(SubmitterOrder.Unknown);
+	[Fact]
+	public void SubmitterOrder_EveryToken_RoundTrips() => AssertConverter(
+		("preserved", SubmitterOrder.Preserved),
+		("random", SubmitterOrder.Random));
 
 	//	============================================================================
 	//	SubmitterStatus
 	//	============================================================================
 
-	[Theory]
-	[InlineData("completed", SubmitterStatus.Completed)]
-	[InlineData("opened", SubmitterStatus.Opened)]
-	[InlineData("pending", SubmitterStatus.Pending)]
-	[InlineData("sent", SubmitterStatus.Sent)]
-	public void SubmitterStatus_KnownToken_RoundTrips(
-		string token,
-		SubmitterStatus expected) {
-		Read<SubmitterStatus>(token).Should().Be(expected);
-		Write(expected).Should().Be(token);
-	}
-
-	[Theory]
-	[InlineData("awaiting")]
-	[InlineData("declined")]
-	[InlineData("")]
-	public void SubmitterStatus_UnknownToken_FallsBackToUnknown(
-		string token) => Read<SubmitterStatus>(token).Should().Be(SubmitterStatus.Unknown);
+	[Fact]
+	public void SubmitterStatus_EveryToken_RoundTrips() => AssertConverter(
+		("awaiting", SubmitterStatus.Awaiting),
+		("completed", SubmitterStatus.Completed),
+		("declined", SubmitterStatus.Declined),
+		("opened", SubmitterStatus.Opened),
+		("pending", SubmitterStatus.Pending),
+		("sent", SubmitterStatus.Sent));
 
 	//	============================================================================
-	//	Every member has a token
+	//	TemplateSource
 	//	============================================================================
 
 	[Fact]
-	public void EveryKnownMember_WritesAToken() {
-		foreach (var value in Enum.GetValues<EventType>().Where(v => v != EventType.Unknown)) {
-			Write(value).Should().NotBeNullOrEmpty($"EventType.{value} must have a wire token");
-		}
-
-		foreach (var value in Enum.GetValues<FieldType>()) {
-			Write(value).Should().NotBeNullOrEmpty($"FieldType.{value} must have a wire token");
-		}
-
-		foreach (var value in Enum.GetValues<SubmitterOrder>().Where(v => v != SubmitterOrder.Unknown)) {
-			Write(value).Should().NotBeNullOrEmpty($"SubmitterOrder.{value} must have a wire token");
-		}
-
-		foreach (var value in Enum.GetValues<SubmitterStatus>().Where(v => v != SubmitterStatus.Unknown)) {
-			Write(value).Should().NotBeNullOrEmpty($"SubmitterStatus.{value} must have a wire token");
-		}
-	}
+	public void TemplateSource_EveryToken_RoundTrips() => AssertConverter(
+		("api", TemplateSource.Api),
+		("embed", TemplateSource.Embed),
+		("mcp", TemplateSource.Mcp),
+		("native", TemplateSource.Native));
 
 	//	============================================================================
 	//	Fixtures
@@ -182,7 +260,7 @@ public sealed class ConverterTests {
 		template.Fields[0].Areas[0].Page.Should().Be(1);
 		template.Fields[1].Type.Should().Be(FieldType.Signature);
 		template.Fields[1].Areas[0].Width.Should().Be(.335M);
-		template.Fields[2].Type.Should().Be(FieldType.Text, "an unknown field type falls back to Text");
+		template.Fields[2].Type.Should().Be(FieldType.Heading);
 		template.Submitters.Should().ContainSingle().Which.Name.Should().Be("First Party");
 	}
 
@@ -212,7 +290,7 @@ public sealed class ConverterTests {
 		var submission = response.Submission!;
 
 		submission.Id.Should().Be(ClientOperations.SubmissionId, "the GET body carries the submission's id as `id`");
-		submission.Status.Should().Be(SubmitterStatus.Completed);
+		submission.Status.Should().Be(SubmissionStatus.Completed);
 		submission.SubmittersOrder.Should().Be(SubmitterOrder.Random);
 		submission.CompletedAtUtc.Should().Be(new DateTime(2024, 8, 5, 16, 0, 0, DateTimeKind.Utc));
 		submission.CreatedBy.LastName.Should().Be("Author");
@@ -225,10 +303,11 @@ public sealed class ConverterTests {
 		submission.Submitters[1].OpenedAtUtc.Should().BeNull();
 		submission.Events.Select(e => e.Type).Should().Equal(
 			EventType.SentEmail,
-			EventType.OpenedEmail,
+			EventType.ClickedEmail,
 			EventType.ViewedForm,
 			EventType.StartedForm,
 			EventType.CompletedForm,
+			EventType.DeclinedForm,
 			EventType.Unknown);
 		submission.Events[0].SubmitterId.Should().Be(ClientOperations.SubmitterId);
 		submission.Events[0].Id.Should().Be(new EventId(4001));
@@ -244,9 +323,9 @@ public sealed class ConverterTests {
 		response.Pagination.Count.Should().Be(2);
 		response.Submissions.Should().HaveCount(2);
 		response.Submissions.Select(s => s.Id).Should().Equal(ClientOperations.SubmissionId, new SubmissionId(2002));
-		response.Submissions[1].Status.Should().Be(SubmitterStatus.Pending);
+		response.Submissions[1].Status.Should().Be(SubmissionStatus.Pending);
 		response.Submissions[1].SubmittersOrder.Should().Be(SubmitterOrder.Preserved);
-		response.Submissions[1].Submitters[0].Status.Should().Be(SubmitterStatus.Unknown, "awaiting has no SubmitterStatus member");
+		response.Submissions[1].Submitters[0].Status.Should().Be(SubmitterStatus.Awaiting);
 		response.Submissions[1].Template.Name.Should().Be("Archived Template");
 	}
 

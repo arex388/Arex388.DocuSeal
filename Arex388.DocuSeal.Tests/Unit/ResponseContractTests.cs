@@ -111,6 +111,54 @@ public sealed class ResponseContractTests {
 		handler.Requests.Should().BeEmpty();
 	}
 
+	private static CreateTemplate.Request CreateTemplateRequest(
+		FieldType type) => new() {
+			Documents = [
+				new CreateTemplate.RequestDocument {
+					Fields = [
+						new CreateTemplate.RequestDocumentField {
+							Areas = [
+								new CreateTemplate.RequestDocumentFieldArea {
+									Height = .06M,
+									Page = 1,
+									Width = .335M,
+									X = .42M,
+									Y = .15M
+								}
+							],
+							Name = "Field",
+							Role = "First Party",
+							Type = type
+						}
+					],
+					FileBase64 = "JVBERi0xLjQK",
+					Name = "Test Document"
+				}
+			],
+			Endpoint = CreateTemplate.Endpoints.Pdf,
+			Name = "Test Template"
+		};
+
+	[Fact]
+	public async Task CreateTemplate_CellsField_PassesValidation() {
+		var docuSeal = TestClients.CreateWithJson("{}", out var handler);
+
+		await docuSeal.CreateTemplateAsync(CreateTemplateRequest(FieldType.Cells));
+
+		handler.Requests.Should().ContainSingle("a Cells field must pass validation and reach the API");
+	}
+
+	[Fact]
+	public async Task CreateTemplate_UnknownField_ReturnsInvalid_WithoutHttpCall() {
+		var docuSeal = TestClients.CreateWithJson("{}", out var handler);
+
+		var response = await docuSeal.CreateTemplateAsync(CreateTemplateRequest(FieldType.Unknown));
+
+		response.Success.Should().BeFalse();
+		response.Errors.Should().ContainSingle().Which.Should().Be("'Type' must not be empty.");
+		handler.Requests.Should().BeEmpty();
+	}
+
 	[Theory]
 	[MemberData(nameof(ClientOperations.All), MemberType = typeof(ClientOperations))]
 	public async Task ThrowingHandler_ReturnsFailed(
@@ -229,7 +277,8 @@ public sealed class ResponseContractTests {
 		//	`submission_id` is the submission, which is what Submission.Id maps.
 		submission.Id.Should().Be(ClientOperations.SubmissionId);
 		submission.Email.Should().Be("signer1@example.com");
-		submission.Status.Should().Be(SubmitterStatus.Sent);
+		//	The fixture's `sent` is a submitter status, which SubmissionStatus has no member for.
+		submission.Status.Should().Be(SubmissionStatus.Unknown);
 	}
 
 	[Fact]
@@ -255,7 +304,7 @@ public sealed class ResponseContractTests {
 
 		submission.Id.Should().Be(new SubmissionId(2009));
 		submission.Email.Should().Be("signer9@example.com");
-		submission.Status.Should().Be(SubmitterStatus.Pending);
+		submission.Status.Should().Be(SubmissionStatus.Pending);
 	}
 
 	[Fact]

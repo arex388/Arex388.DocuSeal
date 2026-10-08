@@ -76,8 +76,8 @@ public sealed class Submission {
 	/// <summary>
 	/// The submission's status.
 	/// </summary>
-	//[JsonConverter(typeof(SubmitterStatusJsonConverter))]
-	public SubmitterStatus Status { get; init; }
+	//[JsonConverter(typeof(SubmissionStatusJsonConverter))]
+	public SubmissionStatus Status { get; init; }
 
 	/// <summary>
 	/// The submission's submitters.
