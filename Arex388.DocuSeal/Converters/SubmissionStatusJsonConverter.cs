@@ -19,15 +19,15 @@ internal sealed class SubmissionStatusJsonConverter :
 	public override void Write(
 		Utf8JsonWriter writer,
 		SubmissionStatus value,
-		JsonSerializerOptions options) {
-		var submissionStatus = value switch {
+		JsonSerializerOptions options) => writer.WriteStringValue(GetToken(value));
+
+	//	Shared with ListSubmissions' status query parameter, so the body and the query use one token table.
+	internal static string? GetToken(
+		SubmissionStatus value) => value switch {
 			SubmissionStatus.Completed => "completed",
 			SubmissionStatus.Declined => "declined",
 			SubmissionStatus.Expired => "expired",
 			SubmissionStatus.Pending => "pending",
 			_ => null
 		};
-
-		writer.WriteStringValue(submissionStatus);
-	}
 }

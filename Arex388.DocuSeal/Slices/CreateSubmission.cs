@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.CreateSubmission;
 
@@ -13,6 +14,16 @@ public static class CreateSubmission {
 	/// </summary>
 	public sealed class Request {
 		internal string Endpoint { get; } = "submissions";
+
+		//	The API takes expire_at as a string such as "2024-09-01 12:00:00 UTC", not as an ISO 8601 date-time.
+		[JsonInclude, JsonPropertyName("expire_at")]
+		internal string? ExpireAt => ExpireAtUtc?.AsUtc().ToString("yyyy-MM-dd HH:mm:ss 'UTC'", CultureInfo.InvariantCulture);
+
+		/// <summary>
+		/// The date and time, in UTC, after which the submission becomes unavailable for signature. A value of <see cref="DateTimeKind.Local" /> kind is converted to UTC; a value of <see cref="DateTimeKind.Unspecified" /> kind is taken to already be UTC.
+		/// </summary>
+		[JsonIgnore]
+		public DateTime? ExpireAtUtc { get; init; }
 
 		/// <summary>
 		/// The message for the submission.
@@ -65,31 +76,42 @@ public static class CreateSubmission {
 		/// </summary>
 		[JsonPropertyName("template_id")]
 		public required TemplateId TemplateId { get; init; }
+
+		/// <summary>
+		/// The dynamic content variables for a dynamic template document, keyed by variable name. A value can be a string, a number, a boolean, a collection, an object, or HTML content used to generate styled text, paragraphs, and tables.
+		/// </summary>
+		public IDictionary<string, object?>? Variables { get; init; }
 	}
 
 	/// <summary>
-	/// Create submission request message.
+	/// Create submission request message. At least one of <see cref="Body" /> or <see cref="Subject" /> must be set.
 	/// </summary>
 	public sealed class RequestMessage {
 		/// <summary>
-		/// Custom signature request email body. Can include the following variables: {{template.name}}, {{submitter.link}}, {{account.name}}.
+		/// Custom signature request email body. Can include the following variables: {{template.name}}, {{submission.name}}, {{submitter.link}}, {{account.name}}.
 		/// </summary>
-		public required string Body { get; init; }
+		public string? Body { get; init; }
 
 		/// <summary>
 		/// Custom signature request email subject.
 		/// </summary>
-		public required string Subject { get; init; }
+		public string? Subject { get; init; }
 	}
 
 	/// <summary>
-	/// Create submission request submitter.
+	/// Create submission request submitter. At least one of <see cref="Email" /> or <see cref="Phone" /> must be set.
 	/// </summary>
 	public sealed class RequestSubmitter {
 		/// <summary>
 		/// The email address of the submitter.
 		/// </summary>
-		public required string Email { get; init; }
+		public string? Email { get; init; }
+
+		/// <summary>
+		/// Your application-specific unique string key to identify this submitter within your app.
+		/// </summary>
+		[JsonPropertyName("external_id")]
+		public string? ExternalId { get; init; }
 
 		/// <summary>
 		/// A list of configurations for template document form fields.
@@ -97,10 +119,26 @@ public static class CreateSubmission {
 		public IList<RequestSubmitterField>? Fields { get; init; }
 
 		/// <summary>
+		/// The role name of the previous party that should invite this submitter via email.
+		/// </summary>
+		[JsonPropertyName("invite_by")]
+		public string? InviteBy { get; init; }
+
+		/// <summary>
 		/// Pass `true` to mark submitter as completed and auto-signed via API.
 		/// </summary>
 		[JsonPropertyName("completed")]
 		public bool? IsCompleted { get; init; }
+
+		/// <summary>
+		/// The custom signature request email message for this submitter.
+		/// </summary>
+		public RequestMessage? Message { get; init; }
+
+		/// <summary>
+		/// Additional submitter information, keyed by name.
+		/// </summary>
+		public IDictionary<string, object?>? Metadata { get; init; }
 
 		/// <summary>
 		/// Set `false` to disable signature request emails sending.
@@ -126,9 +164,36 @@ public static class CreateSubmission {
 		public string? OnCompletedUrl { get; init; }
 
 		/// <summary>
+		/// The submitter's position in the signing workflow (e.g., 0 for the first signer, 1 for the second). Submitters with the same number form an order group. By default, submitters are ordered as in <see cref="Request.Submitters" />.
+		/// </summary>
+		/// <remarks>
+		/// Serialized as the API's per-submitter <c>order</c>, which is unrelated to the request-level <see cref="Request.Order" />.
+		/// </remarks>
+		[JsonPropertyName("order")]
+		public int? OrderGroup { get; init; }
+
+		/// <summary>
 		/// The phone number of the submitter, formatted according to the E.164 standard.
 		/// </summary>
 		public string? Phone { get; init; }
+
+		/// <summary>
+		/// Specify Reply-To address to use in the notification emails for this submitter.
+		/// </summary>
+		[JsonPropertyName("reply_to")]
+		public string? ReplyToEmail { get; init; }
+
+		/// <summary>
+		/// Set `true` to require email 2FA verification via a one-time code sent to the email address in order to access the documents.
+		/// </summary>
+		[JsonPropertyName("require_email_2fa")]
+		public bool? RequireEmail2fa { get; init; }
+
+		/// <summary>
+		/// Set `true` to require phone 2FA verification via a one-time code sent to the phone number in order to access the documents.
+		/// </summary>
+		[JsonPropertyName("require_phone_2fa")]
+		public bool? RequirePhone2fa { get; init; }
 
 		/// <summary>
 		/// The role name or title of the submitter.
@@ -136,9 +201,14 @@ public static class CreateSubmission {
 		public string? Role { get; init; }
 
 		/// <summary>
-		/// An object with pre-filled values for the submission. Use field names for keys of the object. For more configurations see `fields` param.
+		/// The role names to merge into this one submitter.
 		/// </summary>
-		public IDictionary<string, string>? Values { get; init; }
+		public IList<string>? Roles { get; init; }
+
+		/// <summary>
+		/// An object with pre-filled values for the submission. Use field names for keys of the object. A value can be a string, a number, a boolean, or a collection of them. For more configurations see `fields` param.
+		/// </summary>
+		public IDictionary<string, object?>? Values { get; init; }
 	}
 
 	/// <summary>
@@ -148,8 +218,16 @@ public static class CreateSubmission {
 		/// <summary>
 		/// Default value of the field. Use base64 encoded file or a public URL to the image file to set default signature or image fields.
 		/// </summary>
+		/// <remarks>
+		/// The API accepts a string, a number, a boolean, or a collection of them.
+		/// </remarks>
 		[JsonPropertyName("default_value")]
-		public string? DefaultValue { get; init; }
+		public object? DefaultValue { get; init; }
+
+		/// <summary>
+		/// Field description displayed on the signing form. Supports Markdown.
+		/// </summary>
+		public string? Description { get; init; }
 
 		/// <summary>
 		/// Set `true` to make it impossible for the submitter to edit predefined field value.
@@ -158,21 +236,30 @@ public static class CreateSubmission {
 		public bool? IsReadonly { get; init; }
 
 		/// <summary>
+		/// Set `true` to make the field required.
+		/// </summary>
+		[JsonPropertyName("required")]
+		public bool? IsRequired { get; init; }
+
+		/// <summary>
 		/// Document template field name.
 		/// </summary>
 		public required string Name { get; init; }
 
 		/// <summary>
-		/// A custom message to display on pattern validation failure.
+		/// The field's display preferences.
 		/// </summary>
-		[JsonPropertyName("invalid_message")]
-		public string? ValidationFailedMessage { get; init; }
+		public RequestFieldPreferences? Preferences { get; init; }
 
 		/// <summary>
-		/// HTML field validation pattern string based on https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/pattern specification.
+		/// Field title displayed on the signing form instead of the name. Supports Markdown.
 		/// </summary>
-		[JsonPropertyName("validation_pattern")]
-		public string? ValidationPattern { get; init; }
+		public string? Title { get; init; }
+
+		/// <summary>
+		/// The field's validation rules.
+		/// </summary>
+		public RequestFieldValidation? Validation { get; init; }
 	}
 
 	/// <summary>
@@ -212,23 +299,31 @@ file sealed class RequestValidator :
 file sealed class RequestMessageValidator :
 	AbstractValidator<RequestMessage> {
 	public RequestMessageValidator() {
-		RuleFor(r => r.Body).NotEmpty();
-		RuleFor(r => r.Subject).NotEmpty();
+		RuleFor(r => r.Subject).NotEmpty().When(r => !r.Body.HasValue()).WithMessage("'Body' or 'Subject' must be set.");
 	}
 }
 
 file sealed class RequestSubmitterValidator :
 	AbstractValidator<RequestSubmitter> {
 	public RequestSubmitterValidator(
+		IValidator<RequestMessage> requestMessageValidator,
 		IValidator<RequestSubmitterField> requestSubmitterFieldValidator) {
-		RuleFor(r => r.Email).EmailAddress().NotEmpty();
+		RuleFor(r => r.Email).EmailAddress().When(r => r.Email.HasValue());
+		RuleFor(r => r.Phone).NotEmpty().When(r => !r.Email.HasValue()).WithMessage("'Email' or 'Phone' must be set.");
 		RuleFor(r => r.Fields!).ForEach(r => r.SetValidator(requestSubmitterFieldValidator)).When(r => r.Fields is not null);
+		RuleFor(r => r.Message).SetValidator(requestMessageValidator!);
+		RuleFor(r => r.OrderGroup).GreaterThanOrEqualTo(0).When(r => r.OrderGroup.HasValue);
+		RuleFor(r => r.ReplyToEmail).EmailAddress().When(r => r.ReplyToEmail.HasValue());
 	}
 }
 
 file sealed class RequestSubmitterFieldValidator :
 	AbstractValidator<RequestSubmitterField> {
-	public RequestSubmitterFieldValidator() {
+	public RequestSubmitterFieldValidator(
+		IValidator<RequestFieldPreferences> requestFieldPreferencesValidator,
+		IValidator<RequestFieldValidation> requestFieldValidationValidator) {
 		RuleFor(r => r.Name).NotEmpty();
+		RuleFor(r => r.Preferences).SetValidator(requestFieldPreferencesValidator!);
+		RuleFor(r => r.Validation).SetValidator(requestFieldValidationValidator!);
 	}
 }

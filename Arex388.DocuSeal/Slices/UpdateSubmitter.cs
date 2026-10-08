@@ -20,6 +20,12 @@ public static class UpdateSubmitter {
 		internal string Endpoint => $"submitters/{Id}";
 
 		/// <summary>
+		/// Your application-specific unique string key to identify this submitter within your app.
+		/// </summary>
+		[JsonPropertyName("external_id")]
+		public string? ExternalId { get; init; }
+
+		/// <summary>
 		/// A list of configurations for template document form fields.
 		/// </summary>
 		public IList<RequestField>? Fields { get; init; }
@@ -40,6 +46,11 @@ public static class UpdateSubmitter {
 		/// The message for the submitter.
 		/// </summary>
 		public RequestMessage? Message { get; init; }
+
+		/// <summary>
+		/// Additional submitter information, keyed by name.
+		/// </summary>
+		public IDictionary<string, object?>? Metadata { get; init; }
 
 		/// <summary>
 		/// The name of the submitter.
@@ -64,6 +75,18 @@ public static class UpdateSubmitter {
 		public string? ReplyToEmail { get; init; }
 
 		/// <summary>
+		/// Set `true` to require email 2FA verification via a one-time code sent to the email address in order to access the documents.
+		/// </summary>
+		[JsonPropertyName("require_email_2fa")]
+		public bool? RequireEmail2fa { get; init; }
+
+		/// <summary>
+		/// Set `true` to require phone 2FA verification via a one-time code sent to the phone number in order to access the documents.
+		/// </summary>
+		[JsonPropertyName("require_phone_2fa")]
+		public bool? RequirePhone2fa { get; init; }
+
+		/// <summary>
 		/// Set `true` to re-send signature request emails.
 		/// </summary>
 		[JsonPropertyName("send_email")]
@@ -76,24 +99,24 @@ public static class UpdateSubmitter {
 		public bool? ResendSms { get; init; }
 
 		/// <summary>
-		/// An object with pre-filled values for the submission. Use field names for keys of the object. For more configurations see `fields` param.
+		/// An object with pre-filled values for the submission. Use field names for keys of the object. A value can be a string, a number, a boolean, or a collection of them. For more configurations see `fields` param.
 		/// </summary>
-		public IDictionary<string, string>? Values { get; init; }
+		public IDictionary<string, object?>? Values { get; init; }
 	}
 
 	/// <summary>
-	/// Update submitter request message.
+	/// Update submitter request message. At least one of <see cref="Body" /> or <see cref="Subject" /> must be set.
 	/// </summary>
 	public sealed class RequestMessage {
 		/// <summary>
 		/// Custom signature request email body. Can include the following variables: {{template.name}}, {{submitter.link}}, {{account.name}}.
 		/// </summary>
-		public required string Body { get; init; }
+		public string? Body { get; init; }
 
 		/// <summary>
 		/// Custom signature request email subject.
 		/// </summary>
-		public required string Subject { get; init; }
+		public string? Subject { get; init; }
 	}
 
 	/// <summary>
@@ -103,8 +126,11 @@ public static class UpdateSubmitter {
 		/// <summary>
 		/// Default value of the field. Use base64 encoded file or a public URL to the image file to set default signature or image fields.
 		/// </summary>
+		/// <remarks>
+		/// The API accepts a string, a number, a boolean, or a collection of them.
+		/// </remarks>
 		[JsonPropertyName("default_value")]
-		public string? DefaultValue { get; init; }
+		public object? DefaultValue { get; init; }
 
 		/// <summary>
 		/// Set `true` to make it impossible for the submitter to edit predefined field value.
@@ -113,21 +139,25 @@ public static class UpdateSubmitter {
 		public bool? IsReadonly { get; init; }
 
 		/// <summary>
+		/// Set `true` to make the field required.
+		/// </summary>
+		[JsonPropertyName("required")]
+		public bool? IsRequired { get; init; }
+
+		/// <summary>
 		/// Document template field name.
 		/// </summary>
 		public required string Name { get; init; }
 
 		/// <summary>
-		/// A custom message to display on pattern validation failure.
+		/// The field's display preferences.
 		/// </summary>
-		[JsonPropertyName("invalid_message")]
-		public string? ValidationFailedMessage { get; init; }
+		public RequestFieldPreferences? Preferences { get; init; }
 
 		/// <summary>
-		/// HTML field validation pattern string based on https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/pattern specification.
+		/// The field's validation rules.
 		/// </summary>
-		[JsonPropertyName("validation_pattern")]
-		public string? ValidationPattern { get; init; }
+		public RequestFieldValidation? Validation { get; init; }
 	}
 
 	/// <summary>
@@ -160,14 +190,17 @@ file sealed class RequestValidator :
 file sealed class RequestMessageValidator :
 	AbstractValidator<RequestMessage> {
 	public RequestMessageValidator() {
-		RuleFor(r => r.Body).NotEmpty();
-		RuleFor(r => r.Subject).NotEmpty();
+		RuleFor(r => r.Subject).NotEmpty().When(r => !r.Body.HasValue()).WithMessage("'Body' or 'Subject' must be set.");
 	}
 }
 
 file sealed class RequestFieldValidator :
 	AbstractValidator<RequestField> {
-	public RequestFieldValidator() {
+	public RequestFieldValidator(
+		IValidator<RequestFieldPreferences> requestFieldPreferencesValidator,
+		IValidator<RequestFieldValidation> requestFieldValidationValidator) {
 		RuleFor(r => r.Name).NotEmpty();
+		RuleFor(r => r.Preferences).SetValidator(requestFieldPreferencesValidator!);
+		RuleFor(r => r.Validation).SetValidator(requestFieldValidationValidator!);
 	}
 }

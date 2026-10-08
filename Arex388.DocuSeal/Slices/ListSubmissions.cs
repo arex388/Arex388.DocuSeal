@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Arex388.DocuSeal.Converters;
+using FluentValidation;
 using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.ListSubmissions;
 
@@ -17,14 +18,39 @@ public static class ListSubmissions {
 		internal string Endpoint => GetEndpoint(this);
 
 		/// <summary>
+		/// Get only submissions with an id greater than this one. Pass the id from <see cref="ResponsePagination.Next" /> to load the next page.
+		/// </summary>
+		public SubmissionId? After { get; init; }
+
+		/// <summary>
+		/// Get only submissions with an id less than this one. Pass the id from <see cref="ResponsePagination.Previous" /> to load the previous page.
+		/// </summary>
+		public SubmissionId? Before { get; init; }
+
+		/// <summary>
 		/// Filter submissions by template folder name.
 		/// </summary>
 		public string? Folder { get; init; }
 
 		/// <summary>
+		/// Set <see langword="true" /> to get only archived submissions, or <see langword="false" /> to get only active ones. Leave unset to apply no archive filter.
+		/// </summary>
+		public bool? IsArchived { get; init; }
+
+		/// <summary>
 		/// Filter submissions based on submitters name, email or phone partial match.
 		/// </summary>
 		public string? Search { get; init; }
+
+		/// <summary>
+		/// Filter submissions by unique slug.
+		/// </summary>
+		public string? Slug { get; init; }
+
+		/// <summary>
+		/// Filter submissions by status.
+		/// </summary>
+		public SubmissionStatus? Status { get; init; }
 
 		/// <summary>
 		/// The number of submissions to return. Default value is 10. Maximum value is 100.
@@ -47,15 +73,36 @@ public static class ListSubmissions {
 			};
 
 			if (request.Folder.HasValue()) {
-				parameters.Add($"template_folder={request.Folder}");
+				parameters.Add($"template_folder={Uri.EscapeDataString(request.Folder)}");
 			}
 
 			if (request.Search.HasValue()) {
-				parameters.Add($"q={request.Search}");
+				parameters.Add($"q={Uri.EscapeDataString(request.Search)}");
 			}
 
 			if (request.TemplateId.HasValue) {
 				parameters.Add($"template_id={request.TemplateId}");
+			}
+
+			if (request.Status.HasValue) {
+				parameters.Add($"status={SubmissionStatusJsonConverter.GetToken(request.Status.Value)}");
+			}
+
+			if (request.Slug.HasValue()) {
+				parameters.Add($"slug={Uri.EscapeDataString(request.Slug)}");
+			}
+
+			if (request.IsArchived.HasValue) {
+				//	Lowercase literals: the API silently ignores archived=True (#1).
+				parameters.Add(request.IsArchived.Value ? "archived=true" : "archived=false");
+			}
+
+			if (request.After.HasValue) {
+				parameters.Add($"after={request.After}");
+			}
+
+			if (request.Before.HasValue) {
+				parameters.Add($"before={request.Before}");
 			}
 
 			return $"submissions?{parameters.StringJoin("&")}";
@@ -90,6 +137,7 @@ public static class ListSubmissions {
 file sealed class RequestValidator :
 	AbstractValidator<Request> {
 	public RequestValidator() {
+		RuleFor(r => r.Status).Must(s => s is null || SubmissionStatusJsonConverter.GetToken(s.Value) is not null).WithMessage("'{PropertyName}' must be a known submission status.");
 		RuleFor(r => r.Take).GreaterThanOrEqualTo(0).LessThanOrEqualTo(100);
 	}
 }
