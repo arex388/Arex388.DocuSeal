@@ -8,15 +8,19 @@ internal sealed class SubmitterStatusJsonConverter :
 	public override SubmitterStatus Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"awaiting" => SubmitterStatus.Awaiting,
-			"completed" => SubmitterStatus.Completed,
-			"declined" => SubmitterStatus.Declined,
-			"opened" => SubmitterStatus.Opened,
-			"pending" => SubmitterStatus.Pending,
-			"sent" => SubmitterStatus.Sent,
-			_ => SubmitterStatus.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(SubmitterStatus.Unknown);
+		}
+
+		return reader.ValueTextEquals("awaiting"u8) ? SubmitterStatus.Awaiting
+			: reader.ValueTextEquals("completed"u8) ? SubmitterStatus.Completed
+			: reader.ValueTextEquals("declined"u8) ? SubmitterStatus.Declined
+			: reader.ValueTextEquals("opened"u8) ? SubmitterStatus.Opened
+			: reader.ValueTextEquals("pending"u8) ? SubmitterStatus.Pending
+			: reader.ValueTextEquals("sent"u8) ? SubmitterStatus.Sent
+			: reader.Unmatched(SubmitterStatus.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

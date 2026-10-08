@@ -390,6 +390,24 @@ public sealed class ResponseContractTests {
 		response.Payload.Should().BeNull();
 	}
 
+	//	The last error member wins, as with JsonElement.TryGetProperty, even when an earlier one cannot be decoded.
+	[Theory]
+	[InlineData(nameof(IDocuSealClient.CreateSubmissionAsync), """{ "error": "\uD800", "error": "Template missing" }""")]
+	[InlineData(nameof(IDocuSealClient.CreateSubmissionAsync), """{ "error": 42, "error": "Template missing" }""")]
+	[InlineData(nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync), """{ "error": "\uD800", "error": "Template missing" }""")]
+	[InlineData(nameof(IDocuSealClient.CreateSubmissionFromEmailsAsync), """{ "error": 42, "error": "Template missing" }""")]
+	public async Task CreateSubmissionErrorBody_DuplicateError_SurfacesTheLastOccurrence(
+		string operation,
+		string json) {
+		var docuSeal = TestClients.CreateWithJson(json, out _, HttpStatusCode.UnprocessableEntity);
+
+		var response = await ClientOperations.InvokeAsync(docuSeal, operation);
+
+		response.Success.Should().BeFalse();
+		response.Errors.Should().Equal("Template missing");
+		response.Payload.Should().BeNull();
+	}
+
 	//	============================================================================
 	//	Canned responses are not shared
 	//	============================================================================

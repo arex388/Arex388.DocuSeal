@@ -8,28 +8,32 @@ internal sealed class FieldTypeJsonConverter :
 	public override FieldType Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"cells" => FieldType.Cells,
-			"checkbox" => FieldType.Checkbox,
-			"date" => FieldType.Date,
-			"file" => FieldType.File,
-			"heading" => FieldType.Heading,
-			"image" => FieldType.Image,
-			"initials" => FieldType.Initials,
-			"kba" => FieldType.Kba,
-			"multiple" => FieldType.Multiple,
-			"number" => FieldType.Number,
-			"payment" => FieldType.Payment,
-			"phone" => FieldType.Phone,
-			"radio" => FieldType.Radio,
-			"select" => FieldType.Select,
-			"signature" => FieldType.Signature,
-			"stamp" => FieldType.Stamp,
-			"strikethrough" => FieldType.Strikethrough,
-			"text" => FieldType.Text,
-			"verification" => FieldType.Verification,
-			_ => FieldType.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(FieldType.Unknown);
+		}
+
+		return reader.ValueTextEquals("cells"u8) ? FieldType.Cells
+			: reader.ValueTextEquals("checkbox"u8) ? FieldType.Checkbox
+			: reader.ValueTextEquals("date"u8) ? FieldType.Date
+			: reader.ValueTextEquals("file"u8) ? FieldType.File
+			: reader.ValueTextEquals("heading"u8) ? FieldType.Heading
+			: reader.ValueTextEquals("image"u8) ? FieldType.Image
+			: reader.ValueTextEquals("initials"u8) ? FieldType.Initials
+			: reader.ValueTextEquals("kba"u8) ? FieldType.Kba
+			: reader.ValueTextEquals("multiple"u8) ? FieldType.Multiple
+			: reader.ValueTextEquals("number"u8) ? FieldType.Number
+			: reader.ValueTextEquals("payment"u8) ? FieldType.Payment
+			: reader.ValueTextEquals("phone"u8) ? FieldType.Phone
+			: reader.ValueTextEquals("radio"u8) ? FieldType.Radio
+			: reader.ValueTextEquals("select"u8) ? FieldType.Select
+			: reader.ValueTextEquals("signature"u8) ? FieldType.Signature
+			: reader.ValueTextEquals("stamp"u8) ? FieldType.Stamp
+			: reader.ValueTextEquals("strikethrough"u8) ? FieldType.Strikethrough
+			: reader.ValueTextEquals("text"u8) ? FieldType.Text
+			: reader.ValueTextEquals("verification"u8) ? FieldType.Verification
+			: reader.Unmatched(FieldType.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

@@ -8,11 +8,15 @@ internal sealed class SubmitterOrderJsonConverter :
 	public override SubmitterOrder Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"preserved" => SubmitterOrder.Preserved,
-			"random" => SubmitterOrder.Random,
-			_ => SubmitterOrder.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(SubmitterOrder.Unknown);
+		}
+
+		return reader.ValueTextEquals("preserved"u8) ? SubmitterOrder.Preserved
+			: reader.ValueTextEquals("random"u8) ? SubmitterOrder.Random
+			: reader.Unmatched(SubmitterOrder.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

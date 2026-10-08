@@ -8,16 +8,20 @@ internal sealed class CurrencyJsonConverter :
 	public override Currency Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"AUD" => Currency.Aud,
-			"CAD" => Currency.Cad,
-			"CHF" => Currency.Chf,
-			"EUR" => Currency.Eur,
-			"GBP" => Currency.Gbp,
-			"SEK" => Currency.Sek,
-			"USD" => Currency.Usd,
-			_ => Currency.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(Currency.Unknown);
+		}
+
+		return reader.ValueTextEquals("AUD"u8) ? Currency.Aud
+			: reader.ValueTextEquals("CAD"u8) ? Currency.Cad
+			: reader.ValueTextEquals("CHF"u8) ? Currency.Chf
+			: reader.ValueTextEquals("EUR"u8) ? Currency.Eur
+			: reader.ValueTextEquals("GBP"u8) ? Currency.Gbp
+			: reader.ValueTextEquals("SEK"u8) ? Currency.Sek
+			: reader.ValueTextEquals("USD"u8) ? Currency.Usd
+			: reader.Unmatched(Currency.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

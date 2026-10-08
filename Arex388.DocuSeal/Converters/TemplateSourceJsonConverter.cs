@@ -8,13 +8,17 @@ internal sealed class TemplateSourceJsonConverter :
 	public override TemplateSource Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"api" => TemplateSource.Api,
-			"embed" => TemplateSource.Embed,
-			"mcp" => TemplateSource.Mcp,
-			"native" => TemplateSource.Native,
-			_ => TemplateSource.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(TemplateSource.Unknown);
+		}
+
+		return reader.ValueTextEquals("api"u8) ? TemplateSource.Api
+			: reader.ValueTextEquals("embed"u8) ? TemplateSource.Embed
+			: reader.ValueTextEquals("mcp"u8) ? TemplateSource.Mcp
+			: reader.ValueTextEquals("native"u8) ? TemplateSource.Native
+			: reader.Unmatched(TemplateSource.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

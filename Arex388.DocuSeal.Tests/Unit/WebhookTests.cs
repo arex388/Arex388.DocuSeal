@@ -255,6 +255,18 @@ public sealed class WebhookTests {
 		unknown.Data.GetProperty("note").GetString().Should().Be("kept");
 	}
 
+	[Fact]
+	public void Parse_DuplicateTimestamp_UsesTheLastOccurrence_EvenWhenAnEarlierOneCannotBeDecoded() {
+		const string json = """{ "event_type": "future.event", "timestamp": "\uD800xxxxxxxxx", "timestamp": "2024-05-26T17:32:33.518Z", "data": {} }""";
+
+		var parse = () => ParseBoth(json);
+
+		var unknown = parse.Should().NotThrow().Which.Should().BeOfType<UnknownWebhookEvent>().Subject;
+
+		unknown.RawType.Should().Be("future.event");
+		unknown.TimestampUtc.Should().Be(Utc(2024, 5, 26, 17, 32, 33, 518));
+	}
+
 	[Theory]
 	[InlineData("")]
 	[InlineData("   ")]
@@ -276,6 +288,8 @@ public sealed class WebhookTests {
 	[InlineData("""{ "event_type": "form.viewed", "timestamp": "2024-05-26T17:32:33.518Z", "data": { "created_at": "yesterday" } }""")]
 	[InlineData("""{ "event_type": "form.viewed", "timestamp": "2024-05-26T17:32:33.518Z", "data": {} } trailing""")]
 	[InlineData("""{ "event_type": "form.viewed", "timestamp": "2024-05-26T17:32:33.518Z", "data": {} } {}""")]
+	[InlineData("""{ "\uD800": 1 }""")]
+	[InlineData("""{ "timestamp": "\uD800xxxxxxxxx" }""")]
 	public void Parse_Malformed_ReturnsNullWithoutThrowing(
 		string json) {
 		var parse = () => ParseBoth(json);

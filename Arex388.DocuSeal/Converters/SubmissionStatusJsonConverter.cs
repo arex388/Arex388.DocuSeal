@@ -8,13 +8,17 @@ internal sealed class SubmissionStatusJsonConverter :
 	public override SubmissionStatus Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"completed" => SubmissionStatus.Completed,
-			"declined" => SubmissionStatus.Declined,
-			"expired" => SubmissionStatus.Expired,
-			"pending" => SubmissionStatus.Pending,
-			_ => SubmissionStatus.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(SubmissionStatus.Unknown);
+		}
+
+		return reader.ValueTextEquals("completed"u8) ? SubmissionStatus.Completed
+			: reader.ValueTextEquals("declined"u8) ? SubmissionStatus.Declined
+			: reader.ValueTextEquals("expired"u8) ? SubmissionStatus.Expired
+			: reader.ValueTextEquals("pending"u8) ? SubmissionStatus.Pending
+			: reader.Unmatched(SubmissionStatus.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

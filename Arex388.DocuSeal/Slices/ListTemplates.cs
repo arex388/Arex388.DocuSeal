@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.ListTemplates;
 
@@ -66,43 +67,42 @@ public static class ListTemplates {
 
 		private static string GetEndpoint(
 			Request request) {
-			var parameters = new HashSet<string> {
-				$"limit={request.Take}"
-			};
+			//	The parameters are appended in a fixed order to a cached builder, with no intermediate set, list or join.
+			var endpoint = StringBuilderCache.Acquire().Append("templates?limit=").Append(request.Take);
 
 			if (request.Folder.HasValue()) {
-				parameters.Add($"folder={Uri.EscapeDataString(request.Folder)}");
+				endpoint.Append("&folder=").Append(Uri.EscapeDataString(request.Folder));
 			}
 
 			if (request.IsArchived) {
-				parameters.Add("archived=true");
+				endpoint.Append("&archived=true");
 			}
 
 			if (request.Search.HasValue()) {
-				parameters.Add($"q={Uri.EscapeDataString(request.Search)}");
+				endpoint.Append("&q=").Append(Uri.EscapeDataString(request.Search));
 			}
 
 			if (request.Slug.HasValue()) {
-				parameters.Add($"slug={Uri.EscapeDataString(request.Slug)}");
+				endpoint.Append("&slug=").Append(Uri.EscapeDataString(request.Slug));
 			}
 
 			if (request.ExternalId.HasValue()) {
-				parameters.Add($"external_id={Uri.EscapeDataString(request.ExternalId)}");
+				endpoint.Append("&external_id=").Append(Uri.EscapeDataString(request.ExternalId));
 			}
 
 			if (request.IsShared) {
-				parameters.Add("shared=true");
+				endpoint.Append("&shared=true");
 			}
 
 			if (request.After.HasValue) {
-				parameters.Add($"after={request.After}");
+				endpoint.Append("&after=").Append(request.After.Value.Value.ToString(CultureInfo.InvariantCulture));
 			}
 
 			if (request.Before.HasValue) {
-				parameters.Add($"before={request.Before}");
+				endpoint.Append("&before=").Append(request.Before.Value.Value.ToString(CultureInfo.InvariantCulture));
 			}
 
-			return $"templates?{parameters.StringJoin("&")}";
+			return StringBuilderCache.GetStringAndRelease(endpoint);
 		}
 	}
 

@@ -8,27 +8,31 @@ internal sealed class EventTypeJsonConverter :
 	public override EventType Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"api_complete_form" => EventType.ApiCompletedForm,
-			"bounce_email" => EventType.BouncedEmail,
-			"click_email" => EventType.ClickedEmail,
-			"click_sms" => EventType.ClickedSms,
-			"complete_form" => EventType.CompletedForm,
-			"complete_verification" => EventType.CompletedVerification,
-			"complaint_email" => EventType.ComplainedEmail,
-			"decline_form" => EventType.DeclinedForm,
-			"invite_party" => EventType.InvitedParty,
-			"open_email" => EventType.OpenedEmail,
-			"send_email" => EventType.SentEmail,
-			"send_reminder_email" => EventType.SentReminderEmail,
-			"send_sms" => EventType.SentSms,
-			"send_2fa_sms" => EventType.SentTwoFactorSms,
-			"start_form" => EventType.StartedForm,
-			"start_verification" => EventType.StartedVerification,
-			"phone_verified" => EventType.VerifiedPhone,
-			"view_form" => EventType.ViewedForm,
-			_ => EventType.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(EventType.Unknown);
+		}
+
+		return reader.ValueTextEquals("api_complete_form"u8) ? EventType.ApiCompletedForm
+			: reader.ValueTextEquals("bounce_email"u8) ? EventType.BouncedEmail
+			: reader.ValueTextEquals("click_email"u8) ? EventType.ClickedEmail
+			: reader.ValueTextEquals("click_sms"u8) ? EventType.ClickedSms
+			: reader.ValueTextEquals("complete_form"u8) ? EventType.CompletedForm
+			: reader.ValueTextEquals("complete_verification"u8) ? EventType.CompletedVerification
+			: reader.ValueTextEquals("complaint_email"u8) ? EventType.ComplainedEmail
+			: reader.ValueTextEquals("decline_form"u8) ? EventType.DeclinedForm
+			: reader.ValueTextEquals("invite_party"u8) ? EventType.InvitedParty
+			: reader.ValueTextEquals("open_email"u8) ? EventType.OpenedEmail
+			: reader.ValueTextEquals("send_email"u8) ? EventType.SentEmail
+			: reader.ValueTextEquals("send_reminder_email"u8) ? EventType.SentReminderEmail
+			: reader.ValueTextEquals("send_sms"u8) ? EventType.SentSms
+			: reader.ValueTextEquals("send_2fa_sms"u8) ? EventType.SentTwoFactorSms
+			: reader.ValueTextEquals("start_form"u8) ? EventType.StartedForm
+			: reader.ValueTextEquals("start_verification"u8) ? EventType.StartedVerification
+			: reader.ValueTextEquals("phone_verified"u8) ? EventType.VerifiedPhone
+			: reader.ValueTextEquals("view_form"u8) ? EventType.ViewedForm
+			: reader.Unmatched(EventType.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

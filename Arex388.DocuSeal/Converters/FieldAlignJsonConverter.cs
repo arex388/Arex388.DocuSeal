@@ -8,12 +8,16 @@ internal sealed class FieldAlignJsonConverter :
 	public override FieldAlign Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"center" => FieldAlign.Center,
-			"left" => FieldAlign.Left,
-			"right" => FieldAlign.Right,
-			_ => FieldAlign.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(FieldAlign.Unknown);
+		}
+
+		return reader.ValueTextEquals("center"u8) ? FieldAlign.Center
+			: reader.ValueTextEquals("left"u8) ? FieldAlign.Left
+			: reader.ValueTextEquals("right"u8) ? FieldAlign.Right
+			: reader.Unmatched(FieldAlign.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

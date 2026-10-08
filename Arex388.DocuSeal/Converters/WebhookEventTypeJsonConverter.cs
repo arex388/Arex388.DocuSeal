@@ -8,20 +8,24 @@ internal sealed class WebhookEventTypeJsonConverter :
 	public override WebhookEventType Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"form.completed" => WebhookEventType.FormCompleted,
-			"form.declined" => WebhookEventType.FormDeclined,
-			"form.started" => WebhookEventType.FormStarted,
-			"form.viewed" => WebhookEventType.FormViewed,
-			"submission.archived" => WebhookEventType.SubmissionArchived,
-			"submission.completed" => WebhookEventType.SubmissionCompleted,
-			"submission.created" => WebhookEventType.SubmissionCreated,
-			"submission.expired" => WebhookEventType.SubmissionExpired,
-			"template.archived" => WebhookEventType.TemplateArchived,
-			"template.created" => WebhookEventType.TemplateCreated,
-			"template.updated" => WebhookEventType.TemplateUpdated,
-			_ => WebhookEventType.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(WebhookEventType.Unknown);
+		}
+
+		return reader.ValueTextEquals("form.completed"u8) ? WebhookEventType.FormCompleted
+			: reader.ValueTextEquals("form.declined"u8) ? WebhookEventType.FormDeclined
+			: reader.ValueTextEquals("form.started"u8) ? WebhookEventType.FormStarted
+			: reader.ValueTextEquals("form.viewed"u8) ? WebhookEventType.FormViewed
+			: reader.ValueTextEquals("submission.archived"u8) ? WebhookEventType.SubmissionArchived
+			: reader.ValueTextEquals("submission.completed"u8) ? WebhookEventType.SubmissionCompleted
+			: reader.ValueTextEquals("submission.created"u8) ? WebhookEventType.SubmissionCreated
+			: reader.ValueTextEquals("submission.expired"u8) ? WebhookEventType.SubmissionExpired
+			: reader.ValueTextEquals("template.archived"u8) ? WebhookEventType.TemplateArchived
+			: reader.ValueTextEquals("template.created"u8) ? WebhookEventType.TemplateCreated
+			: reader.ValueTextEquals("template.updated"u8) ? WebhookEventType.TemplateUpdated
+			: reader.Unmatched(WebhookEventType.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

@@ -17,6 +17,7 @@
 	<ItemGroup>
 		<Compile Include="..\TestData\MockHttpMessageHandler.cs" Link="MockHttpMessageHandler.cs" />
 		<None Include="..\TestData\Responses\*.json" Link="Responses\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\TestData\Spec\webhook-*.json" Link="Spec\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

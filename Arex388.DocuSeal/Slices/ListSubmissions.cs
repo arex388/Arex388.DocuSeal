@@ -1,5 +1,6 @@
 ﻿using Arex388.DocuSeal.Converters;
 using FluentValidation;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using static Arex388.DocuSeal.ListSubmissions;
 
@@ -68,44 +69,43 @@ public static class ListSubmissions {
 
 		private static string GetEndpoint(
 			Request request) {
-			var parameters = new HashSet<string> {
-				$"limit={request.Take}"
-			};
+			//	The parameters are appended in a fixed order to a cached builder, with no intermediate set, list or join.
+			var endpoint = StringBuilderCache.Acquire().Append("submissions?limit=").Append(request.Take);
 
 			if (request.Folder.HasValue()) {
-				parameters.Add($"template_folder={Uri.EscapeDataString(request.Folder)}");
+				endpoint.Append("&template_folder=").Append(Uri.EscapeDataString(request.Folder));
 			}
 
 			if (request.Search.HasValue()) {
-				parameters.Add($"q={Uri.EscapeDataString(request.Search)}");
+				endpoint.Append("&q=").Append(Uri.EscapeDataString(request.Search));
 			}
 
 			if (request.TemplateId.HasValue) {
-				parameters.Add($"template_id={request.TemplateId}");
+				endpoint.Append("&template_id=").Append(request.TemplateId.Value.Value.ToString(CultureInfo.InvariantCulture));
 			}
 
 			if (request.Status.HasValue) {
-				parameters.Add($"status={SubmissionStatusJsonConverter.GetToken(request.Status.Value)}");
+				endpoint.Append("&status=").Append(SubmissionStatusJsonConverter.GetToken(request.Status.Value));
 			}
 
 			if (request.Slug.HasValue()) {
-				parameters.Add($"slug={Uri.EscapeDataString(request.Slug)}");
+				endpoint.Append("&slug=").Append(Uri.EscapeDataString(request.Slug));
 			}
 
 			if (request.IsArchived.HasValue) {
 				//	Lowercase literals: the API silently ignores archived=True (#1).
-				parameters.Add(request.IsArchived.Value ? "archived=true" : "archived=false");
+				endpoint.Append(request.IsArchived.Value ? "&archived=true" : "&archived=false");
 			}
 
 			if (request.After.HasValue) {
-				parameters.Add($"after={request.After}");
+				endpoint.Append("&after=").Append(request.After.Value.Value.ToString(CultureInfo.InvariantCulture));
 			}
 
 			if (request.Before.HasValue) {
-				parameters.Add($"before={request.Before}");
+				endpoint.Append("&before=").Append(request.Before.Value.Value.ToString(CultureInfo.InvariantCulture));
 			}
 
-			return $"submissions?{parameters.StringJoin("&")}";
+			return StringBuilderCache.GetStringAndRelease(endpoint);
 		}
 	}
 

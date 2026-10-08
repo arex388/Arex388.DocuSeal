@@ -8,12 +8,16 @@ internal sealed class FieldFontTypeJsonConverter :
 	public override FieldFontType Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"bold" => FieldFontType.Bold,
-			"bold_italic" => FieldFontType.BoldItalic,
-			"italic" => FieldFontType.Italic,
-			_ => FieldFontType.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(FieldFontType.Unknown);
+		}
+
+		return reader.ValueTextEquals("bold"u8) ? FieldFontType.Bold
+			: reader.ValueTextEquals("bold_italic"u8) ? FieldFontType.BoldItalic
+			: reader.ValueTextEquals("italic"u8) ? FieldFontType.Italic
+			: reader.Unmatched(FieldFontType.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

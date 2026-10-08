@@ -8,12 +8,16 @@ internal sealed class FieldFontJsonConverter :
 	public override FieldFont Read(
 		ref Utf8JsonReader reader,
 		Type typeToConvert,
-		JsonSerializerOptions options) => reader.GetString() switch {
-			"Courier" => FieldFont.Courier,
-			"Helvetica" => FieldFont.Helvetica,
-			"Times" => FieldFont.Times,
-			_ => FieldFont.Unknown
-		};
+		JsonSerializerOptions options) {
+		if (reader.TokenType != JsonTokenType.String) {
+			return reader.Unmatched(FieldFont.Unknown);
+		}
+
+		return reader.ValueTextEquals("Courier"u8) ? FieldFont.Courier
+			: reader.ValueTextEquals("Helvetica"u8) ? FieldFont.Helvetica
+			: reader.ValueTextEquals("Times"u8) ? FieldFont.Times
+			: reader.Unmatched(FieldFont.Unknown);
+	}
 
 	public override void Write(
 		Utf8JsonWriter writer,

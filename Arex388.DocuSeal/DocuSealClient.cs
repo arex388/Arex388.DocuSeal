@@ -3,6 +3,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -37,6 +38,8 @@ internal sealed class DocuSealClient(
 	/// The serializer options every request and response goes through, shared with <see cref="DocuSealWebhook"/> so webhook payloads bind exactly as API responses do.
 	/// </summary>
 	internal static JsonSerializerOptions SerializerOptions => _jsonSerializerOptions;
+
+	private static readonly UTF8Encoding _strictUtf8 = new(false, true);
 
 	private readonly IValidator<ArchiveSubmission.Request> _archiveSubmissionRequestValidator = services.GetRequiredService<IValidator<ArchiveSubmission.Request>>();
 	private readonly IValidator<ArchiveTemplate.Request> _archiveTemplateRequestValidator = services.GetRequiredService<IValidator<ArchiveTemplate.Request>>();
@@ -336,29 +339,57 @@ internal sealed class DocuSealClient(
 	/// each carrying its own. An error arrives as a single object with an
 	/// <c>error</c> member. Anything else is not a usable body and maps to
 	/// <c>Failed</c>: an empty array, an array with a null element, an object
-	/// without a non-empty <c>error</c> string, or a scalar.
+	/// without a non-empty <c>error</c> string, or a scalar. The first token
+	/// decides the shape, so an array is deserialized once, without a
+	/// <see cref="JsonDocument"/>; in an object the last <c>error</c> member wins,
+	/// as with <see cref="JsonElement.TryGetProperty(string, out JsonElement)"/>.
 	/// </summary>
 	private static CreatedSubmitters? DeserializeCreatedSubmitters(
-		string content) {
-		using var document = JsonDocument.Parse(content);
+		ReadOnlyMemory<byte> content) {
+		var reader = new Utf8JsonReader(content.Span);
 
-		var root = document.RootElement;
+		reader.Read();
 
-		switch (root.ValueKind) {
-			case JsonValueKind.Array:
-				var submitters = root.Deserialize<IList<Submitter>>(_jsonSerializerOptions);
+		switch (reader.TokenType) {
+			case JsonTokenType.StartArray:
+				var submitters = JsonSerializer.Deserialize<IList<Submitter>>(content.Span, _jsonSerializerOptions);
 
 				return submitters is { Count: > 0 }
 					   && submitters.All(s => s is not null)
 					? new CreatedSubmitters(submitters, null)
 					: null;
-			case JsonValueKind.Object:
-				if (!root.TryGetProperty("error", out var error)
-					|| error.ValueKind != JsonValueKind.String) {
+			case JsonTokenType.StartObject:
+				//	Only the last error member's position is kept, and only that one is decoded after the scan, so an earlier
+				//	occurrence that cannot be decoded does not hide the last one, as with JsonElement.TryGetProperty.
+				var errorStart = -1L;
+
+				while (reader.Read()
+					   && reader.TokenType == JsonTokenType.PropertyName) {
+					var isError = reader.ValueTextEquals("error"u8);
+
+					reader.Read();
+
+					if (isError) {
+						errorStart = reader.TokenType == JsonTokenType.String
+							? reader.TokenStartIndex
+							: -1L;
+					}
+
+					reader.Skip();
+				}
+
+				//	The loop ends on the root's closing brace; anything after it but whitespace throws, which is Failed.
+				reader.Read();
+
+				if (errorStart < 0) {
 					return null;
 				}
 
-				var message = error.GetString();
+				var errorReader = new Utf8JsonReader(content.Span.Slice((int)errorStart));
+
+				errorReader.Read();
+
+				var message = errorReader.GetString();
 
 				return message.HasValue()
 					? new CreatedSubmitters([], message)
@@ -376,7 +407,76 @@ internal sealed class DocuSealClient(
 		Func<TPayload, TResponse> success,
 		CancellationToken cancellationToken)
 		where TPayload : class
-		where TResponse : ResponseBase<TResponse>, new() => SendAsync(method, endpoint, body, static content => JsonSerializer.Deserialize<TPayload>(content, _jsonSerializerOptions), error, success, cancellationToken);
+		where TResponse : ResponseBase<TResponse>, new() => SendAsync(method, endpoint, body, static content => JsonSerializer.Deserialize<TPayload>(content.Span, _jsonSerializerOptions), error, success, cancellationToken);
+
+	/// <summary>
+	/// Reads the whole response body as UTF-8 bytes for the serializer, without
+	/// first decoding it to a string, when it is declared or detected as UTF-8 and
+	/// is valid UTF-8: no charset or a <c>utf-8</c> charset, no UTF-16 or UTF-32
+	/// byte order mark, and no invalid byte sequence. A UTF-8 byte order mark is
+	/// skipped. For a valid UTF-8 body these bytes are exactly what decoding and
+	/// re-encoding would produce, so the outcome is unchanged. Returns
+	/// <see langword="null"/> when the body must be decoded through
+	/// <see cref="ReadDecodedContentAsync"/> instead, which substitutes U+FFFD for
+	/// invalid bytes as the client always has; validating up front matters because
+	/// free-form members (<c>JsonObject</c>, <c>JsonElement</c>) bind raw bytes
+	/// lazily and would otherwise fail only when a consumer reads them.
+	/// </summary>
+	private static async Task<ReadOnlyMemory<byte>?> ReadUtf8ContentAsync(
+		HttpContent content) {
+		var charSet = content.Headers.ContentType?.CharSet;
+
+		if (charSet is not null
+			&& !IsUtf8(charSet)) {
+			return null;
+		}
+
+		var bytes = await content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+		var start = bytes switch {
+			[0xEF, 0xBB, 0xBF, ..] => 3,
+			[0xFE, 0xFF, ..] or [0xFF, 0xFE, ..] or [0x00, 0x00, 0xFE, 0xFF, ..] => -1,
+			_ => 0
+		};
+
+		if (start < 0) {
+			return null;
+		}
+
+		//	GetCharCount validates without allocating; the strict encoding throws on the first invalid sequence.
+		try {
+			_strictUtf8.GetCharCount(bytes, start, bytes.Length - start);
+		} catch (DecoderFallbackException) {
+			return null;
+		}
+
+		return bytes.AsMemory(start);
+	}
+
+	/// <summary>
+	/// Decodes the body exactly as the client always has, through
+	/// <c>ReadAsStringAsync</c> (its charset, its byte order mark detection, and
+	/// replacement characters for invalid bytes; it throws for a charset it does
+	/// not know), and re-encodes it as UTF-8 for the serializer.
+	/// </summary>
+	private static async Task<ReadOnlyMemory<byte>> ReadDecodedContentAsync(
+		HttpContent content) {
+		var text = await content.ReadAsStringAsync().ConfigureAwait(false);
+
+		return Encoding.UTF8.GetBytes(text);
+	}
+
+	//	Unquoted the way ReadAsStringAsync unquotes a charset: at most one pair of surrounding quotes.
+	private static bool IsUtf8(
+		string charSet) {
+		if (charSet.Length > 2
+			&& charSet[0] == '"'
+			&& charSet[charSet.Length - 1] == '"') {
+			charSet = charSet.Substring(1, charSet.Length - 2);
+		}
+
+		return string.Equals(charSet, "utf-8", StringComparison.OrdinalIgnoreCase);
+	}
 
 	/// <summary>
 	/// Sends one request and maps the body onto the no-throw response contract.
@@ -390,7 +490,7 @@ internal sealed class DocuSealClient(
 		HttpMethod method,
 		string endpoint,
 		object? body,
-		Func<string, TPayload?> deserialize,
+		Func<ReadOnlyMemory<byte>, TPayload?> deserialize,
 		Func<TPayload, string?> error,
 		Func<TPayload, TResponse> success,
 		CancellationToken cancellationToken)
@@ -405,8 +505,11 @@ internal sealed class DocuSealClient(
 
 			using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-			var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-			var payload = deserialize(content);
+			var utf8Content = await ReadUtf8ContentAsync(response.Content).ConfigureAwait(false);
+
+
+			//	A valid UTF-8 body binds from its bytes; anything else is decoded as before, invalid bytes becoming U+FFFD.
+			var payload = deserialize(utf8Content ?? await ReadDecodedContentAsync(response.Content).ConfigureAwait(false));
 
 			if (payload is null) {
 				return ResponseBase<TResponse>.Failed;
